@@ -1,0 +1,38 @@
+[
+    {
+      "title": "Soirée Resto Tropical Vibes",
+      "date": "27",
+      "month": "Mars",
+      "startTime": "21:00",
+      "endTime": "03:00",
+      "category": "Sorties & Soirées",
+      "participants": 12,
+      "maxParticipants": 30,
+      "image": "assets/images/events1.jpeg",
+      "isFavorite": false
+    },
+    {
+      "title": "Brunch Time",
+      "date": "06",
+      "month": "Avril",
+      "startTime": "16:00",
+      "endTime": "20:00",
+      "category": "Sorties & Soirées",
+      "participants": 5,
+      "maxParticipants": 20,
+      "image": "assets/images/events2.jpeg",
+      "isFavorite": false
+    },
+    {
+      "title": "Beach Party",
+      "date": "15",
+      "month": "Avril",
+      "startTime": "14:00",
+      "endTime": "22:00",
+      "category": "Sorties & Soirées",
+      "participants": 8,
+      "maxParticipants": 25,
+      "image": "assets/images/events3.jpeg",
+      "isFavorite": false
+    }
+  ]

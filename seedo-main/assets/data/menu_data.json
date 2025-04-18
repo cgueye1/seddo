@@ -1,0 +1,105 @@
+{
+    "categories": {
+      "Petit'dej\n": [
+      
+        {
+          "title": "Café & Croissants",
+          "restaurant": "Boulangerie Moderne",
+          "description": "Offre du matin: un café et deux croissants à prix réduit!",
+          "image": "assets/images/cafe-pain.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.5 km",
+          "type": "Petit'dej\n"
+        }
+      ],
+      "Déjeuner\n": [
+        {
+          "title": "Thieboudienne du jour",
+          "restaurant": "Chez Aminata",
+          "description": "Hello tout le monde ! 👋 Aujourd’hui, j’ai préparé un délicieux Thiebou Dieune 🍛, mais j’en ai fait un peu trop… Plutôt que de le laisser se perdre, je préfère le partager avec vous ! ❤️ \nC'est une portion généreuse, parfaite pour 4 à 5 personnes. Idéal pour un repas en famille ou entre amis.Pour en bénéficier vous pouvez m’envoyer un message directement via l’application ou appuyez sur le bouton “ Réserver le repas” ",
+          "image": "assets/images/thieboudjieune.jpeg",
+          "publishedTime": "50 mins",
+          "distance": "0.2 km",
+          "type": "Déjeuner\n"
+        },
+        {
+          "title": "Yassa poulet",
+          "restaurant": "Le Baobab",
+          "description": "Poulet mariné et grillé accompagné de riz et sauce aux oignons.",
+          "image": "assets/images/yassa.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.4 km",
+          "type": "Déjeuner\n"
+        },
+        {
+          "title": "Paella",
+          "restaurant": "Restaurant La Terrasse",
+          "description": "Plat du jour avec entrée, dessert et boisson inclus.",
+          "image": "assets/images/payla.jpeg",
+          "publishedTime": "50 mins",
+          "distance": "0.6 km",
+          "type": "Déjeuner\n"
+        }
+      ],
+      "Snacks\n": [
+        {
+          "title": "Assortiment de pastels",
+          "restaurant": "Snack Corner",
+          "description": "Pastels de viande, de poisson et aux légumes, servis avec une sauce piquante.",
+          "image": "assets/images/petitfour.png",
+          "publishedTime": "50 mins",
+          "distance": "0.3 km",
+          "type": "Snacks\n"
+        },
+        {
+          "title": "Accras de poisson",
+          "restaurant": "Le Petit Snack",
+          "description": "Beignets de poisson croustillants, servis par 6 pièces.",
+          "image": "assets/images/accras.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.7 km",
+          "type": "Snacks\n"
+        }
+      ],
+      "Fruits\n& Legumes": [
+        {
+          "title": "Panier de fruits frais",
+          "restaurant": "Marché Bio",
+          "description": "Assortiment de fruits locaux et de saison, fraîchement cueillis.",
+          "image": "assets/images/fruits.png",
+          "publishedTime": "50 mins",
+          "distance": "0.4 km",
+          "type": "Fruits\n& Legumes"
+        },
+        {
+          "title": "Salade composée",
+          "restaurant": "Healthy Corner",
+          "description": "Salade fraîche avec légumes, œufs et avocat.",
+          "image": "assets/images/salades.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.5 km",
+          "type": "Fruits\n& Legumes"
+        }
+      ],
+      "Boissons\n& Jus": [
+        {
+          "title": "Bissap traditionnel",
+          "restaurant": "Jus & Délices",
+          "description": "Boisson rafraîchissante à base de fleurs d'hibiscus.",
+          "image": "assets/images/bissap.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.2 km",
+          "type": "Boissons\n& Jus"
+        },
+        {
+          "title": "Jus de fruits frais",
+          "restaurant": "Fresh Bar",
+          "description": "Différents jus pressés sur place: orange, papaye, ananas, etc.",
+          "image": "assets/images/jus-fruits.jpg",
+          "publishedTime": "50 mins",
+          "distance": "0.3 km",
+          "type": "Boissons\n& Jus"
+        }
+      ]
+    }
+  }
