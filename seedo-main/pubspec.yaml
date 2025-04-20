@@ -48,6 +48,9 @@ dependencies:
   intl: ^0.20.2
   timeago: ^3.2.2
   url_launcher: ^6.3.1
+  flutter_typeahead: ^5.2.0
+  webview_flutter: ^4.11.0
+  webview_flutter_android: ^4.4.1
   
 flutter_localizations:
     sdk: flutter
@@ -114,6 +117,7 @@ flutter:
     - assets/images/yassa.jpg
 
     #icons
+    - assets/icons/
     - assets/icons/groceries.png
     - assets/icons/juice.png
     - assets/icons/noodle.png
@@ -142,6 +146,7 @@ flutter:
     - assets/icons/profil.png
     - assets/icons/discuss.png
     - assets/icons/plat.png
+    - assets/transit/
 
     #Date for JSON
     - assets/data/events.json

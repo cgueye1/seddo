@@ -33,27 +33,54 @@ class HomePage extends StatelessWidget {
                 ..add(LoadCurrentUser())
                 ..add(LoadCategories())
                 ..add(const LoadCurrentLocation()),
-      child: const _HomePageContent(),
+      child:
+
+      const _HomePageContent(),
     );
   }
 }
 
 // Separate stateless widget to use the provided HomeBloc
-class _HomePageContent extends StatelessWidget {
+class _HomePageContent extends StatefulWidget {
   const _HomePageContent();
 
+  @override
+  State<_HomePageContent> createState() => _HomePageContentState();
+}
+
+class _HomePageContentState extends State<_HomePageContent> {
+  bool _hasLoadedInitialPublications = false;
+
   static final tabIndicatorWidth = 120.0;
+
 
   @override
   Widget build(BuildContext context) {
     // Now we can safely access the HomeBloc from the context
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
+
+
+
+        if (!  state.hasLoadedInitialPublications &&
+            state.currentLatitude != null &&
+            state.currentLongitude != null &&
+            state.publications.isEmpty &&
+            !state.isLoadingPublications &&
+            state.publicationsError == null) {
+          _hasLoadedInitialPublications = true;
+
+          _loadNearbyPublications(context, state);
+        }
+
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
           bottomNavigationBar: _buildBottomNavigationBar(context, state),
-          body: SafeArea(
+          body: state .currentNavigationIndex==3?
+          Container()
+              :
+            SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.only(top: 20),
               child: Column(
@@ -345,7 +372,7 @@ class _HomePageContent extends StatelessWidget {
             if (state.publications.isEmpty &&
                 !state.isLoadingPublications &&
                 state.publicationsError == null) {
-              _loadNearbyPublications(context, state);
+          //  _loadNearbyPublications(context, state);
             }
 
             // Afficher la section des publications
@@ -384,6 +411,10 @@ class _HomePageContent extends StatelessWidget {
 
   // Méthode pour charger les publications à proximité
   void _loadNearbyPublications(BuildContext context, HomeState state) {
+    if (state.hasLoadedInitialPublications ) {
+      return; // Ne pas recharger si c'est déjà fait
+    }
+
     if (state.currentLatitude != null && state.currentLongitude != null) {
       context.read<HomeBloc>().add(
         LoadNearbyPublications(

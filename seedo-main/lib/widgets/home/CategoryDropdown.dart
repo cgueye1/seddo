@@ -46,6 +46,8 @@ class CategoryDropdown extends StatelessWidget {
                       label: "Tout",
                       isSelected: state.selectedCategory == null,
                       onTap: () {
+                        context.read<HomeBloc>().add(const ResetInitialPublicationsFlag());
+
                         context.read<HomeBloc>().add(
                           const CategoryChanged(category: null),
                         );
@@ -121,14 +123,12 @@ class CategoryDropdown extends StatelessWidget {
       ),
     );
   }
-
   Widget _buildSubcategoriesSection(BuildContext context, HomeState state) {
     final selectedCategoryId = state.selectedCategory?.id;
     final subcategories =
-        selectedCategoryId != null
-            ? state.subcategories[selectedCategoryId] ?? []
-            : [];
+    selectedCategoryId != null ? state.subcategories[selectedCategoryId] ?? [] : [];
     final selectedSubcategory = state.selectedSubcategory;
+    print(state.selectedSubcategoryId);
 
     if (subcategories.isEmpty) return const SizedBox.shrink();
 
@@ -139,78 +139,67 @@ class CategoryDropdown extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children:
-              subcategories.map((subcategory) {
-                final isSelected = selectedSubcategory?.id == subcategory.id;
+          children: subcategories.map((subcategory) {
+            final isSelected = state.selectedSubcategoryId == subcategory.id;
 
-                return Container(
-                  width: 90,
-                  margin: const EdgeInsets.only(right: 10.0),
-                  child: GestureDetector(
-                    onTap: () {
-                      final isCurrentlySelected =
-                          selectedSubcategory?.id == subcategory.id;
 
-                      // Envoyer l'événement de filtrage par sous-catégorie
-                      context.read<HomeBloc>().add(
-                        FilterPublicationsBySubcategory(
-                          isCurrentlySelected ? null : subcategory.id,
+
+            return Container(
+              width: 90,
+              margin: const EdgeInsets.only(right: 10.0),
+              child: GestureDetector(
+                onTap: () {
+
+                  context.read<HomeBloc>().add(
+                    FilterPublicationsBySubcategory(subcategory.id),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 65,
+                        height: 69,
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color.fromARGB(222, 213, 72, 1)
+                              : Colors.grey.shade100,
+                          shape: BoxShape.circle,
                         ),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(4.0),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Modifier le conteneur pour utiliser un fond orange lorsqu'il est sélectionné
-                          Container(
-                            width: 65,
-                            height: 69,
-                            decoration: BoxDecoration(
-                              color:
-                                  isSelected
-                                      ? const Color.fromARGB(
-                                        222,
-                                        213,
-                                        72,
-                                        1,
-                                      ) // Fond orange pour les sous-catégories sélectionnées
-                                      : Colors.grey.shade100,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Center(
-                              child: _buildSubcategoryIcon(subcategory),
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            width: 80,
-                            child: Text(
-                              subcategory.titre,
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color:
-                                    isSelected
-                                        ? const Color.fromARGB(222, 213, 72, 1)
-                                        : Colors.black87,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                        child: Center(
+                          child: _buildSubcategoryIcon(subcategory),
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 6),
+                      SizedBox(
+                        width: 80,
+                        child: Text(
+                          subcategory.titre,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isSelected
+                                ? const Color.fromARGB(222, 213, 72, 1)
+                                : Colors.black87,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              }).toList(),
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
   }
+
 
   Widget _buildSubcategoryIcon(dynamic subcategory) {
     if (subcategory.icon != null && subcategory.icon.isNotEmpty) {

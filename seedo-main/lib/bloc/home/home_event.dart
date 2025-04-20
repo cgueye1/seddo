@@ -6,7 +6,19 @@ abstract class HomeEvent extends Equatable {
 
   @override
   List<Object?> get props => []; // Changed to Object? to handle nulls
+
+
 }
+
+class UpdateSelectedSubcategory extends HomeEvent {
+  final CategorieModel subcategory;
+
+  const UpdateSelectedSubcategory(this.subcategory);
+
+  @override
+  List<Object?> get props => [subcategory];
+}
+
 
 class InitializeHomeEvent extends HomeEvent {
   const InitializeHomeEvent();
@@ -215,4 +227,18 @@ class SearchPublications extends HomeEvent {
     if (keyword != null) keyword!,
     if (categoryId != null) categoryId!,
   ];
+
+
+
+
+
+}
+
+
+
+class ResetInitialPublicationsFlag extends HomeEvent {
+  const ResetInitialPublicationsFlag();
+
+  @override
+  List<Object?> get props => [];
 }

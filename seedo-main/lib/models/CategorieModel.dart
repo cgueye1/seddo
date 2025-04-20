@@ -55,4 +55,5 @@ class CategorieModel {
   static List<CategorieModel> fromJsonList(List<dynamic> list) {
     return list.map((item) => CategorieModel.fromJson(item)).toList();
   }
+
 }

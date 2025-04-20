@@ -54,6 +54,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
 
+
+    //updateSubCategorie
+    on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
+
+    on<ResetInitialPublicationsFlag>(_onResetInitialPublicationsFlag);
+
+
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
   }
@@ -130,6 +137,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadNearbyPublications event,
     Emitter<HomeState> emit,
   ) async {
+    print("sdsd");
     // Ne pas bloquer les chargements normaux lorsque la recherche est désactivée
     if (searchManager.blockAutoRefresh &&
         searchManager.isSearchActive &&
@@ -277,49 +285,52 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onFilterPublicationsBySubcategory(
-    FilterPublicationsBySubcategory event,
-    Emitter<HomeState> emit,
-  ) async {
-    // Conservez la catégorie parent actuellement sélectionnée
+      FilterPublicationsBySubcategory event,
+      Emitter<HomeState> emit,
+      ) async {
     final currentCategory = state.selectedCategory;
-    final currentCategoryId = state.selectedCategoryId;
+    final currentCategoryId = currentCategory!.id;
 
-    // Vérifier si nous cliquons sur la même sous-catégorie (pour désélectionner)
     final int? newSubcategoryId =
-        (state.selectedSubcategoryId == event.subcategoryId)
-            ? null
-            : event.subcategoryId;
+    (state.selectedSubcategoryId == event.subcategoryId)
+        ? null
+        : event.subcategoryId;
 
-    // Rechercher la sous-catégorie pour l'affichage
     CategorieModel? selectedSubcategory;
+
+    // Vérification et mise à jour de la sous-catégorie
     if (newSubcategoryId != null && currentCategoryId != null) {
       final subcategories = state.subcategories[currentCategoryId] ?? [];
-      for (var subcat in subcategories) {
-        if (subcat.id == newSubcategoryId) {
-          selectedSubcategory = subcat;
-          break;
-        }
+
+      selectedSubcategory = subcategories.firstWhere(
+            (subcat) => subcat.id == newSubcategoryId,
+       // orElse: () => null, // Renvoie null si aucune correspondance
+      );
+
+      // Affichage dans la console
+      if (selectedSubcategory != null) {
+        print("Sous-catégorie sélectionnée: ${selectedSubcategory.id}");
+      } else {
+        print("Sous-catégorie non trouvée pour l'ID: $newSubcategoryId");
       }
     }
 
-    // Mettre à jour l'état en CONSERVANT la catégorie parent
-    emit(
-      state.copyWith(
-        selectedCategory: currentCategory,
-        selectedCategoryId: currentCategoryId,
-        selectedSubcategoryId: newSubcategoryId,
-        selectedSubcategory: selectedSubcategory,
-        publications: [], // Réinitialiser les publications
-        hasReachedMax: false,
-        isLoadingPublications: true,
-      ),
-    );
 
-    if (state.currentLatitude != null && state.currentLongitude != null) {
-      try {
-        print(
-          "Chargement des publications avec: categoryId=$currentCategoryId, subcategoryId=$newSubcategoryId",
-        );
+
+    // Émettre le nouvel état avec la mise à jour
+    emit(state.copyWith(
+      selectedCategory: currentCategory,
+      selectedCategoryId: currentCategoryId,
+      selectedSubcategory: selectedSubcategory ?? state.selectedSubcategory, // Si null, utiliser l'ancienne valeur
+      selectedSubcategoryId: newSubcategoryId,
+      publications: [],
+      hasReachedMax: false,
+      isLoadingPublications: true,
+      hasLoadedInitialPublications: true,
+    ));
+
+    try {
+      if (state.currentLatitude != null && state.currentLongitude != null) {
         final publications = await _publicationRepository.getNearbyPublications(
           latitude: state.currentLatitude!,
           longitude: state.currentLongitude!,
@@ -327,34 +338,26 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           subcategoryId: newSubcategoryId,
         );
 
-        // Vérifier que les publications ont été correctement filtrées
-        print("Publications chargées: ${publications.length}");
+        print(publications);
 
-        emit(
-          state.copyWith(
-            publications: publications,
-            isLoadingPublications: false,
-            selectedCategory: currentCategory,
-            selectedCategoryId: currentCategoryId,
-            selectedSubcategory: selectedSubcategory,
-            selectedSubcategoryId: newSubcategoryId,
-          ),
-        );
-      } catch (e) {
-        print("Erreur de chargement des publications: $e");
-        emit(
-          state.copyWith(
-            isLoadingPublications: false,
-            publicationsError: e.toString(),
-            selectedCategory: currentCategory,
-            selectedCategoryId: currentCategoryId,
-            selectedSubcategory: selectedSubcategory,
-            selectedSubcategoryId: newSubcategoryId,
-          ),
-        );
+        emit(state.copyWith(
+          publications: publications,
+          isLoadingPublications: false,
+          selectedSubcategoryId: newSubcategoryId,
+          selectedCategory: currentCategory,
+          selectedCategoryId: currentCategoryId,
+          hasLoadedInitialPublications: true,
+        ));
       }
+    } catch (e) {
+      print("Erreur: $e");
+      emit(state.copyWith(
+        isLoadingPublications: false,
+        publicationsError: e.toString(),
+      ));
     }
   }
+
 
   Future<void> _onFilterPublicationsByCategory(
     FilterPublicationsByCategory event,
@@ -628,4 +631,24 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ),
     );
   }
+
+
+
+
+
+  void _onUpdateSelectedSubcategory(
+      UpdateSelectedSubcategory event,
+      Emitter<HomeState> emit,
+      ) {
+    emit(state.copyWith(selectedSubcategory: event.subcategory));
+  }
+
+
+  void _onResetInitialPublicationsFlag(
+      ResetInitialPublicationsFlag event,
+      Emitter<HomeState> emit,
+      ) {
+    emit(state.copyWith(hasLoadedInitialPublications: false,publications: []));
+  }
+
 }

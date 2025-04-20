@@ -31,6 +31,7 @@ class HomeState extends Equatable {
   final int? selectedSubcategoryId;
   final String? lastSearchKeyword;
   final bool isSearching;
+  final bool hasLoadedInitialPublications;
 
   const HomeState({
     this.selectedTabIndex = 0,
@@ -58,6 +59,7 @@ class HomeState extends Equatable {
     this.selectedSubcategoryId,
     this.lastSearchKeyword,
     this.isSearching = false,
+    this.hasLoadedInitialPublications= false,
   });
 
   factory HomeState.initial() {
@@ -84,6 +86,7 @@ class HomeState extends Equatable {
       hasReachedMax: false,
       lastSearchKeyword: '',
       isSearching: false,
+      hasLoadedInitialPublications: false,
     );
   }
 
@@ -113,6 +116,8 @@ class HomeState extends Equatable {
     int? selectedSubcategoryId,
     String? lastSearchKeyword,
     bool? isSearching,
+    bool? hasLoadedInitialPublications
+
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
@@ -142,6 +147,8 @@ class HomeState extends Equatable {
           selectedSubcategoryId ?? this.selectedSubcategoryId,
       lastSearchKeyword: lastSearchKeyword ?? this.lastSearchKeyword,
       isSearching: isSearching ?? this.isSearching,
+      hasLoadedInitialPublications: hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
+
     );
   }
 
@@ -171,5 +178,6 @@ class HomeState extends Equatable {
     selectedSubcategoryId,
     lastSearchKeyword,
     isSearching,
+    hasLoadedInitialPublications
   ];
 }
