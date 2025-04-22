@@ -1,0 +1,22 @@
+<resources>
+    <!-- Notification channel name and description -->
+    <string name="default_notification_channel_id">default_channel</string>
+    <string name="default_notification_channel_name">Default Notifications</string>
+    <string name="default_notification_channel_description">This channel is used for general notifications</string>
+
+    <!-- App related strings -->
+    <string name="app_name">Seddo</string>
+
+    <!-- Permissions strings -->
+    <string name="permission_location">Location Permission</string>
+    <string name="permission_vibrate">Vibration Permission</string>
+    <string name="permission_internet">Internet Permission</string>
+
+    <!-- Notification related strings -->
+    <string name="notification_title">Seddo Notification</string>
+    <string name="notification_body">You have a new message or update in Seddo</string>
+
+    <!-- Firebase related strings -->
+    <string name="fcm_token_message">FCM Token: </string>
+
+</resources>

@@ -1,6 +1,7 @@
 import 'dart:convert';
 
-import 'package:solimus_vefa/models/ShopModel.dart';
+import 'ShopModel.dart';
+
 
 
 

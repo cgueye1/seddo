@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
+import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
 import 'package:seddoapp/services/api_service.dart';
@@ -78,7 +79,7 @@ class _HomePageContentState extends State<_HomePageContent> {
           // Ajout de la barre de navigation fixe en bas
           bottomNavigationBar: _buildBottomNavigationBar(context, state),
           body: state .currentNavigationIndex==3?
-          Container()
+         TransportCommun()
               :
             SafeArea(
             child: SingleChildScrollView(
@@ -140,6 +141,8 @@ class _HomePageContentState extends State<_HomePageContent> {
         isSelected
             ? imagePath.replaceFirst('.png', '_selected.png')
             : imagePath;
+    final Color iconColor = isSelected ? HexColor("#D95C18") : Colors.grey;
+
 
     return InkWell(
       onTap:
@@ -157,9 +160,10 @@ class _HomePageContentState extends State<_HomePageContent> {
               height: iconSize,
               child: Center(
                 child: Image.asset(
-                  displayImagePath,
+                  imagePath,
                   width: iconSize,
                   height: iconSize,
+                  color: iconColor ,
                   fit:
                       BoxFit
                           .contain, // Force l'image à respecter les dimensions

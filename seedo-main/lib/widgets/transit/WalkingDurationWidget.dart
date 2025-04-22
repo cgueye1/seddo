@@ -35,18 +35,24 @@ class WalkingDurationWidget extends StatelessWidget {
   double _degToRad(double deg) {
     return deg * (pi / 180.0);
   }
-
   String getWalkingDuration(double startLat, double startLon, double endLat, double endLon) {
     double distanceKm = calculateDistance(startLat, startLon, endLat, endLon);
 
     const walkingSpeedKmPerHour = 5.0;
-    double estimatedHours = distanceKm / walkingSpeedKmPerHour;
-    double estimatedMinutes = estimatedHours * 60;
+    double estimatedMinutes = (distanceKm / walkingSpeedKmPerHour) * 60;
+
+    String distanceText;
+    if (distanceKm < 1) {
+      int distanceMeters = (distanceKm * 1000).round();
+      distanceText = "$distanceMeters m";
+    } else {
+      distanceText = "${distanceKm.toStringAsFixed(2)} km";
+    }
 
     if (estimatedMinutes > 60) {
-      return "🕗";
+      return "🕗 +1h de marche";
     } else {
-      return "${estimatedMinutes.round()} min";
+      return " $distanceText ┃  ${estimatedMinutes.round()} min";
     }
   }
 

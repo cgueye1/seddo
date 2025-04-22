@@ -1,10 +1,11 @@
 
 
-import '../RouteModel.dart';
-import '../Stop.dart';
-import '../StopTime.dart';
-import '../StopTimeTripUpdate.dart';
-import '../TripModel.dart';
+import 'package:seddoapp/models/transit/RouteModel.dart';
+import 'package:seddoapp/models/transit/Stop.dart';
+import 'package:seddoapp/models/transit/StopTime.dart';
+
+import 'StopTimeTripUpdate.dart';
+import 'TripModel.dart';
 
 class StopTimeResponseModel {
   final RouteModel route;

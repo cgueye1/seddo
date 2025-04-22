@@ -1,15 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:get_it/get_it.dart';
-import 'package:solimus_vefa/screens/timeline/transit_timeline_screen.dart';
-
-import '../data/repository.dart';
-import '../models/transit/PlaceModel.dart';
-import '../utils/HexaColor.dart';
-import '../utils/const.dart';
-import '../widgets/googleMap/DakarSearchWidget.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:seddoapp/utils/HexColor.dart';
+import '../../models/transit/PlaceModel.dart';
+import '../../services/AdMobService.dart';
+import '../../widgets/transit/DakarSearchWidget.dart';
+import 'RouteTimelinePage.dart';
 
 class TransportCommun extends StatefulWidget {
   TransportCommun({Key? key}) : super(key: key);
@@ -30,60 +28,125 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
   PlaceModel? origine;
 
   PlaceModel? destination;
+  bool _isBannerAdReady = false;
 
   @override
   void initState() {
+    _initBannerAd();
     super.initState();
   }
 
+  Future<void> _initBannerAd() async {
+    await AdService().initialize(); // Initialiser le service
+    await AdService().loadBannerAd(AdSize.banner);
+    setState(() {
+      _isBannerAdReady = true;
+    });
+  }
+
+
   @override
   void dispose() {
+    AdService(). bannerDispos();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: Stack(
         children: [
           Positioned(
             top: 90,
             left: 16,
             right: 16,
-            bottom: 0,
-            child: Column(
+            // bottom: 0,
+            child: Stack(
               children: [
-                DakarSearchWidget(
-                  icon: Icon(Icons.circle_outlined),
-                  label: "Origine",
-                  onLocationSelected: (PlaceModel location) {
-                    setState(() {
-                      loading = true;
-                    });
-                    Future.delayed(Duration(seconds: 2), () {
-                      setState(() {
-                        loading = false;
-                        origine = location;
-                      });
-                    });
-                  },
-                ),
-                SizedBox(height: 15),
-                DakarSearchWidget(
-                  icon: Icon(Icons.location_on_sharp),
-                  label: "Destination",
-                  onLocationSelected: (PlaceModel location) {
-                    setState(() {
-                      loading = true;
-                    });
+                Container(
+                  padding: EdgeInsets.only(
+                    left: 10,
+                    right: 10,
+                    top: 20,
+                    bottom: 20,
+                  ),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  // height: 100,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
 
-                    Future.delayed(Duration(seconds: 2), () {
-                      setState(() {
-                        loading = false;
-                        destination = location;
-                      });
-                    });
-                  },
+                    children: [
+                      DakarSearchWidget(
+                        icon: Icon(
+                          Icons.trip_origin_outlined,
+                          color: HexColor("#D9D9D9"),
+                        ),
+                        label: "Origine",
+                        onLocationSelected: (PlaceModel location) {
+                          setState(() {
+                            loading = true;
+                          });
+                          Future.delayed(Duration(seconds: 2), () {
+                            setState(() {
+                              loading = false;
+                              origine = location;
+                            });
+                          });
+                        },
+                      ),
+                      SizedBox(height: 15),
+                      DakarSearchWidget(
+                        icon: Icon(
+                          Icons.location_on_sharp,
+                          color: HexColor("#F52D56"),
+                        ),
+                        label: "Destination",
+                        onLocationSelected: (PlaceModel location) {
+                          setState(() {
+                            loading = true;
+                          });
+
+                          Future.delayed(Duration(seconds: 2), () {
+                            setState(() {
+                              loading = false;
+                              destination = location;
+                            });
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Positioned(
+                  top: 0,
+                  bottom: 0,
+                  right: 35,
+                  child: InkWell(
+                    onTap: () {
+                      if(origine!=null && destination!=null){
+                        PlaceModel backup = origine!;
+                        setState(() {
+                          loading = true;
+                          origine = destination;
+                          destination = backup;
+                        });
+                        Future.delayed(Duration(seconds: 1), () {
+                          setState(() {
+                            loading = false;
+                          });
+                        });
+                      }
+
+                    },
+                    child: SvgPicture.asset("assets/transit/switch.svg"),
+                  ),
                 ),
               ],
             ),
@@ -102,8 +165,9 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                     )
                     : (origine != null && destination != null)
                     ? Container(
+                      color: Colors.white,
                       padding: EdgeInsets.only(bottom: 10),
-                      child: RouteTimeline(
+                      child: RouteTimelinePage(
                         toPlaceDetails: destination,
                         fromPlaceDetails: origine,
                         stopTimeResponse: null,
@@ -120,7 +184,7 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
               height: 80,
               padding: EdgeInsets.only(left: 16, top: 16),
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: HexColor(APIConstants.BLACK)),
+              //  decoration: BoxDecoration(color: Colors.white),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
@@ -131,12 +195,12 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                     child: Row(
                       children: [
                         Text(
-                          "Transports en commun",
+                          "Où alons-nous ?",
                           style: TextStyle(
                             fontSize: 24,
 
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: Colors.black,
                           ),
                         ),
                       ],
@@ -145,6 +209,13 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                 ],
               ),
             ),
+          ),
+          if (_isBannerAdReady)
+          Positioned(
+            bottom: 2,
+            left: 0,
+            right: 0,
+            child: AdService().getBannerAd(),
           ),
         ],
       ),

@@ -57,6 +57,9 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
       final response = await http.get(url, headers: {
         'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)',
       });
+      print("response.body");
+      print(response.body);
+
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -64,15 +67,14 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
         final place = PlaceModel(
           latitude: position.latitude,
           longitude: position.longitude,
-          name: data['name'] ?? data['display_name'] ?? 'Ma position actuelle',
+          name: getLocationName(data),
           address:_formatAddress(data['address']),
         );
 
         _controller.text = place.name;
         widget.onLocationSelected(place);
         FocusScope.of(context).unfocus();
-        print('place.name');
-        print(place.name);
+
 
       } else {
         print('Erreur reverse geocoding : ${response.statusCode}');
@@ -80,6 +82,19 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
     } catch (e) {
       print('Erreur GPS ou reverse geocoding : $e');
     }
+  }
+  String getLocationName(Map<String, dynamic> data) {
+    final name = data['name']?.toString().trim();
+    if (name != null && name.isNotEmpty) {
+      return name;
+    }
+
+    final displayName = data['display_name']?.toString().trim();
+    if (displayName != null && displayName.isNotEmpty) {
+      return displayName;
+    }
+
+    return 'Ma position actuelle';
   }
   static String _formatAddress(Map<String, dynamic>? address) {
     if (address == null) return '';
@@ -155,10 +170,25 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                 labelText: widget.label,
                 hintText: 'Ex: Plateau, Almadies, Sacré Coeur...',
                 prefixIcon: widget.icon,
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(100),
+                //  borderSide: BorderSide(color: Colors.blue),
+                ),
                 filled: true,
                 fillColor: Colors.grey[100],
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 12, // ↓ réduit la hauteur ici
+                  horizontal: 20,
+                ),
               ),
+              style: TextStyle(fontSize: 14),
               onChanged: (text) {
                 if (_debounceTimer?.isActive ?? false) {
                   _debounceTimer?.cancel();
@@ -207,14 +237,14 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
           ),
           loadingBuilder: (context) => Center(child: CircularProgressIndicator()),
         ),
-        if (_controller.text.isNotEmpty)
+      /*  if (_controller.text.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
             child: Text(
               'Recherche limitée à la région de Dakar',
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
-          ),
+          ),*/
       ],
     );
   }
@@ -226,3 +256,4 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
     super.dispose();
   }
 }
+

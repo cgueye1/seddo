@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "966727350695",
+    "project_id": "seddo-32139",
+    "storage_bucket": "seddo-32139.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:966727350695:android:85a5ff869b595b24a6de82",
+        "android_client_info": {
+          "package_name": "com.wakana.seddo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDC41p4Hj9U-SPeiI5oi07bKNp8UhJdjQw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

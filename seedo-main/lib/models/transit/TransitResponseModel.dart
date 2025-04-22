@@ -1,6 +1,6 @@
 
-import '../TransitStopModel.dart';
 import 'TransitRoute.dart';
+import 'TransitStopModel.dart';
 import 'TransitStopTimeModel.dart';
 import 'TransitTripModel.dart';
 
