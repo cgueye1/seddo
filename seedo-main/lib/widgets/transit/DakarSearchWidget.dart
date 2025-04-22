@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:loading_indicator/loading_indicator.dart';
 
 import '../../models/transit/PlaceModel.dart';
 class DakarSearchWidget extends StatefulWidget {
@@ -22,11 +23,15 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   final TextEditingController _controller = TextEditingController();
   Timer? _debounceTimer;
   final Duration _debounceDelay = const Duration(milliseconds: 500);
+  bool positionLoader=false;
 
   static const double dakarLat = 14.7167;
   static const double dakarLon = -17.4677;
   Future<void> _useCurrentLocation() async {
     try {
+      setState(() {
+        positionLoader=true;
+      });
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         await Geolocator.openLocationSettings();
@@ -62,6 +67,9 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
 
       if (response.statusCode == 200) {
+        setState(() {
+          positionLoader=false;
+        });
         final data = json.decode(response.body);
 
         final place = PlaceModel(
@@ -77,9 +85,15 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
 
       } else {
+        setState(() {
+          positionLoader=false;
+        });
         print('Erreur reverse geocoding : ${response.statusCode}');
       }
     } catch (e) {
+      setState(() {
+        positionLoader=false;
+      });
       print('Erreur GPS ou reverse geocoding : $e');
     }
   }
@@ -220,18 +234,41 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
           emptyBuilder: (context) => Padding(
             padding: EdgeInsets.all(16),
             child:Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+
               children: [
                 Text(
                   'Aucun résultat trouvé',
                   style: TextStyle(color: Colors.grey),
                 ),
                 SizedBox(height: 10),
-                ElevatedButton.icon(
+                positionLoader?
+
+              Center(
+                child:   Container(
+                  width: 50,
+
+                  child: LoadingIndicator(
+
+                    indicatorType: Indicator. ballScaleRipple,
+                    colors: const [Colors.orangeAccent],
+                    strokeWidth: 2,
+
+                    backgroundColor: Colors.transparent,
+                    pathBackgroundColor: Colors.transparent,
+                  ),
+                )
+              )
+
+                    :
+
+
+                Center(
+                  child:  ElevatedButton.icon(
                   onPressed: _useCurrentLocation,
                   icon: Icon(Icons.my_location),
                   label: Text("Utiliser ma position actuelle"),
-                ),
+                )),
               ],
             ),
           ),
