@@ -1,5 +1,6 @@
+// ignore_for_file: unused_element_parameter
+
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:seddoapp/widgets/transit/WalkingDurationWidget.dart';
 
 import '../../models/transit/TransitResponseModel.dart';
@@ -65,26 +66,27 @@ class TimelinePoint extends StatelessWidget {
                             startLon: transit!.stopEnd!.stopLon,
                             endLat: lat,
                             endLon: lon,
-                          )
+                          ),
                         ],
                       ),
                     ),
                 ],
               ),
-            Container(
+            SizedBox(
               width: MediaQuery.of(context).size.width - 100,
               child: Row(
                 children: [
                   if (isDestination == null || !isDestination!)
                     Icon(
                       isStart
-                          ?  Icons.trip_origin_sharp
+                          ? Icons.trip_origin_sharp
                           : (isEnd
-                          ? Icons.location_on
-                          : Icons.trip_origin_sharp),
-                      color: isStart
-                          ?  Color(0xFFE65100)
-                          : (isEnd ? Colors.red : Colors.grey),
+                              ? Icons.location_on
+                              : Icons.trip_origin_sharp),
+                      color:
+                          isStart
+                              ? Color(0xFFE65100)
+                              : (isEnd ? Colors.red : Colors.grey),
                       size: 20,
                     ),
                   SizedBox(width: 8),
@@ -100,7 +102,7 @@ class TimelinePoint extends StatelessWidget {
 
                         softWrap: true, // Enable text wrapping
                       ),
-                    )
+                    ),
                 ],
               ),
             ),
@@ -113,9 +115,10 @@ class TimelinePoint extends StatelessWidget {
                     height: 55,
                     margin: EdgeInsets.only(left: 10),
                     child: CustomPaint(
-                      painter: isWalking
-                          ? _DashPainter()
-                          : null, // Affichage du trait en pointillé si c'est une marche
+                      painter:
+                          isWalking
+                              ? _DashPainter()
+                              : null, // Affichage du trait en pointillé si c'est une marche
                     ),
                   ),
 
@@ -133,12 +136,12 @@ class TimelinePoint extends StatelessWidget {
                             startLon: lon,
                             endLat: transit!.stopStart!.stopLat,
                             endLon: transit!.stopStart!.stopLon,
-                          )
+                          ),
                         ],
                       ),
                     ),
                 ],
-              )
+              ),
           ],
         ),
       ],
@@ -160,16 +163,13 @@ class _DashPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     double startY = 0;
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 2;
+    final paint =
+        Paint()
+          ..color = color
+          ..strokeWidth = 2;
 
     while (startY < size.height) {
-      canvas.drawLine(
-        Offset(0, startY),
-        Offset(0, startY + dashWidth),
-        paint,
-      );
+      canvas.drawLine(Offset(0, startY), Offset(0, startY + dashWidth), paint);
       startY += dashWidth + dashSpace;
     }
   }

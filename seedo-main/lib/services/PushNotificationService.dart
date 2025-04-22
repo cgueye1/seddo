@@ -1,3 +1,7 @@
+// ignore_for_file: file_names
+
+import 'dart:io';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -8,13 +12,46 @@ import 'package:flutter/foundation.dart';
 class PushNotificationService {
   final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
-  FlutterLocalNotificationsPlugin();
+      FlutterLocalNotificationsPlugin();
 
   @pragma('vm:entry-point')
   PushNotificationService();
 
+  /*  Future<void> initialize() async {
+    await Firebase.initializeApp();
+
+    final settings = await _firebaseMessaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      print('Permissions granted');
+    }
+
+    await _setupLocalNotifications();
+
+    String? token = await _firebaseMessaging.getToken();
+    print("FCM Token: $token");
+
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationOpened);
+  }
+ */
+
   Future<void> initialize() async {
     await Firebase.initializeApp();
+
+    // For iOS, wait for the APNS token to be available
+    if (Platform.isIOS) {
+      await _firebaseMessaging.getAPNSToken();
+    }
 
     final settings = await _firebaseMessaging.requestPermission(
       alert: true,
@@ -43,20 +80,20 @@ class PushNotificationService {
   Future<void> _setupLocalNotifications() async {
     // Configuration Android avec icône par défaut
     const AndroidInitializationSettings initializationSettingsAndroid =
-    AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/ic_launcher');
 
     const DarwinInitializationSettings initializationSettingsIOS =
-    DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
 
     const InitializationSettings initializationSettings =
-    InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsIOS,
+        );
 
     await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
@@ -72,13 +109,15 @@ class PushNotificationService {
 
     await flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<
-        AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
   }
 
   @pragma('vm:entry-point')
   static Future<void> _firebaseMessagingBackgroundHandler(
-      RemoteMessage message) async {
+    RemoteMessage message,
+  ) async {
     await Firebase.initializeApp();
     final service = PushNotificationService();
     await service._showNotification(message);
@@ -100,26 +139,29 @@ class PushNotificationService {
 
     // Configuration Android
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
-    AndroidNotificationDetails(
-      'high_importance_channel',
-      'Important Notifications',
-      channelDescription: 'Channel for important notifications',
-      importance: Importance.max,
-      priority: Priority.high,
-      playSound: true,
-      sound: shouldRing ? RawResourceAndroidNotificationSound('ringtone') : null,
-      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
-      icon: '@mipmap/ic_launcher', // Utilise l'icône de l'application
-    );
+        AndroidNotificationDetails(
+          'high_importance_channel',
+          'Important Notifications',
+          channelDescription: 'Channel for important notifications',
+          importance: Importance.max,
+          priority: Priority.high,
+          playSound: true,
+          sound:
+              shouldRing
+                  ? RawResourceAndroidNotificationSound('ringtone')
+                  : null,
+          largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+          icon: '@mipmap/ic_launcher', // Utilise l'icône de l'application
+        );
 
     // Configuration iOS
     const DarwinNotificationDetails iosPlatformChannelSpecifics =
-    DarwinNotificationDetails(
-      presentAlert: true,
-      presentBadge: true,
-      presentSound: true,
-      sound: 'ringtone.caf',
-    );
+        DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+          sound: 'ringtone.caf',
+        );
 
     final NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics,
@@ -136,10 +178,8 @@ class PushNotificationService {
 
     if (shouldRing) {
       try {
-        if (await Vibration.hasVibrator() ?? false) {
-          await Vibration.vibrate(
-            pattern: [500, 1000, 500, 1000],
-          );
+        if (await Vibration.hasVibrator()) {
+          await Vibration.vibrate(pattern: [500, 1000, 500, 1000]);
         }
       } catch (e) {
         if (kDebugMode) {

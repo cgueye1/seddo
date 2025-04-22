@@ -23,7 +23,6 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
 
   List gares = [];
   Dio dio = Dio();
-  final TextEditingController _id = TextEditingController();
   bool loading = false;
   PlaceModel? origine;
 

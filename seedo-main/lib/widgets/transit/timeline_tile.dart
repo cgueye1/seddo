@@ -59,14 +59,29 @@ class TimelineTile extends StatelessWidget {
       return minutes != 0 ? "+${minutes} min" : "${seconds}s";
     }
   }
+
   String getFormattedTravelDuration(String departure, String arrival) {
     // Convertir les heures en DateTime
     final depParts = departure.split(':').map(int.parse).toList();
     final arrParts = arrival.split(':').map(int.parse).toList();
 
     final now = DateTime.now();
-    final depTime = DateTime(now.year, now.month, now.day, depParts[0], depParts[1], depParts[2]);
-    var arrTime = DateTime(now.year, now.month, now.day, arrParts[0], arrParts[1], arrParts[2]);
+    final depTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      depParts[0],
+      depParts[1],
+      depParts[2],
+    );
+    var arrTime = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      arrParts[0],
+      arrParts[1],
+      arrParts[2],
+    );
 
     // Si l’arrivée est avant le départ → on suppose que c’est le jour suivant
     if (arrTime.isBefore(depTime)) {
@@ -86,488 +101,486 @@ class TimelineTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: Stack(
-        children: [
-          Container(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return Stack(
+      children: [
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    nextStop != null
-                        ? SvgPicture.asset(
-                          nextStop != null
-                              ? "assets/icons/game-icons_subway-train.svg"
-                              : "assets/icons/noto_bus-stop.svg",
-                        )
-                        : Container(
-                          height: 25,
-                          width: 25,
-                          margin: EdgeInsets.only(right: 7),
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: AssetImage("assets/transit/arretbus.png"),
-                            ),
-                            borderRadius: BorderRadius.circular(3),
-                          ),
+                nextStop != null
+                    ? SvgPicture.asset(
+                      nextStop != null
+                          ? "assets/icons/game-icons_subway-train.svg"
+                          : "assets/icons/noto_bus-stop.svg",
+                    )
+                    : Container(
+                      height: 25,
+                      width: 25,
+                      margin: EdgeInsets.only(right: 7),
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/transit/arretbus.png"),
                         ),
-                    Expanded(
-                      child: Text(
-                        nextStop != null
-                            ? "  ${label!}"
-                            : normalizeText(
-                                  transit.stopStart?.stopName.toString(),
-                                ) ??
-                                "Stop",
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
-                  ],
-                ),
-                Container(
-                  width: 2,
-                  margin: EdgeInsets.only(left: 10),
-                  height:
-                      isLast
-                          ? (nextStop != null && stopTimeResponse == null
-                              ? 80
-                              : 150)
-                          : 150,
-                  color: Colors.grey,
-                ),
-                Row(
-                  children: [
-                    Container(
-                      height: 120,
-                      width: MediaQuery.of(context).size.width - 32,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Container(
-                              width: 2,
-                              margin: EdgeInsets.only(left: 10),
-                              color: Colors.grey,
-                            ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              height: 100,
-                              child: Row(
-                                children: [
-                                  nextStop != null
-                                      ? stopTimeResponse != null
-                                          ? SvgPicture.asset(
-                                            "assets/transit/game-icons_subway-train.svg",
-                                          )
-                                          : Icon(
-                                            Icons.train_outlined,
-                                            color: Colors.grey,
-                                          )
-                                      : Icon(
-                                        Icons.trip_origin_sharp,
-                                        color: Color(0xFFE65100),
-                                      ),
-                                  SizedBox(width: 8),
-                                  Expanded(
-                                    child: Container(
-                                      width: 200,
-                                      child: Text(
-                                        isLast && nextStop != null
-                                            ? stopTimeResponse != null
-                                                ? "Gare de ${nextStop!.stop_name}"
-                                                : ""
-                                            : normalizeText(
-                                              transit.stopEnd!.stopName,
-                                            ),
-                                        style: TextStyle(
-                                          overflow: TextOverflow.visible,
-                                        ),
-                                        softWrap: true, // Enable text wrapping
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (nextStop == null)
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Container(
-                                  width: 2,
-                                  height: 60,
-                                  margin: EdgeInsets.only(left: 10),
-                                  child: CustomPaint(painter: DashPainter()),
-                                ),
-                                if (nextStop == null &&
-                                    transit.stopEnd!.stopId !=
-                                        nexttransit.stopEnd!.stopId)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 20),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.directions_walk,
-                                          color: Colors.grey,
-                                        ),
-                                        SizedBox(width: 4),
-                                        WalkingDurationWidget(
-                                          startLat: transit.stopEnd!.stopLat,
-                                          startLon: transit.stopEnd!.stopLon,
-                                          endLat:
-                                              nexttransit.stopStart!.stopLat,
-                                          endLon:
-                                              nexttransit.stopStart!.stopLon,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-
-                                if (nextStop == null &&
-                                    transit.stopEnd!.stopId ==
-                                        nexttransit.stopEnd!.stopId &&
-                                    !destination)
-                                  Padding(
-                                    padding: EdgeInsets.only(left: 20),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.directions_walk,
-                                          color: Colors.grey,
-                                        ),
-                                        SizedBox(width: 4),
-                                        WalkingDurationWidget(
-                                          startLat: transit.stopEnd!.stopLat,
-                                          startLon: transit.stopEnd!.stopLon,
-                                          endLat: lat!,
-                                          endLon: lon!,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                              ],
-                            ),
-                        ],
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: Text(
+                    nextStop != null
+                        ? "  ${label!}"
+                        : normalizeText(
+                          transit.stopStart?.stopName.toString(),
+                        ),
+                  ),
                 ),
               ],
             ),
-          ),
-          SizedBox(width: 10),
-          Positioned(
-            left: 30,
-            right: 0,
-            top: 40,
-            child: Container(
-              padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-              margin: EdgeInsets.only(bottom: 20),
-              width: 300,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade300,width: .4),
-
-              ),
-              child:
-                  nextStop != null
-                      ? Container(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  margin: EdgeInsets.only(left: 16),
-                                  child:
-                                      stopTimeResponse == null
-                                          ? Image.network(
-                                            APIConstants.API_BASE_URL_IMG +
-                                                nextStop!.picture,
-                                            width: 100,
-                                            fit: BoxFit.fill,
-                                          )
-                                          : Image.asset(
-                                            "assets/transit/ter-transit.png",
-                                            width: 100,
-                                          ),
-                                ),
-
-                                Container(
-                                  margin: EdgeInsets.only(right: 16),
+            Container(
+              width: 2,
+              margin: EdgeInsets.only(left: 10),
+              height:
+                  isLast
+                      ? (nextStop != null && stopTimeResponse == null
+                          ? 80
+                          : 150)
+                      : 150,
+              color: Colors.grey,
+            ),
+            Row(
+              children: [
+                SizedBox(
+                  height: 120,
+                  width: MediaQuery.of(context).size.width - 32,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Container(
+                          width: 2,
+                          margin: EdgeInsets.only(left: 10),
+                          color: Colors.grey,
+                        ),
+                      ),
+                      Expanded(
+                        child: SizedBox(
+                          height: 100,
+                          child: Row(
+                            children: [
+                              nextStop != null
+                                  ? stopTimeResponse != null
+                                      ? SvgPicture.asset(
+                                        "assets/transit/game-icons_subway-train.svg",
+                                      )
+                                      : Icon(
+                                        Icons.train_outlined,
+                                        color: Colors.grey,
+                                      )
+                                  : Icon(
+                                    Icons.trip_origin_sharp,
+                                    color: Color(0xFFE65100),
+                                  ),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: SizedBox(
+                                  width: 200,
                                   child: Text(
-                                    stopTimeResponse != null
-                                        ? stopTimeResponse!.trip.tripShortName
-                                        : nextStop!.stop_name,
+                                    isLast && nextStop != null
+                                        ? stopTimeResponse != null
+                                            ? "Gare de ${nextStop!.stop_name}"
+                                            : ""
+                                        : normalizeText(
+                                          transit.stopEnd!.stopName,
+                                        ),
                                     style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                      overflow: TextOverflow.visible,
                                     ),
+                                    softWrap: true, // Enable text wrapping
                                   ),
                                 ),
-                              ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      if (nextStop == null)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Container(
+                              width: 2,
+                              height: 60,
+                              margin: EdgeInsets.only(left: 10),
+                              child: CustomPaint(painter: DashPainter()),
                             ),
-                            SizedBox(height: 10),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                SizedBox(width: 16),
-                                stopTimeResponse != null
-                                    ? Text("${label} -> ${nextStop!.stop_name}")
-                                    : Text(
-                                      "Laissez vous transporTER",
-                                      style: TextStyle(fontSize: 16),
+                            if (nextStop == null &&
+                                transit.stopEnd!.stopId !=
+                                    nexttransit.stopEnd!.stopId)
+                              Padding(
+                                padding: EdgeInsets.only(left: 20),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.directions_walk,
+                                      color: Colors.grey,
                                     ),
-                              ],
+                                    SizedBox(width: 4),
+                                    WalkingDurationWidget(
+                                      startLat: transit.stopEnd!.stopLat,
+                                      startLon: transit.stopEnd!.stopLon,
+                                      endLat:
+                                          nexttransit.stopStart!.stopLat,
+                                      endLon:
+                                          nexttransit.stopStart!.stopLon,
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                            if (nextStop == null &&
+                                transit.stopEnd!.stopId ==
+                                    nexttransit.stopEnd!.stopId &&
+                                !destination)
+                              Padding(
+                                padding: EdgeInsets.only(left: 20),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.directions_walk,
+                                      color: Colors.grey,
+                                    ),
+                                    SizedBox(width: 4),
+                                    WalkingDurationWidget(
+                                      startLat: transit.stopEnd!.stopLat,
+                                      startLon: transit.stopEnd!.stopLon,
+                                      endLat: lat!,
+                                      endLon: lon!,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                          ],
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        SizedBox(width: 10),
+        Positioned(
+          left: 30,
+          right: 0,
+          top: 40,
+          child: Container(
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+            margin: EdgeInsets.only(bottom: 20),
+            width: 300,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300, width: .4),
+            ),
+            child:
+                nextStop != null
+                    ? Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(left: 16),
+                              child:
+                                  stopTimeResponse == null
+                                      ? Image.network(
+                                        APIConstants.API_BASE_URL_IMG +
+                                            nextStop!.picture,
+                                        width: 100,
+                                        fit: BoxFit.fill,
+                                      )
+                                      : Image.asset(
+                                        "assets/transit/ter-transit.png",
+                                        width: 100,
+                                      ),
                             ),
 
-                            SizedBox(height: 10),
-                            if (stopTimeResponse != null)
+                            Container(
+                              margin: EdgeInsets.only(right: 16),
+                              child: Text(
+                                stopTimeResponse != null
+                                    ? stopTimeResponse!.trip.tripShortName
+                                    : nextStop!.stop_name,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10),
+
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SizedBox(width: 16),
+                            stopTimeResponse != null
+                                ? Text('$label -> ${nextStop!.stop_name}')
+                                : Text(
+                                  "Laissez vous transporTER",
+                                  style: TextStyle(fontSize: 16),
+                                ),
+                          ],
+                        ),
+
+                        SizedBox(height: 10),
+                        if (stopTimeResponse != null)
+                          Row(
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  SizedBox(width: 16),
+                                  Container(
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(
+                                        10,
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.only(
+                                      left: 5,
+                                      right: 5,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/transit/time.svg',
+                                          color: Colors.black,
+                                          placeholderBuilder:
+                                              (
+                                                BuildContext context,
+                                              ) => Container(
+                                                padding:
+                                                    const EdgeInsets.all(
+                                                      30.0,
+                                                    ),
+                                                child:
+                                                    const CircularProgressIndicator(),
+                                              ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          stopTimeResponse != null
+                                              ? '${stopTimeResponse!.duration} min'
+                                              : "",
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 5),
+                                  Container(
+                                    height: 26,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black,
+                                      borderRadius: BorderRadius.circular(
+                                        10,
+                                      ),
+                                    ),
+                                    padding: EdgeInsets.only(
+                                      left: 5,
+                                      right: 5,
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        SvgPicture.asset(
+                                          'assets/transit/bxs_map-pin.svg',
+                                          color: Colors.black,
+                                          placeholderBuilder:
+                                              (
+                                                BuildContext context,
+                                              ) => Container(
+                                                padding:
+                                                    const EdgeInsets.all(
+                                                      30.0,
+                                                    ),
+                                                child:
+                                                    const CircularProgressIndicator(),
+                                              ),
+                                        ),
+                                        SizedBox(width: 5),
+                                        Text(
+                                          stopTimeResponse != null
+                                              ? '${stopTimeResponse!.distance} km'
+                                              : "",
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (stopTimeResponse != null)
+                                Container(
+                                  margin: EdgeInsets.only(right: 16),
+                                  child: SvgPicture.asset(
+                                    'assets/transit/ri_direction-line.svg',
+                                  ),
+                                ),
+                            ],
+                          ),
+                      ],
+                    )
+                    : Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        nextStop != null
+                            ? Image.asset(
+                              "assets/transit/ter-transit.png",
+                              width: 60,
+                            )
+                            : transit.stop.transitType == "BRT"
+                            ? Image.asset(
+                              "assets/transit/brt.png",
+                              width: 60,
+                            )
+                            : transit.stop.transitType == "DDD"
+                            ? Image.asset(
+                              "assets/transit/dddk.png",
+                              width: 60,
+                            )
+                            : Image.asset(
+                              "assets/transit/aftu.png",
+                              width: 60,
+                            ),
+
+                        SizedBox(width: 20),
+                        Expanded(
+                          child: Column(
+                            children: [
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.max,
                                 children: [
-                                  Row(
-                                    children: [
-                                      SizedBox(width: 16),
-                                      Container(
-                                        height: 26,
-                                        decoration: BoxDecoration(
-                                          color: Colors.black,
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        padding: EdgeInsets.only(
-                                          left: 5,
-                                          right: 5,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/transit/time.svg',
-                                              color: Colors.black,
-                                              placeholderBuilder:
-                                                  (
-                                                    BuildContext context,
-                                                  ) => Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          30.0,
-                                                        ),
-                                                    child:
-                                                        const CircularProgressIndicator(),
-                                                  ),
-                                            ),
-                                            SizedBox(width: 5),
-                                            Text(
-                                              stopTimeResponse != null
-                                                  ? '${stopTimeResponse!.duration} min'
-                                                  : "",
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(width: 5),
-                                      Container(
-                                        height: 26,
-                                        decoration: BoxDecoration(
-                                          color: Colors.black,
-                                          borderRadius: BorderRadius.circular(
-                                            10,
-                                          ),
-                                        ),
-                                        padding: EdgeInsets.only(
-                                          left: 5,
-                                          right: 5,
-                                        ),
-                                        child: Row(
-                                          children: [
-                                            SvgPicture.asset(
-                                              'assets/transit/bxs_map-pin.svg',
-                                              color: Colors.black,
-                                              placeholderBuilder:
-                                                  (
-                                                    BuildContext context,
-                                                  ) => Container(
-                                                    padding:
-                                                        const EdgeInsets.all(
-                                                          30.0,
-                                                        ),
-                                                    child:
-                                                        const CircularProgressIndicator(),
-                                                  ),
-                                            ),
-                                            SizedBox(width: 5),
-                                            Text(
-                                              stopTimeResponse != null
-                                                  ? '${stopTimeResponse!.distance} km'
-                                                  : "",
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (stopTimeResponse != null)
-                                    Container(
-                                      margin: EdgeInsets.only(right: 16),
-                                      child: SvgPicture.asset(
-                                        'assets/transit/ri_direction-line.svg',
-                                      ),
+                                  Text(
+                                    "Ligne de bus : ",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
                                     ),
+                                  ),
+                                  Text(
+                                    replaceUnderscores(
+                                      transit.trip!.routeId,
+                                    ),
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                 ],
                               ),
-                          ],
-                        ),
-                      )
-                      : Container(
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            nextStop != null
-                                ? Image.asset(
-                                  "assets/transit/ter-transit.png",
-                                  width: 60,
-                                )
-                                : transit.stop.transitType == "BRT"
-                                ? Image.asset(
-                                  "assets/transit/brt.png",
-                                  width: 60,
-                                )
-                                : transit.stop.transitType == "DDD"
-                                ? Image.asset(
-                                  "assets/transit/dddk.png",
-                                  width: 60,
-                                )
-                                : Image.asset(
-                                  "assets/transit/aftu.png",
-                                  width: 60,
-                                ),
-
-                            SizedBox(width: 20),
-                            Expanded(
-                              child: Column(
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Text(
-                                        "Ligne de bus : ",
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        replaceUnderscores(
-                                          transit.trip!.routeId,
-                                        ),
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Text(
-                                        "Distance : ",
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        "${(double.parse(transit.destinationStopTime!.shapeDistTraveled )- double.parse(transit.departureStopTime!.shapeDistTraveled)).toStringAsFixed(2)} KM",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Text(
+                                    "Distance : ",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
-                                  SizedBox(height: 10),
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    mainAxisSize: MainAxisSize.max,
-                                    children: [
-                                      Text(
-                                        "Durée estimée: ",
-                                        style: TextStyle(
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        "${ getFormattedTravelDuration(transit.departureStopTime!.departureTime,transit.destinationStopTime!.arrivalTime)}",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-
-                                  SizedBox(height: 20),
-
-                                  InkWell(
-                                    onTap: () {
-                                      final currentPosition = context.read<RouteTimelineBloc>().state.currentPosition;
-
-                                        UrlLauncher().openMapsNavigation(
-                                          double.parse(
-                                            currentPosition!.latitude
-                                                .toString(),
-                                          ),
-                                          double.parse(
-                                            currentPosition.longitude
-                                                .toString(),
-                                          ),
-                                          transit.stopStart!.stopLat,
-                                          transit.stopStart!.stopLon,
-                                            travelMode:"walk"
-                                        );
-
-                                    },
-                                    child: Container(
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        border: Border.all(color: Color(0xFFE65100),width: .2),
-                                        color: Colors.white,
-                                        borderRadius: BorderRadius.circular(
-                                          100,
-                                        ),
-                                      ),
-                                      child: Center(
-                                        child: Text("Itinéraire vers l'arrêt",style: TextStyle(color: Color(0xFFE65100),fontWeight: FontWeight.bold),),
-                                      ),
+                                  Text(
+                                    "${(double.parse(transit.destinationStopTime!.shapeDistTraveled) - double.parse(transit.departureStopTime!.shapeDistTraveled)).toStringAsFixed(2)} KM",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
                               ),
-                            ),
-                          ],
+                              SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                mainAxisSize: MainAxisSize.max,
+                                children: [
+                                  Text(
+                                    "Durée estimée: ",
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${getFormattedTravelDuration(transit.departureStopTime!.departureTime, transit.destinationStopTime!.arrivalTime)}",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              SizedBox(height: 20),
+
+                              InkWell(
+                                onTap: () {
+                                  final currentPosition =
+                                      context
+                                          .read<RouteTimelineBloc>()
+                                          .state
+                                          .currentPosition;
+
+                                  UrlLauncher().openMapsNavigation(
+                                    double.parse(
+                                      currentPosition!.latitude.toString(),
+                                    ),
+                                    double.parse(
+                                      currentPosition.longitude.toString(),
+                                    ),
+                                    transit.stopStart!.stopLat,
+                                    transit.stopStart!.stopLon,
+                                    travelMode: "walk",
+                                  );
+                                },
+                                child: Container(
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Color(0xFFE65100),
+                                      width: .2,
+                                    ),
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(
+                                      100,
+                                    ),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      "Itinéraire vers l'arrêt",
+                                      style: TextStyle(
+                                        color: Color(0xFFE65100),
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-
-
-            ),
+                      ],
+                    ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

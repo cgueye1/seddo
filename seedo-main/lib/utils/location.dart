@@ -1,10 +1,6 @@
 // utils/distance_utils.dart
-import 'package:geolocator/geolocator.dart';  import 'dart:convert';
+import 'package:geolocator/geolocator.dart';
 import 'dart:math';
-
-
-
-import 'package:http/http.dart' as http;
 
 
 class DistanceUtils {

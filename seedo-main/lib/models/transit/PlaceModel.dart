@@ -1,3 +1,5 @@
+// ignore_for_file: file_names
+
 class PlaceModel {
   final double latitude;
   final double longitude;
@@ -13,13 +15,16 @@ class PlaceModel {
 
   factory PlaceModel.fromJson(Map<String, dynamic> item) {
     final displayName = item['display_name'] ?? '';
-    final name = displayName.split(",").isNotEmpty ? displayName.split(",")[0] : displayName;
+    final name =
+        displayName.split(",").isNotEmpty
+            ? displayName.split(",")[0]
+            : displayName;
 
     return PlaceModel(
       latitude: double.parse(item['lat'].toString()),
       longitude: double.parse(item['lon'].toString()),
       name: name,
-      address:_formatAddress(item['address']),
+      address: _formatAddress(item['address']),
     );
   }
 
@@ -39,16 +44,16 @@ class PlaceModel {
   static String _formatAddress(Map<String, dynamic>? address) {
     if (address == null) return '';
 
-    final parts = [
-      address['road'],
-      address['neighbourhood'],
-      address['suburb'],
-      address['city_district'],
-      address['city'],
-      address['country'],
-    ].where((part) => part != null).toList();
+    final parts =
+        [
+          address['road'],
+          address['neighbourhood'],
+          address['suburb'],
+          address['city_district'],
+          address['city'],
+          address['country'],
+        ].where((part) => part != null).toList();
 
     return parts.join(', ');
   }
-
 }

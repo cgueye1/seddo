@@ -1,5 +1,5 @@
 // Dans homeBloc.dart
-// ignore_for_file: avoid_init_to_null, unused_local_variable
+// ignore_for_file: avoid_init_to_null, unused_local_variable, unnecessary_null_comparison
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,12 +54,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
 
-
     //updateSubCategorie
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
 
     on<ResetInitialPublicationsFlag>(_onResetInitialPublicationsFlag);
-
 
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
@@ -285,16 +283,16 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   Future<void> _onFilterPublicationsBySubcategory(
-      FilterPublicationsBySubcategory event,
-      Emitter<HomeState> emit,
-      ) async {
+    FilterPublicationsBySubcategory event,
+    Emitter<HomeState> emit,
+  ) async {
     final currentCategory = state.selectedCategory;
     final currentCategoryId = currentCategory!.id;
 
     final int? newSubcategoryId =
-    (state.selectedSubcategoryId == event.subcategoryId)
-        ? null
-        : event.subcategoryId;
+        (state.selectedSubcategoryId == event.subcategoryId)
+            ? null
+            : event.subcategoryId;
 
     CategorieModel? selectedSubcategory;
 
@@ -303,8 +301,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final subcategories = state.subcategories[currentCategoryId] ?? [];
 
       selectedSubcategory = subcategories.firstWhere(
-            (subcat) => subcat.id == newSubcategoryId,
-       // orElse: () => null, // Renvoie null si aucune correspondance
+        (subcat) => subcat.id == newSubcategoryId,
+        // orElse: () => null, // Renvoie null si aucune correspondance
       );
 
       // Affichage dans la console
@@ -315,19 +313,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     }
 
-
-
     // Émettre le nouvel état avec la mise à jour
-    emit(state.copyWith(
-      selectedCategory: currentCategory,
-      selectedCategoryId: currentCategoryId,
-      selectedSubcategory: selectedSubcategory ?? state.selectedSubcategory, // Si null, utiliser l'ancienne valeur
-      selectedSubcategoryId: newSubcategoryId,
-      publications: [],
-      hasReachedMax: false,
-      isLoadingPublications: true,
-      hasLoadedInitialPublications: true,
-    ));
+    emit(
+      state.copyWith(
+        selectedCategory: currentCategory,
+        selectedCategoryId: currentCategoryId,
+        selectedSubcategory:
+            selectedSubcategory ??
+            state.selectedSubcategory, // Si null, utiliser l'ancienne valeur
+        selectedSubcategoryId: newSubcategoryId,
+        publications: [],
+        hasReachedMax: false,
+        isLoadingPublications: true,
+        hasLoadedInitialPublications: true,
+      ),
+    );
 
     try {
       if (state.currentLatitude != null && state.currentLongitude != null) {
@@ -340,24 +340,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
         print(publications);
 
-        emit(state.copyWith(
-          publications: publications,
-          isLoadingPublications: false,
-          selectedSubcategoryId: newSubcategoryId,
-          selectedCategory: currentCategory,
-          selectedCategoryId: currentCategoryId,
-          hasLoadedInitialPublications: true,
-        ));
+        emit(
+          state.copyWith(
+            publications: publications,
+            isLoadingPublications: false,
+            selectedSubcategoryId: newSubcategoryId,
+            selectedCategory: currentCategory,
+            selectedCategoryId: currentCategoryId,
+            hasLoadedInitialPublications: true,
+          ),
+        );
       }
     } catch (e) {
       print("Erreur: $e");
-      emit(state.copyWith(
-        isLoadingPublications: false,
-        publicationsError: e.toString(),
-      ));
+      emit(
+        state.copyWith(
+          isLoadingPublications: false,
+          publicationsError: e.toString(),
+        ),
+      );
     }
   }
-
 
   Future<void> _onFilterPublicationsByCategory(
     FilterPublicationsByCategory event,
@@ -632,23 +635,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     );
   }
 
-
-
-
-
   void _onUpdateSelectedSubcategory(
-      UpdateSelectedSubcategory event,
-      Emitter<HomeState> emit,
-      ) {
+    UpdateSelectedSubcategory event,
+    Emitter<HomeState> emit,
+  ) {
     emit(state.copyWith(selectedSubcategory: event.subcategory));
   }
 
-
   void _onResetInitialPublicationsFlag(
-      ResetInitialPublicationsFlag event,
-      Emitter<HomeState> emit,
-      ) {
-    emit(state.copyWith(hasLoadedInitialPublications: false,publications: []));
+    ResetInitialPublicationsFlag event,
+    Emitter<HomeState> emit,
+  ) {
+    emit(state.copyWith(hasLoadedInitialPublications: false, publications: []));
   }
-
 }

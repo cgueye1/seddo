@@ -32,42 +32,85 @@ class CategoryDropdown extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Catégories parentes (horizontales)
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: Row(
-                  children: [
-                    // Bouton "Tout"
-                    _buildCategoryItem(
-                      context: context,
-                      label: "Tout",
-                      isSelected: state.selectedCategory == null,
-                      onTap: () {
-                        context.read<HomeBloc>().add(const ResetInitialPublicationsFlag());
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 6.0),
+              child: Text(
+                'Catégories',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            SizedBox(height: 8),
 
+            // Catégories tabs avec indicateur
+            DefaultTabController(
+              length: parentCategories.length + 1, // +1 pour "Tout"
+              child: Column(
+                children: [
+                  TabBar(
+                    isScrollable: true,
+                    padding: EdgeInsets.symmetric(horizontal: 16.0),
+                    labelPadding: EdgeInsets.symmetric(horizontal: 16.0),
+                    indicatorColor: Color(0xFFD54801),
+                    indicatorWeight: 1.0,
+                    dividerColor: Colors.grey[300],
+                    dividerHeight: 1.0,
+                    labelColor: Color(0xFFD54801),
+                    unselectedLabelColor: const Color.fromARGB(163, 0, 0, 0),
+                    labelStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    unselectedLabelStyle: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    tabAlignment: TabAlignment.start, // Alignement à gauche
+                    onTap: (index) {
+                      if (index == 0) {
+                        // "Tout" sélectionné
+                        context.read<HomeBloc>().add(
+                          const ResetInitialPublicationsFlag(),
+                        );
                         context.read<HomeBloc>().add(
                           const CategoryChanged(category: null),
                         );
-                      },
-                    ),
-                    // Catégories parentes
-                    ...parentCategories.map((category) {
-                      return _buildCategoryItem(
-                        context: context,
-                        label: category.titre,
-                        isSelected: state.selectedCategory?.id == category.id,
-                        onTap: () {
-                          context.read<HomeBloc>().add(
-                            CategoryChanged(category: category),
-                          );
-                        },
-                      );
-                    }).toList(),
-                  ],
-                ),
+                      } else {
+                        // Catégorie parente sélectionnée
+                        context.read<HomeBloc>().add(
+                          CategoryChanged(
+                            category: parentCategories[index - 1],
+                          ),
+                        );
+                      }
+                    },
+                    tabs: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Text("Tout"),
+                        ),
+                      ),
+                      ...parentCategories
+                          .map(
+                            (category) => Align(
+                              alignment: Alignment.centerLeft,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16.0,
+                                ),
+                                child: Text(category.titre),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ],
+                  ),
+                ],
               ),
             ),
 
@@ -80,126 +123,86 @@ class CategoryDropdown extends StatelessWidget {
     );
   }
 
-  Widget _buildCategoryItem({
-    required BuildContext context,
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 12.0),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(30),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-          decoration: BoxDecoration(
-            color:
-                isSelected
-                    ? const Color.fromARGB(222, 213, 72, 1)
-                    : const Color.fromARGB(255, 233, 233, 233),
-            borderRadius: BorderRadius.circular(8),
-            boxShadow:
-                isSelected
-                    ? [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 3,
-                        offset: const Offset(0, 2),
-                      ),
-                    ]
-                    : [],
-          ),
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: isSelected ? Colors.white : Colors.black87,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
   Widget _buildSubcategoriesSection(BuildContext context, HomeState state) {
     final selectedCategoryId = state.selectedCategory?.id;
     final subcategories =
-    selectedCategoryId != null ? state.subcategories[selectedCategoryId] ?? [] : [];
-    final selectedSubcategory = state.selectedSubcategory;
-    print(state.selectedSubcategoryId);
+        selectedCategoryId != null
+            ? state.subcategories[selectedCategoryId] ?? []
+            : [];
 
     if (subcategories.isEmpty) return const SizedBox.shrink();
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8.0),
+        padding: const EdgeInsets.symmetric(horizontal: 2.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: subcategories.map((subcategory) {
-            final isSelected = state.selectedSubcategoryId == subcategory.id;
+          children:
+              subcategories.map((subcategory) {
+                final isSelected =
+                    state.selectedSubcategoryId == subcategory.id;
 
-
-
-            return Container(
-              width: 90,
-              margin: const EdgeInsets.only(right: 10.0),
-              child: GestureDetector(
-                onTap: () {
-
-                  context.read<HomeBloc>().add(
-                    FilterPublicationsBySubcategory(subcategory.id),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 65,
-                        height: 69,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? const Color.fromARGB(222, 213, 72, 1)
-                              : Colors.grey.shade100,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: _buildSubcategoryIcon(subcategory),
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 80,
-                        child: Text(
-                          subcategory.titre,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected
-                                ? const Color.fromARGB(222, 213, 72, 1)
-                                : Colors.black87,
+                return Container(
+                  width: 115,
+                  margin: const EdgeInsets.only(right: 12.0),
+                  child: GestureDetector(
+                    onTap: () {
+                      context.read<HomeBloc>().add(
+                        FilterPublicationsBySubcategory(subcategory.id),
+                      );
+                    },
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 124,
+                          height: 74,
+                          decoration: BoxDecoration(
+                            color:
+                                isSelected
+                                    ? const Color.fromARGB(15, 213, 72, 1)
+                                    : Colors.grey.shade100,
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              children: [
+                                _buildSubcategoryIcon(subcategory),
+                                Text(
+                                  subcategory.titre,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color:
+                                        isSelected
+                                            ? const Color.fromARGB(
+                                              222,
+                                              213,
+                                              72,
+                                              1,
+                                            )
+                                            : Colors.black87,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
+                );
+              }).toList(),
         ),
       ),
     );
   }
-
 
   Widget _buildSubcategoryIcon(dynamic subcategory) {
     if (subcategory.icon != null && subcategory.icon.isNotEmpty) {
@@ -209,39 +212,48 @@ class CategoryDropdown extends StatelessWidget {
       if (extension == 'svg') {
         return SvgPicture.network(
           iconUrl,
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           placeholderBuilder:
-              (BuildContext context) =>
-                  CircularProgressIndicator(color: Colors.orange.shade700),
+              (BuildContext context) => CircularProgressIndicator(
+                strokeWidth: 2.0,
+                color: Colors.orange.shade700,
+              ),
         );
       } else {
         return Image.network(
           iconUrl,
-          width: 40,
-          height: 40,
+          width: 30,
+          height: 30,
           errorBuilder: (context, error, stackTrace) {
             return Icon(
-              Icons.category,
+              Icons.restaurant,
               size: 36,
               color: Colors.orange.shade700,
             );
           },
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
-            return CircularProgressIndicator(
-              value:
-                  loadingProgress.expectedTotalBytes != null
-                      ? loadingProgress.cumulativeBytesLoaded /
-                          loadingProgress.expectedTotalBytes!
-                      : null,
-              color: Colors.orange.shade700,
+            return SizedBox(
+              width: 40,
+              height: 40,
+              child: Center(
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.0,
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                  color: Colors.orange.shade700,
+                ),
+              ),
             );
           },
         );
       }
     } else {
-      return Icon(Icons.category, size: 36, color: Colors.orange.shade700);
+      return Icon(Icons.restaurant, size: 36, color: Colors.orange.shade700);
     }
   }
 }

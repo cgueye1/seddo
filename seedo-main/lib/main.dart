@@ -5,10 +5,11 @@ import 'package:intl/date_symbol_data_local.dart';
 // Blocs
 import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
+import 'package:seddoapp/pages/auth/login.dart';
 
 // Pages
 import 'package:seddoapp/pages/home.dart';
-import 'package:seddoapp/pages/transit/TransportCommun.dart';
+// import 'package:seddoapp/pages/transit/TransportCommun.dart';
 
 // Repositories & Services
 import 'package:seddoapp/repositories/publication_repository.dart';
@@ -22,11 +23,9 @@ import 'firebase_options.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  PushNotificationService().initialize();
+  // PushNotificationService().initialize();
   await AdService().initialize();
 
   // Initialisation des formats de date
@@ -71,7 +70,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'SEDDO APP',
       theme: ThemeData(
-        primaryColor: Color(0xFFE65100), // orange foncé (teinte custom, style deep orange 900)
+        primaryColor: Color(
+          0xFFE65100,
+        ), // orange foncé (teinte custom, style deep orange 900)
         colorScheme: ColorScheme.fromSeed(
           seedColor: Color(0xFFE65100),
           brightness: Brightness.light,
@@ -95,11 +96,8 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      home: //TransportCommun()
-
-      const HomePage(),
-
-
+      home: //HomePage
+          const HomePage(),
     );
   }
 }

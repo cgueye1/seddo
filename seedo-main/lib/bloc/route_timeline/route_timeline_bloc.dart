@@ -161,7 +161,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       "transit/stops/findTrips",
     );
 
-    if (response?.data != null && response.data is Map<String, dynamic>) {
+    if (response.data != null && response.data is Map<String, dynamic>) {
       return TransitResponseModel.fromJson(response.data);
     }
     return null;
@@ -305,10 +305,10 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         if (stepDataEnd != null &&
             _checkForDuplicateStopId(departureTransit, stepDataEnd) &&
             stepDataEnd.distanceToDestination! <=
-                data!.distanceToDestination! / 2 &&
+                data.distanceToDestination! / 2 &&
             (stepDataEnd.distanceDepartureToStop! +
                     stepDataEnd.distanceToDestination!) <
-                data!.distanceToDestination!) {
+                data.distanceToDestination!) {
           if (stepDataEnd.trip!.tripId.trim() == data.trip!.tripId.trim() ||
               stepDataEnd.stopEnd!.stopId == data.stopEnd!.stopId) {
             if (departureTransit.isNotEmpty &&

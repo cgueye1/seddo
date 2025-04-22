@@ -1,6 +1,3 @@
-import 'dart:convert';
-
-
 class StopTimeModel {
   final String tripId;
   final String arrivalTime;
@@ -28,16 +25,16 @@ class StopTimeModel {
 
   factory StopTimeModel.fromJson(Map<String, dynamic> map) {
     return StopTimeModel(
-      tripId: map['trip_id']??"",
-      arrivalTime: map['arrivalTime']??"",
-      departureTime: map['departureTime']??"",
-      stopId: map['stop_id']??"",
-      stopSequence: map['stop_sequence'].toString()??"",
-      stopHeadsign: map['stop_headsign']??"",
-      pickupType: map['pickup_type'].toString()??"",
-      dropOffType: map['drop_off_type'].toString()??"",
-      shapeDistTraveled: map['shape_dist_traveled'].toString()??"",
-      timepoint: map['timepoint'].toString()??"",
+      tripId: map['trip_id'] ?? "",
+      arrivalTime: map['arrivalTime'] ?? "",
+      departureTime: map['departureTime'] ?? "",
+      stopId: map['stop_id'] ?? "",
+      stopSequence: map['stop_sequence'].toString(),
+      stopHeadsign: map['stop_headsign'] ?? "",
+      pickupType: map['pickup_type'].toString(),
+      dropOffType: map['drop_off_type'].toString(),
+      shapeDistTraveled: map['shape_dist_traveled'].toString(),
+      timepoint: map['timepoint'].toString(),
     );
   }
 

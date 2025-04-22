@@ -1,9 +1,6 @@
-import 'dart:convert';
+// ignore_for_file: equal_keys_in_map, unnecessary_null_comparison
 
 import 'ShopModel.dart';
-
-
-
 
 class StopModel {
   String stop_id;
@@ -34,37 +31,33 @@ class StopModel {
     this.stop_timezone = "",
     this.picture = "",
     this.pictures = const [],
-    this.shops= const [],
+    this.shops = const [],
     this.stop_desc = "",
-    this.lostAndFound=false,
-    this.parking=false,
-    this.shop=false,
-    this.terAgency=false,
-    this.toilets=false,
-    this.waitingRoom=false
-
+    this.lostAndFound = false,
+    this.parking = false,
+    this.shop = false,
+    this.terAgency = false,
+    this.toilets = false,
+    this.waitingRoom = false,
   });
 
   StopModel.fromJson(Map<String, dynamic> map)
-      : stop_id = map['stop_id'] ?? map['id'] ?? "",
-        stop_name = map['stop_name'] ?? "",
-        stop_lat = map['stop_lat'].toString() ?? "",
-        stop_lon = map['stop_lon'].toString() ?? "",
-        stop_timezone = map['stop_timezone'] ?? "",
-        picture = map['picture'] ?? "",
-        pictures = List<String>.from(map['pictures'] ?? []),
-        shops = ShopModel.fromJsonList(map["shopslist"] ?? []),
-        stop_desc = map['stop_desc'] ?? "",
-        stop_code = map['stop_code'] ?? "",
-        terAgency = map['terAgency'] ?? false,
-        parking = map['parking'] ?? false,
-        toilets = map['toilets'] ?? false,
-        shop = map['shops'] ?? false,
-        waitingRoom = map['waitingRoom'] ?? false,
-        lostAndFound = map['lostAndFound'] ?? false
-
-
-  ;
+    : stop_id = map['stop_id'] ?? map['id'] ?? "",
+      stop_name = map['stop_name'] ?? "",
+      stop_lat = map['stop_lat'].toString(),
+      stop_lon = map['stop_lon'].toString(),
+      stop_timezone = map['stop_timezone'] ?? "",
+      picture = map['picture'] ?? "",
+      pictures = List<String>.from(map['pictures'] ?? []),
+      shops = ShopModel.fromJsonList(map["shopslist"] ?? []),
+      stop_desc = map['stop_desc'] ?? "",
+      stop_code = map['stop_code'] ?? "",
+      terAgency = map['terAgency'] ?? false,
+      parking = map['parking'] ?? false,
+      toilets = map['toilets'] ?? false,
+      shop = map['shops'] ?? false,
+      waitingRoom = map['waitingRoom'] ?? false,
+      lostAndFound = map['lostAndFound'] ?? false;
 
   Map<String, dynamic> toJson() => {
     "stop_id": stop_id,
@@ -83,8 +76,6 @@ class StopModel {
     "shops": shop,
     "waitingRoom": waitingRoom,
     "lostAndFound": lostAndFound,
-
-
   };
 
   static List<StopModel> fromJsonList(List list) {

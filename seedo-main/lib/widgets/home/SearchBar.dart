@@ -1,4 +1,4 @@
-// ignore_for_file: deprecated_member_use
+// ignore_for_file: deprecated_member_use, file_names
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,8 +97,8 @@ class _SearchBarsState extends State<SearchBars> {
       height: 40,
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(13),
+        color: Color.fromARGB(214, 248, 248, 248),
+        borderRadius: BorderRadius.circular(11),
       ),
       child: Row(
         children: [
@@ -113,9 +113,18 @@ class _SearchBarsState extends State<SearchBars> {
             child: TextField(
               controller: controller,
               decoration: const InputDecoration(
-                hintText: 'Rechercher...',
+                hintText: 'Rechercher',
+                hintStyle: TextStyle(
+                  color: Color.fromARGB(59, 0, 0, 0),
+                  fontSize: 14,
+                  fontWeight: FontWeight.w400,
+                ),
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(vertical: 8),
+
+                contentPadding: EdgeInsets.symmetric(
+                  vertical: 11,
+                  horizontal: 8,
+                ),
               ),
               onSubmitted: (value) {
                 // Déclencher la recherche lorsque l'utilisateur appuie sur Entrée

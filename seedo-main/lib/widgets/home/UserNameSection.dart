@@ -25,12 +25,12 @@ class UserNameSection extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Colors.white,
+              color: Color.fromARGB(222, 213, 72, 1),
             ),
           );
         } else {
           return const Text(
-            'Bienvenue Invité',
+            'Invité',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

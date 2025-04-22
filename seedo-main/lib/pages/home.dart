@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
@@ -34,9 +36,7 @@ class HomePage extends StatelessWidget {
                 ..add(LoadCurrentUser())
                 ..add(LoadCategories())
                 ..add(const LoadCurrentLocation()),
-      child:
-
-      const _HomePageContent(),
+      child: const _HomePageContent(),
     );
   }
 }
@@ -50,27 +50,17 @@ class _HomePageContent extends StatefulWidget {
 }
 
 class _HomePageContentState extends State<_HomePageContent> {
-  bool _hasLoadedInitialPublications = false;
-
-  static final tabIndicatorWidth = 120.0;
-
-
   @override
   Widget build(BuildContext context) {
     // Now we can safely access the HomeBloc from the context
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-
-
-
-        if (!  state.hasLoadedInitialPublications &&
+        if (!state.hasLoadedInitialPublications &&
             state.currentLatitude != null &&
             state.currentLongitude != null &&
             state.publications.isEmpty &&
             !state.isLoadingPublications &&
             state.publicationsError == null) {
-          _hasLoadedInitialPublications = true;
-
           _loadNearbyPublications(context, state);
         }
 
@@ -78,24 +68,22 @@ class _HomePageContentState extends State<_HomePageContent> {
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
           bottomNavigationBar: _buildBottomNavigationBar(context, state),
-          body: state .currentNavigationIndex==3?
-         TransportCommun()
-              :
-            SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 20),
-              child: Column(
-                children: [
-                  // Main Yellow Header Block
-                  _buildHeaderBlock(context, state),
-                  // Contenu basé sur l'onglet sélectionné
-                  state.selectedTabIndex == 0
-                      ? _buildPublicationsContent(context, state)
-                      : _buildMapContent(context, state),
-                ],
-              ),
-            ),
-          ),
+          body:
+              state.currentNavigationIndex == 3
+                  ? TransportCommun()
+                  : SafeArea(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(top: 20),
+                      child: Column(
+                        children: [
+                          // Main Yellow Header Block
+                          _buildHeaderBlock(context, state),
+                          // Contenu basé sur l'onglet sélectionné
+                          _buildPublicationsContent(context, state),
+                        ],
+                      ),
+                    ),
+                  ),
         );
       },
     );
@@ -143,7 +131,6 @@ class _HomePageContentState extends State<_HomePageContent> {
             : imagePath;
     final Color iconColor = isSelected ? HexColor("#D95C18") : Colors.grey;
 
-
     return InkWell(
       onTap:
           () => context.read<HomeBloc>().add(
@@ -163,7 +150,7 @@ class _HomePageContentState extends State<_HomePageContent> {
                   imagePath,
                   width: iconSize,
                   height: iconSize,
-                  color: iconColor ,
+                  color: iconColor,
                   fit:
                       BoxFit
                           .contain, // Force l'image à respecter les dimensions
@@ -193,9 +180,8 @@ class _HomePageContentState extends State<_HomePageContent> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 10.0),
       padding: const EdgeInsets.all(10.0),
-      height: 175,
       decoration: const BoxDecoration(
-        color: Color.fromARGB(255, 243, 175, 5),
+        color: Color.fromARGB(255, 255, 255, 255),
         borderRadius: BorderRadius.all(Radius.circular(15)),
       ),
       child: Column(
@@ -218,35 +204,29 @@ class _HomePageContentState extends State<_HomePageContent> {
                   const UserNameSection(),
                 ],
               ),
+
               // Right side - Icons
-              Row(
-                children: [
-                  Image.asset(
-                    'assets/icons/siren.png',
-                    width: 30,
-                    height: 30,
-                    color: const Color.fromARGB(255, 202, 33, 21),
-                  ),
-                  const SizedBox(width: 16),
-                  Image.asset(
-                    'assets/icons/settings.png',
-                    width: 26,
-                    height: 26,
-                    color: const Color.fromARGB(255, 0, 0, 0),
-                  ),
-                ],
+              Image.asset(
+                'assets/icons/settings.png',
+                width: 26,
+                height: 26,
+                color: const Color.fromARGB(255, 0, 0, 0),
               ),
             ],
           ),
           // Section de localisation - Modifiée pour afficher l'icône de localisation
           Row(
             children: [
-              Icon(Icons.location_on, size: 18, color: HexColor('#D95C18')),
+              Icon(Icons.location_on, size: 15, color: HexColor('#D95C18')),
               const SizedBox(width: 4),
               Expanded(
                 child: Text(
                   state.currentLocation,
-                  style: const TextStyle(fontSize: 16, color: Colors.black87),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -256,85 +236,6 @@ class _HomePageContentState extends State<_HomePageContent> {
           // Search Bar
           const SizedBox(height: 16),
           const SearchBars(), // Ce SearchBar doit être importé et défini correctement
-          const SizedBox(height: 18),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Tab Publications
-              GestureDetector(
-                onTap: () {
-                  context.read<HomeBloc>().add(const TabChanged(tabIndex: 0));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Publications',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color:
-                              state.selectedTabIndex == 0
-                                  ? Colors.black
-                                  : const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              // Tab Map
-              GestureDetector(
-                onTap: () {
-                  context.read<HomeBloc>().add(const TabChanged(tabIndex: 1));
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 30),
-                  child: Column(
-                    children: [
-                      Text(
-                        'Map',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 14,
-                          color:
-                              state.selectedTabIndex == 1
-                                  ? Colors.black
-                                  : const Color.fromARGB(255, 0, 0, 0),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // Barre de navigation animée
-          const SizedBox(height: 4),
-          Stack(
-            children: [
-              Container(height: 2, color: const Color.fromARGB(0, 42, 42, 42)),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                height: 2,
-                width: tabIndicatorWidth,
-                margin: EdgeInsets.only(
-                  left:
-                      state.selectedTabIndex == 0
-                          ? 0
-                          : MediaQuery.of(context).size.width -
-                              1 * 2 -
-                              tabIndicatorWidth -
-                              1,
-                ),
-                color: const Color.fromARGB(255, 36, 36, 36),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -376,7 +277,7 @@ class _HomePageContentState extends State<_HomePageContent> {
             if (state.publications.isEmpty &&
                 !state.isLoadingPublications &&
                 state.publicationsError == null) {
-          //  _loadNearbyPublications(context, state);
+              //  _loadNearbyPublications(context, state);
             }
 
             // Afficher la section des publications
@@ -415,7 +316,7 @@ class _HomePageContentState extends State<_HomePageContent> {
 
   // Méthode pour charger les publications à proximité
   void _loadNearbyPublications(BuildContext context, HomeState state) {
-    if (state.hasLoadedInitialPublications ) {
+    if (state.hasLoadedInitialPublications) {
       return; // Ne pas recharger si c'est déjà fait
     }
 
@@ -428,42 +329,5 @@ class _HomePageContentState extends State<_HomePageContent> {
         ),
       );
     }
-  }
-
-  Widget _buildMapContent(BuildContext context, HomeState state) {
-    // Modifiez _buildMapContent pour utiliser Google Maps ou une autre bibliothèque de cartographie
-    return Column(
-      key: const ValueKey('map'),
-      children: [
-        Container(
-          height: 500,
-          alignment: Alignment.center,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.map, size: 80, color: Colors.grey),
-              const SizedBox(height: 16),
-              const Text(
-                "Carte des restaurants",
-                style: TextStyle(fontSize: 18),
-              ),
-              const SizedBox(height: 20),
-              // Bouton pour rafraîchir la localisation sur la carte
-              ElevatedButton.icon(
-                onPressed: () {
-                  context.read<HomeBloc>().add(const LoadCurrentLocation());
-                },
-                icon: const Icon(Icons.my_location),
-                label: const Text("Ma position"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: HexColor('#D95C18'),
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 }

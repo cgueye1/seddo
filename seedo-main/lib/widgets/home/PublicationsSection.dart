@@ -28,7 +28,7 @@ class PublicationsSection extends StatelessWidget {
                     state.lastSearchKeyword != null &&
                             state.lastSearchKeyword!.isNotEmpty
                         ? 'Résultats de recherche'
-                        : 'Plats partagés',
+                        : 'Publications',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 20,
@@ -102,23 +102,33 @@ class PublicationsSection extends StatelessWidget {
       );
     }
 
-    // Horizontal scrolling list of publications
-    return Container(
-      margin: const EdgeInsets.only(right: 16),
-      child: SizedBox(
-        height: 537, // Fixed height for scrolling container
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children:
-                state.publications
-                    .map(
-                      (publication) =>
-                          PublicationCard(publication: publication),
-                    )
-                    .toList(),
-          ),
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Adjust card width calculation to account for 5px spacing
+    final cardWidth =
+        (screenWidth - 15) / 2; // 5px between cards and 5px on each side
+
+    // Grille avec deux publications par ligne qui fait défiler verticalement
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 5,
+      ), // Changed from 10 to 5
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2, // Deux éléments par ligne
+          childAspectRatio:
+              0.7, // Ajustez cette valeur selon la hauteur désirée
+          crossAxisSpacing: 5, // Changed from 10 to 5
+          mainAxisSpacing: 5, // Already at 5, but explicitly setting it
         ),
+        itemCount: state.publications.length,
+        itemBuilder: (context, index) {
+          return PublicationCard(
+            publication: state.publications[index],
+            width: cardWidth,
+          );
+        },
       ),
     );
   }

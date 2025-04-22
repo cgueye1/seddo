@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -8,7 +10,7 @@ class AdService {
   AdService._internal();
 
   InterstitialAd? _interstitialAd;
- // RewardedAd? _rewardedAd;
+  // RewardedAd? _rewardedAd;
   BannerAd? _bannerAd;
   VoidCallback? _currentRewardCallback;
 
@@ -20,7 +22,7 @@ class AdService {
 
   Future<void> _loadAds() async {
     await _loadInterstitialAd();
-  //  await _loadRewardedAd();
+    //  await _loadRewardedAd();
   }
 
   Future<void> _loadInterstitialAd() async {
@@ -30,7 +32,8 @@ class AdService {
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
           _interstitialAd = ad;
-          _interstitialAd?.fullScreenContentCallback = FullScreenContentCallback(
+          _interstitialAd
+              ?.fullScreenContentCallback = FullScreenContentCallback(
             onAdDismissedFullScreenContent: (ad) {
               ad.dispose();
               _loadInterstitialAd();
@@ -49,7 +52,7 @@ class AdService {
     );
   }
 
- /* Future<void> _loadRewardedAd() async {
+  /* Future<void> _loadRewardedAd() async {
     await RewardedAd.load(
       adUnitId: _getRewardBasedVideoAdUnitId()!,
       request: const AdRequest(),
@@ -112,7 +115,7 @@ class AdService {
     return false;
   }
 
- /* Future<bool> showRewardedAd({required VoidCallback onRewarded}) async {
+  /* Future<bool> showRewardedAd({required VoidCallback onRewarded}) async {
     if (_rewardedAd != null) {
       _currentRewardCallback = onRewarded;
       _rewardedAd?.show(
@@ -126,7 +129,7 @@ class AdService {
     debugPrint('RewardedAd not ready');
     return false;
   }*/
-// IDs des pubs
+  // IDs des pubs
   String? _getBannerAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2934735716';
     if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/6300978111';
@@ -140,7 +143,7 @@ class AdService {
   }
 
   // IDs des pubs
- /* String? _getBannerAdUnitId() {
+  /* String? _getBannerAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1687789051';
     if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/4890716632';
     return null;
@@ -152,7 +155,7 @@ class AdService {
     return null;
   }*/
 
- /* String? _getRewardBasedVideoAdUnitId() {
+  /* String? _getRewardBasedVideoAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-3940256099942544/1712485313';
     if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/5224354917';
     return null;
@@ -160,12 +163,12 @@ class AdService {
 
   void dispose() {
     _interstitialAd?.dispose();
-   // _rewardedAd?.dispose();
+    // _rewardedAd?.dispose();
 
     _currentRewardCallback = null;
   }
 
-  bannerDispos(){
+  bannerDispos() {
     _bannerAd?.dispose();
   }
 }

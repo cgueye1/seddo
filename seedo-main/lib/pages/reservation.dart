@@ -161,28 +161,56 @@ class _MealDetailPageState extends State<MealDetailPage> {
                 const SizedBox(height: 16),
 
                 // Catégorie
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: const Color.fromARGB(255, 255, 111, 0),
+                Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color.fromARGB(255, 255, 111, 0),
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.publication.categorie.titre,
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 119, 0),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                       ),
-                      borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Text(
-                      widget.publication.categorie.titre,
-                      style: const TextStyle(
-                        color: Color.fromARGB(255, 255, 119, 0),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400,
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 1,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: const Color.fromARGB(255, 255, 111, 0),
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.publication.categorie.titre,
+                          style: const TextStyle(
+                            color: Color.fromARGB(255, 255, 119, 0),
+                            fontSize: 10,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
 
                 const SizedBox(height: 16),
