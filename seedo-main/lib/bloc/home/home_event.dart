@@ -242,3 +242,28 @@ class ResetInitialPublicationsFlag extends HomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+
+
+
+
+
+
+class LoadNearbyADS extends HomeEvent {
+  final double latitude;
+  final double longitude;
+
+
+  const LoadNearbyADS ({
+    required this.latitude,
+    required this.longitude,
+
+  });
+
+  @override
+  List<Object?> get props => [
+    latitude,
+    longitude,
+
+  ];
+}

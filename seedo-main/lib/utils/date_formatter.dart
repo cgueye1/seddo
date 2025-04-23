@@ -31,3 +31,30 @@ String formatTimeAgo(int timestamp) {
     return 'à l\'instant';
   }
 }
+
+
+
+String getTimeAgo(String isoDateString) {
+  final date = DateTime.parse(isoDateString).toLocal();
+  final now = DateTime.now();
+  final difference = now.difference(date);
+
+  if (difference.inSeconds < 60) {
+    return "Publié il y a quelques secondes";
+  } else if (difference.inMinutes < 60) {
+    return "Publié il y a ${difference.inMinutes} minute${difference.inMinutes > 1 ? 's' : ''}";
+  } else if (difference.inHours < 24) {
+    return "Publié il y a ${difference.inHours} heure${difference.inHours > 1 ? 's' : ''}";
+  } else if (difference.inDays < 7) {
+    return "Publié il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}";
+  } else if (difference.inDays < 30) {
+    final weeks = (difference.inDays / 7).floor();
+    return "Publié il y a $weeks semaine${weeks > 1 ? 's' : ''}";
+  } else if (difference.inDays < 365) {
+    final months = (difference.inDays / 30).floor();
+    return "Publié il y a $months mois";
+  } else {
+    final years = (difference.inDays / 365).floor();
+    return "Publié il y a $years an${years > 1 ? 's' : ''}";
+  }
+}

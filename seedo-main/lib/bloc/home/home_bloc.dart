@@ -12,6 +12,7 @@ import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
 import 'package:seddoapp/services/menu_service.dart';
+import '../../repositories/defaultRepository.dart';
 import 'home_state.dart';
 import 'home_event.dart';
 
@@ -29,6 +30,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final PublicationRepository _publicationRepository;
   final TextEditingController searchController = TextEditingController();
   final SearchManager searchManager = SearchManager();
+  final DefaultRepository repository = DefaultRepository();
 
   HomeBloc(this._publicationRepository) : super(HomeState.initial()) {
     on<InitializeHomeEvent>(_onInitializeHome);
@@ -58,6 +60,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
 
     on<ResetInitialPublicationsFlag>(_onResetInitialPublicationsFlag);
+    on<LoadNearbyADS>(_loadNearbyADS);
 
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
@@ -329,6 +332,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ),
     );
 
+
+
     try {
       if (state.currentLatitude != null && state.currentLongitude != null) {
         final publications = await _publicationRepository.getNearbyPublications(
@@ -338,13 +343,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           subcategoryId: newSubcategoryId,
         );
 
-        print(publications);
+
 
         emit(
           state.copyWith(
             publications: publications,
             isLoadingPublications: false,
             selectedSubcategoryId: newSubcategoryId,
+            selectedSubcategory:     selectedSubcategory ??
+                state.selectedSubcategory,
             selectedCategory: currentCategory,
             selectedCategoryId: currentCategoryId,
             hasLoadedInitialPublications: true,
@@ -406,6 +413,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         (event.subcategory?.id == state.selectedSubcategory?.id)
             ? null
             : event.subcategory;
+
 
     emit(
       state.copyWith(
@@ -581,6 +589,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             currentLongitude: position.longitude,
           ),
         );
+
+        add(LoadNearbyADS(latitude:position.latitude,longitude:position.longitude ));
+
       }
     } catch (e) {
       emit(state.copyWith(currentLocation: "Localisation non disponible"));
@@ -646,6 +657,29 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ResetInitialPublicationsFlag event,
     Emitter<HomeState> emit,
   ) {
-    emit(state.copyWith(hasLoadedInitialPublications: false, publications: []));
+    emit(state.copyWith(hasLoadedInitialPublications: false, publications: [],));
   }
+
+  void _loadNearbyADS(
+      LoadNearbyADS event,
+      Emitter<HomeState> emit,
+      ) async {
+    final adsList = await _getAds(event.latitude,event.longitude);
+
+    debugPrint("Lisy : ${adsList.length} ads");
+    emit(state.copyWith(adsList: adsList));
+    debugPrint("État actuel : ${state.adsList.length} ads");
+
+  }
+
+  Future<List<Publication>> _getAds(double lat , double lon) async {
+    final response = await repository.getData("meals/sponsored?latitude=${lat}&longitude=${lon}");
+
+    if (response.data != null) {
+      return Publication.fromJsonList(response.data["content"]);
+    }
+
+    return [];
+  }
+
 }

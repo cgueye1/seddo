@@ -78,6 +78,9 @@ class CategoryDropdown extends StatelessWidget {
                         context.read<HomeBloc>().add(
                           const CategoryChanged(category: null),
                         );
+
+
+
                       } else {
                         // Catégorie parente sélectionnée
                         context.read<HomeBloc>().add(

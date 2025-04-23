@@ -20,6 +20,7 @@ class HomeState extends Equatable {
   final List<CategorieModel> categories; // Liste des catégories
   final String currentLocation;
   final List<Publication> publications;
+  final List<Publication> adsList;
   final bool isLoadingPublications;
   final String? publicationsError;
   final Map<int, List<CategorieModel>> subcategories;
@@ -50,6 +51,7 @@ class HomeState extends Equatable {
     this.selectedCategory, // Pas de required, nullable
     this.selectedSubcategory,
     this.publications = const [],
+    this.adsList = const [],
     this.isLoadingPublications = false,
     this.publicationsError,
     this.selectedCategoryId,
@@ -87,6 +89,7 @@ class HomeState extends Equatable {
       lastSearchKeyword: '',
       isSearching: false,
       hasLoadedInitialPublications: false,
+      adsList:  const [],
     );
   }
 
@@ -107,6 +110,7 @@ class HomeState extends Equatable {
     Map<int, List<CategorieModel>>? subcategories,
     CategorieModel? selectedSubcategory,
     List<Publication>? publications,
+    List<Publication>? adsList,
     bool? isLoadingPublications,
     String? publicationsError,
     int? selectedCategoryId,
@@ -136,6 +140,7 @@ class HomeState extends Equatable {
       selectedTypes: selectedTypes ?? this.selectedTypes,
       currentLocation: currentLocation ?? this.currentLocation,
       publications: publications ?? this.publications,
+
       isLoadingPublications:
           isLoadingPublications ?? this.isLoadingPublications,
       publicationsError: publicationsError ?? this.publicationsError,
@@ -147,6 +152,7 @@ class HomeState extends Equatable {
           selectedSubcategoryId ?? this.selectedSubcategoryId,
       lastSearchKeyword: lastSearchKeyword ?? this.lastSearchKeyword,
       isSearching: isSearching ?? this.isSearching,
+      adsList: adsList ?? this.adsList,
       hasLoadedInitialPublications: hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
 
     );
@@ -177,6 +183,7 @@ class HomeState extends Equatable {
     currentLongitude,
     selectedSubcategoryId,
     lastSearchKeyword,
+    adsList,
     isSearching,
     hasLoadedInitialPublications
   ];

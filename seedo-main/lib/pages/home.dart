@@ -14,7 +14,10 @@ import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/widgets/home/CategoryDropdown.dart';
 import 'package:seddoapp/widgets/home/PublicationsSection.dart';
 import 'package:seddoapp/widgets/home/UserNameSection.dart';
-import 'package:seddoapp/widgets/home/SearchBar.dart'; // Ajoutez cette importation
+import 'package:seddoapp/widgets/home/SearchBar.dart';
+
+import '../widgets/home/ads/AdsHorizontalList.dart';
+import '../widgets/home/ads/PubWidget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -78,6 +81,7 @@ class _HomePageContentState extends State<_HomePageContent> {
                         children: [
                           // Main Yellow Header Block
                           _buildHeaderBlock(context, state),
+
                           // Contenu basé sur l'onglet sélectionné
                           _buildPublicationsContent(context, state),
                         ],
@@ -235,7 +239,8 @@ class _HomePageContentState extends State<_HomePageContent> {
           ),
           // Search Bar
           const SizedBox(height: 16),
-          const SearchBars(), // Ce SearchBar doit être importé et défini correctement
+          const SearchBars(),
+          // Ce SearchBar doit être importé et défini correctement
         ],
       ),
     );
@@ -251,6 +256,8 @@ class _HomePageContentState extends State<_HomePageContent> {
           padding: const EdgeInsets.symmetric(horizontal: 13),
           child: CategoryDropdown(),
         ),
+        SizedBox(height: 10),
+        _buildAds(context, state),
 
         // Chargement initial des publications
         BlocBuilder<HomeBloc, HomeState>(
@@ -282,6 +289,22 @@ class _HomePageContentState extends State<_HomePageContent> {
 
             // Afficher la section des publications
             return const PublicationsSection();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAds(BuildContext context, HomeState state) {
+    return Column(
+      key: const ValueKey('ads'),
+      children: [
+        BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.adsList.isEmpty || state.isSearching || state.lastSearchKeyword!.isNotEmpty || state.selectedSubcategory!=null) {
+              return SizedBox();
+            }
+            return AdsHorizontalList(adsList: state.adsList);
           },
         ),
       ],

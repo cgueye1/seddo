@@ -14,6 +14,7 @@ class Publication {
   final Categorie categorie;
   final bool available;
   final bool universel;
+  final String createdDate;
   bool isFavorite;
   double? distance; // Nouveau champ pour la distance
 
@@ -33,6 +34,7 @@ class Publication {
     required this.categorie,
     required this.available,
     required this.universel,
+    required this .createdDate,
     this.isFavorite = false,
     this.distance, // Ajout du paramètre optionnel
   });
@@ -51,12 +53,17 @@ class Publication {
       paticipants: json['paticipants'] ?? [],
       latitude: json['latitude'],
       longitude: json['longitude'],
+      createdDate: json['createdDate'].toString(),
       categorie: Categorie.fromJson(json['categorie']),
       available: json['available'] ?? false,
       universel: json['universel'] ?? false,
       distance: json['distance']?.toDouble(), // Lecture optionnelle
     );
   }
+  static List<Publication> fromJsonList(List<dynamic> list) {
+    return list.map((item) => Publication.fromJson(item)).toList();
+  }
+
 }
 
 class Author {
