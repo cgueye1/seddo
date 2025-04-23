@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:seddoapp/utils/constant.dart';
 import '../../../models/publication_model.dart';
@@ -34,14 +36,13 @@ class PubWidget extends StatelessWidget {
                 BlendMode.darken,
               ),
               child: Image.network(
-                APIConstants.API_BASE_URL_IMG+item.picture,
+                APIConstants.API_BASE_URL_IMG + item.picture,
                 width: double.infinity,
                 height: 150,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey[300],
-                  height: 200,
-                ),
+                errorBuilder:
+                    (_, __, ___) =>
+                        Container(color: Colors.grey[300], height: 200),
               ),
             ),
           ),
@@ -65,10 +66,7 @@ class PubWidget extends StatelessWidget {
                 // Distance
                 Text(
                   getTimeAgo(item.createdDate),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
+                  style: const TextStyle(fontSize: 16, color: Colors.white70),
                 ),
                 const Spacer(),
               ],
@@ -94,10 +92,7 @@ class PubWidget extends StatelessWidget {
               ),
               child: Text(
                 item.categorie.action,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),
           ),

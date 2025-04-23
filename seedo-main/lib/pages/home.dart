@@ -5,19 +5,22 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
+import 'package:seddoapp/pages/SignalPage.dart';
 import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
 import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/widgets/CustomFloatingButton.dart';
 import 'package:seddoapp/widgets/home/CategoryDropdown.dart';
 import 'package:seddoapp/widgets/home/PublicationsSection.dart';
 import 'package:seddoapp/widgets/home/UserNameSection.dart';
 import 'package:seddoapp/widgets/home/SearchBar.dart';
+import 'package:seddoapp/widgets/navitems.dart';
 
 import '../widgets/home/ads/AdsHorizontalList.dart';
-import '../widgets/home/ads/PubWidget.dart';
+// import '../widgets/home/ads/PubWidget.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -55,7 +58,6 @@ class _HomePageContent extends StatefulWidget {
 class _HomePageContentState extends State<_HomePageContent> {
   @override
   Widget build(BuildContext context) {
-    // Now we can safely access the HomeBloc from the context
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         if (!state.hasLoadedInitialPublications &&
@@ -70,7 +72,28 @@ class _HomePageContentState extends State<_HomePageContent> {
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
-          bottomNavigationBar: _buildBottomNavigationBar(context, state),
+          bottomNavigationBar: CustomBottomNavigationBar(
+            state: state,
+          ), // Ajout du bouton flottant avec navigation vers la page de signalement
+          floatingActionButton: CustomFloatingButton(
+            imagePath:
+                'assets/icons/siren.png', // Chemin vers votre image d'alerte
+            onPressed: () {
+              // Navigation vers la page de signalement
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder:
+                      (context) =>
+                          SignalPage(), // Remplacez par le nom réel de votre page
+                ),
+              );
+            },
+            label: 'Signaler',
+            backgroundColor: Colors.white,
+            elevation: 4.0,
+          ),
+          // Placement du bouton en bas à droite
+          floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           body:
               state.currentNavigationIndex == 3
                   ? TransportCommun()
@@ -90,93 +113,6 @@ class _HomePageContentState extends State<_HomePageContent> {
                   ),
         );
       },
-    );
-  }
-
-  Widget _buildBottomNavigationBar(BuildContext context, HomeState state) {
-    // Code inchangé
-    return Container(
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(30),
-          topRight: Radius.circular(30),
-        ),
-        color: Color.fromARGB(255, 233, 231, 231),
-      ),
-      height: 60,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildNavItem(context, 0, 'assets/icons/home.png', '', state),
-          _buildNavItem(context, 1, 'assets/icons/chats.png', '', state),
-          _buildNavItem(context, 2, 'assets/icons/grid.png', '', state),
-          _buildNavItem(context, 3, 'assets/icons/notification.png', '', state),
-          _buildNavItem(context, 4, 'assets/icons/profil.png', '', state),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavItem(
-    BuildContext context,
-    int index,
-    String imagePath,
-    String label,
-    HomeState state,
-  ) {
-    // Code inchangé
-    final isSelected = index == state.currentNavigationIndex;
-    final iconSize = 28.0; // Taille uniforme pour toutes les icônes
-
-    // Remplacer image.png par image_selected.png si sélectionné
-    final displayImagePath =
-        isSelected
-            ? imagePath.replaceFirst('.png', '_selected.png')
-            : imagePath;
-    final Color iconColor = isSelected ? HexColor("#D95C18") : Colors.grey;
-
-    return InkWell(
-      onTap:
-          () => context.read<HomeBloc>().add(
-            NavigationIndexChanged(navigationIndex: index),
-          ),
-      splashColor: Colors.transparent,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: iconSize,
-              height: iconSize,
-              child: Center(
-                child: Image.asset(
-                  imagePath,
-                  width: iconSize,
-                  height: iconSize,
-                  color: iconColor,
-                  fit:
-                      BoxFit
-                          .contain, // Force l'image à respecter les dimensions
-                ),
-              ),
-            ),
-            if (label.isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isSelected ? Colors.orange : Colors.grey,
-                    fontWeight:
-                        isSelected ? FontWeight.bold : FontWeight.normal,
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -211,7 +147,7 @@ class _HomePageContentState extends State<_HomePageContent> {
 
               // Right side - Icons
               Image.asset(
-                'assets/icons/settings.png',
+                'assets/icons/notif.png',
                 width: 26,
                 height: 26,
                 color: const Color.fromARGB(255, 0, 0, 0),
@@ -301,7 +237,10 @@ class _HomePageContentState extends State<_HomePageContent> {
       children: [
         BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
-            if (state.adsList.isEmpty || state.isSearching || state.lastSearchKeyword!.isNotEmpty || state.selectedSubcategory!=null) {
+            if (state.adsList.isEmpty ||
+                state.isSearching ||
+                state.lastSearchKeyword!.isNotEmpty ||
+                state.selectedSubcategory != null) {
               return SizedBox();
             }
             return AdsHorizontalList(adsList: state.adsList);

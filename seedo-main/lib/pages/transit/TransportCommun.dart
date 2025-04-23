@@ -43,10 +43,9 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
     });
   }
 
-
   @override
   void dispose() {
-    AdService(). bannerDispos();
+    AdService().bannerDispos();
     super.dispose();
   }
 
@@ -129,7 +128,7 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                   right: 35,
                   child: InkWell(
                     onTap: () {
-                      if(origine!=null && destination!=null){
+                      if (origine != null && destination != null) {
                         PlaceModel backup = origine!;
                         setState(() {
                           loading = true;
@@ -142,7 +141,6 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                           });
                         });
                       }
-
                     },
                     child: SvgPicture.asset("assets/transit/switch.svg"),
                   ),
@@ -210,12 +208,12 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
             ),
           ),
           if (_isBannerAdReady)
-          Positioned(
-            bottom: 2,
-            left: 0,
-            right: 0,
-            child: AdService().getBannerAd(),
-          ),
+            Positioned(
+              bottom: 2,
+              left: 0,
+              right: 0,
+              child: AdService().getBannerAd(),
+            ),
         ],
       ),
     );

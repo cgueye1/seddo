@@ -59,7 +59,12 @@ dependencies:
   google_mobile_ads: ^6.0.0
   loading_indicator: ^3.1.1
   bloc: ^9.0.0
-
+  image_picker: ^1.0.4
+  audioplayers: ^5.2.1
+  just_audio: ^0.9.36  
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  record: ^5.0.0
   
 flutter_localizations:
     sdk: flutter
@@ -139,23 +144,25 @@ flutter:
     - assets/icons/location.png
     - assets/icons/loupe.png
     - assets/icons/participation.png
-    - assets/icons/settings.png
+    - assets/icons/param.png
+    - assets/icons/param_selected.png
     - assets/icons/siren.png
     - assets/icons/tray-copie.png
     - assets/icons/edit.png
-    - assets/icons/home_selected.png
-    - assets/icons/chats_selected.png
-    - assets/icons/grid_selected.png
+    - assets/icons/hom_selected.png
+    - assets/icons/Sms_selected.png
+    - assets/icons/Bus_selected.png
     - assets/icons/notification_selected.png
     - assets/icons/profil_selected.png
     - assets/icons/profile.png
-    - assets/icons/home.png
-    - assets/icons/chats.png
-    - assets/icons/grid.png
-    - assets/icons/notification.png
+    - assets/icons/hom.png
+    - assets/icons/Sms.png
+    - assets/icons/Bus.png
+    - assets/icons/notif.png
     - assets/icons/profil.png
     - assets/icons/discuss.png
     - assets/icons/plat.png
+    - assets/icons/senegal.png
     - assets/transit/
 
     #Date for JSON

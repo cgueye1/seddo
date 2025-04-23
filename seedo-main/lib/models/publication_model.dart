@@ -34,7 +34,7 @@ class Publication {
     required this.categorie,
     required this.available,
     required this.universel,
-    required this .createdDate,
+    required this.createdDate,
     this.isFavorite = false,
     this.distance, // Ajout du paramètre optionnel
   });
@@ -63,7 +63,6 @@ class Publication {
   static List<Publication> fromJsonList(List<dynamic> list) {
     return list.map((item) => Publication.fromJson(item)).toList();
   }
-
 }
 
 class Author {

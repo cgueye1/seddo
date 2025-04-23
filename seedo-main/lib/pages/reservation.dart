@@ -177,7 +177,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
-                          widget.publication.categorie.titre,
+                          'categorie parent',
                           style: const TextStyle(
                             color: Color.fromARGB(255, 255, 119, 0),
                             fontSize: 10,

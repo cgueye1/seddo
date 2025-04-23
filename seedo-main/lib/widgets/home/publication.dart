@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/pages/reservation.dart';
+import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
@@ -12,6 +13,7 @@ class PublicationCard extends StatelessWidget {
   final double width;
   final String? location;
   final double height;
+  final Publication item;
 
   const PublicationCard({
     super.key,
@@ -19,6 +21,7 @@ class PublicationCard extends StatelessWidget {
     this.width = 250,
     this.location,
     this.height = 200,
+    required this.item,
   });
 
   @override
@@ -115,7 +118,7 @@ class PublicationCard extends StatelessWidget {
 
                   // Publié il y'a x mins
                   Text(
-                    'Publié il y\'a ${formatTimeAgo(publication.timestamp * 1000)}',
+                    getTimeAgo(item.createdDate),
                     style: const TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w400,
@@ -123,83 +126,76 @@ class PublicationCard extends StatelessWidget {
                     ),
                   ),
 
-                  const SizedBox(height: 8), // Reduced from 16 to 8
+                  const SizedBox(height: 6), // Reduced from 16 to 8
                   // Ligne avec point et premier lieu
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Column(
                         children: [
+                          // First location dot
                           Container(
-                            width: 10,
-                            height: 10,
+                            width: 8,
+                            height: 15,
                             decoration: const BoxDecoration(
                               shape: BoxShape.circle,
                               color: Color.fromARGB(255, 213, 59, 12),
                             ),
                           ),
-                          Container(
-                            width: 2,
-                            height: 20, // Reduced from 30 to 20
-                            color: Colors.grey[300],
+                          // Dashed line
+                          CustomPaint(
+                            size: const Size(1, 15),
+                            painter: DashedLinePainter(
+                              color: const Color.fromARGB(255, 187, 187, 187),
+                              dashHeight: 2,
+                              dashSpace: 2,
+                            ),
+                          ),
+                          // Second location dot with location icon
+                          const Icon(
+                            Icons.location_on,
+                            color: Color.fromARGB(255, 213, 59, 12),
+                            size: 14,
                           ),
                         ],
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 2),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               publication.author != null
-                                  ? '${publication.author!.firstName} ${publication.author!.lastName} - Patte d\'oie'
-                                  : 'Fatima Sène - Patte d\'oie',
+                                  ? '${publication.author!.firstName} ${publication.author!.lastName} - Lieu'
+                                  : 'Partageur - Lieu',
                               style: const TextStyle(
                                 fontSize: 9,
-                                fontWeight: FontWeight.w700,
+                                fontWeight: FontWeight.w600,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                             const Text(
                               'Maison',
-                              style: TextStyle(fontSize: 7, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 7,
+                                color: Color.fromARGB(255, 116, 116, 116),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  // Ligne avec point et deuxième lieu
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        margin: const EdgeInsets.only(left: 1),
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Color.fromARGB(255, 213, 59, 12),
-                          size: 18,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                            const SizedBox(height: 6),
+                            // Dans la section où vous affichez "Vous - Nord Foire"
                             Text(
                               'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
-                              style: const TextStyle(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
+                              style: TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w600,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                            const SizedBox(height: 4),
                             const Text(
                               'Maison',
-                              style: TextStyle(fontSize: 9, color: Colors.grey),
+                              style: TextStyle(
+                                fontSize: 7,
+                                color: Color.fromARGB(255, 119, 119, 119),
+                              ),
                             ),
                           ],
                         ),

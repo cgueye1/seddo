@@ -6,15 +6,19 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/pages/auth/login.dart';
+import 'package:seddoapp/pages/home.dart';
+import 'package:seddoapp/pages/publie.dart';
+// import 'package:seddoapp/pages/SignalPage.dart';
+import 'package:seddoapp/pages/setting.dart';
 
 // Pages
-import 'package:seddoapp/pages/home.dart';
+// import 'package:seddoapp/pages/home.dart';
 // import 'package:seddoapp/pages/transit/TransportCommun.dart';
 
 // Repositories & Services
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/AdMobService.dart';
-import 'package:seddoapp/services/PushNotificationService.dart';
+// import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
 
@@ -26,7 +30,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   // PushNotificationService().initialize();
-  await AdService().initialize();
+  // await AdService().initialize();
 
   // Initialisation des formats de date
   try {
@@ -97,7 +101,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: //HomePage
-          const HomePage(),
+          const PubliePage(),
     );
   }
 }

@@ -127,6 +127,7 @@ class PublicationsSection extends StatelessWidget {
           return PublicationCard(
             publication: state.publications[index],
             width: cardWidth,
+            item: state.publications[index],
           );
         },
       ),
