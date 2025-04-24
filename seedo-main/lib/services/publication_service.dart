@@ -10,7 +10,7 @@ class PublicationService {
   Future<List<Publication>> fetchNearbyPublications({
     required double latitude,
     required double longitude,
-    double radius = 3000,
+    double radius = 5000,
     int? categorieId,
     int? subcategoryId,
     String? keyword,
@@ -26,7 +26,6 @@ class PublicationService {
         'size': size,
       };
 
-
       if (subcategoryId != null) {
         queryParams['categorieId'] = subcategoryId;
       }
@@ -37,11 +36,12 @@ class PublicationService {
           "Recherche avec mot-clé: '$keyword' (URL: meals/nearby avec params: $queryParams)",
         );
       }
-      print(        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId!=null?subcategoryId:""}&keyword=${keyword!=null?keyword:""}&page=${page}&size=${size}');
+      print(
+        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId != null ? subcategoryId : ""}&keyword=${keyword != null ? keyword : ""}&page=${page}&size=${size}',
+      );
 
       final response = await _dio.get(
-        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId!=null?subcategoryId:""}&keyword=${keyword!=null?keyword:""}&page=${page}&size=${size}',
-
+        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId != null ? subcategoryId : ""}&keyword=${keyword != null ? keyword : ""}&page=${page}&size=${size}',
       );
 
       // Afficher l'URL complète avec tous les paramètres pour le débogage
@@ -54,7 +54,6 @@ class PublicationService {
         final List<dynamic> content = data['content'];
         print("fuck");
         print(response.data);
-
 
         final publications =
             content.map((item) {

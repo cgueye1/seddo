@@ -110,9 +110,18 @@ class SettingPage extends StatelessWidget {
                       size: 30,
                     ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => PubliePage()),
+                      // Afficher les catégories dans la console pour débogage
+                      final categories =
+                          context.read<HomeBloc>().state.categories;
+                      print(
+                        "Navigating to PubliePage with categories: $categories",
+                      );
+
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder:
+                              (context) => PubliePage(categories: categories),
+                        ),
                       );
                     },
                   ),

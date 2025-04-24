@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, library_prefixes
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +6,7 @@ import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/pages/home.dart';
+import 'package:seddoapp/pages/reservation.dart' as pageController;
 import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/constant.dart';
@@ -31,6 +32,10 @@ class MealDetailPage extends StatefulWidget {
 
   @override
   _MealDetailPageState createState() => _MealDetailPageState();
+}
+
+void dispose() {
+  pageController.dispose();
 }
 
 class _MealDetailPageState extends State<MealDetailPage> {
@@ -64,8 +69,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Image du plat avec bouton favori superposé
+                // Image du plat avec bouton favori superposé
                 Stack(
                   children: [
+                    // Afficher l'image principale ou un conteneur gris par défaut
                     widget.publication.picture.isNotEmpty
                         ? Image.network(
                           '${APIConstants.API_BASE_URL_IMG}${widget.publication.picture}',
@@ -92,6 +99,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                             child: Icon(Icons.image_not_supported, size: 50),
                           ),
                         ),
+
                     // Heart icon positionné comme dans PublicationCard
                     Positioned(
                       bottom: 10,
@@ -121,6 +129,39 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   ],
                 ),
 
+                Padding(
+                  padding: const EdgeInsets.only(top: 8.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Always show at least one dot for the main image
+                      Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: const Color.fromARGB(255, 110, 110, 110),
+                        ),
+                      ),
+                      // Add dots for additional images
+                      for (
+                        int i = 0;
+                        i < widget.publication.pictures.length;
+                        i++
+                      )
+                        Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 3),
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color.fromARGB(255, 200, 200, 200),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
                 // Titre
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -149,7 +190,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Text(
-                    'Publié ${formatTimeAgo(widget.publication.timestamp * 1000)}',
+                    getTimeAgo(widget.publication.createdDate),
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -168,18 +209,24 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
-                          vertical: 1,
+                          vertical: 12,
                         ),
                         decoration: BoxDecoration(
+                          color: const Color.fromARGB(
+                            255,
+                            255,
+                            221,
+                            0,
+                          ).withOpacity(0.1), // Fond jaune transparent
                           border: Border.all(
-                            color: const Color.fromARGB(255, 255, 111, 0),
+                            color: const Color.fromARGB(255, 255, 221, 0),
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: Text(
                           'categorie parent',
                           style: const TextStyle(
-                            color: Color.fromARGB(255, 255, 119, 0),
+                            color: Color.fromARGB(255, 255, 221, 0),
                             fontSize: 10,
                             fontWeight: FontWeight.w400,
                           ),
@@ -188,17 +235,23 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      padding: EdgeInsets.all(0),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
-                          vertical: 1,
+                          vertical: 12,
                         ),
                         decoration: BoxDecoration(
+                          color: const Color.fromARGB(
+                            255,
+                            255,
+                            111,
+                            0,
+                          ).withOpacity(0.1), // Fond orange transparent
                           border: Border.all(
                             color: const Color.fromARGB(255, 255, 111, 0),
                           ),
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         child: Text(
                           widget.publication.categorie.titre,
@@ -212,7 +265,6 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
 
                 // Date et heure comme dans PublicationCard
@@ -227,7 +279,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        formatDate(widget.publication.timestamp * 100),
+                        formatDate(widget.publication.timestamp),
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

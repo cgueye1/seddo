@@ -24,7 +24,7 @@ class AdsHorizontalList extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MealDetailPage(publication:  ad ),
+                  builder: (context) => MealDetailPage(publication: ad),
                 ),
               );
             },
@@ -33,9 +33,10 @@ class AdsHorizontalList extends StatelessWidget {
                 left: index == 0 ? 10 : 5,
                 right: index == adsList.length - 1 ? 10 : 5,
               ),
-              width: adsList.length > 1
-                  ? MediaQuery.of(context).size.width - 50
-                  : MediaQuery.of(context).size.width - 20,
+              width:
+                  adsList.length > 1
+                      ? MediaQuery.of(context).size.width - 50
+                      : MediaQuery.of(context).size.width - 20,
               height: 150,
               child: PubWidget(item: ad),
             ),

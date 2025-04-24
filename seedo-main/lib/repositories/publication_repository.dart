@@ -35,7 +35,7 @@ class PublicationRepository {
     String? keyword,
     int? categoryId,
     int? subcategoryId,
-    double radius = 1000,
+    double radius = 5000,
     int page = 0,
     int size = 30,
   }) async {

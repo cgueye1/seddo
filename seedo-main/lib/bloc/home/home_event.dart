@@ -6,8 +6,6 @@ abstract class HomeEvent extends Equatable {
 
   @override
   List<Object?> get props => []; // Changed to Object? to handle nulls
-
-
 }
 
 class UpdateSelectedSubcategory extends HomeEvent {
@@ -19,7 +17,6 @@ class UpdateSelectedSubcategory extends HomeEvent {
   List<Object?> get props => [subcategory];
 }
 
-
 class InitializeHomeEvent extends HomeEvent {
   const InitializeHomeEvent();
 }
@@ -27,7 +24,7 @@ class InitializeHomeEvent extends HomeEvent {
 class TabChanged extends HomeEvent {
   final int tabIndex;
 
-  const TabChanged({required this.tabIndex});
+  const TabChanged(int i, {required this.tabIndex});
 
   @override
   List<Object> get props => [tabIndex];
@@ -227,14 +224,7 @@ class SearchPublications extends HomeEvent {
     if (keyword != null) keyword!,
     if (categoryId != null) categoryId!,
   ];
-
-
-
-
-
 }
-
-
 
 class ResetInitialPublicationsFlag extends HomeEvent {
   const ResetInitialPublicationsFlag();
@@ -243,27 +233,12 @@ class ResetInitialPublicationsFlag extends HomeEvent {
   List<Object?> get props => [];
 }
 
-
-
-
-
-
-
 class LoadNearbyADS extends HomeEvent {
   final double latitude;
   final double longitude;
 
-
-  const LoadNearbyADS ({
-    required this.latitude,
-    required this.longitude,
-
-  });
+  const LoadNearbyADS({required this.latitude, required this.longitude});
 
   @override
-  List<Object?> get props => [
-    latitude,
-    longitude,
-
-  ];
+  List<Object?> get props => [latitude, longitude];
 }

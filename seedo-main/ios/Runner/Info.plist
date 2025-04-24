@@ -71,6 +71,10 @@
 
 	<!-- Configuration pour l'utilisation des notifications -->
 	<key>UIUserNotificationSettings</key>
+	<key>NSCameraUsageDescription</key>
+<string>Pour prendre des photos des articles</string>
+<key>NSPhotoLibraryUsageDescription</key>
+<string>Pour sélectionner des photos des articles</string>
 	<dict>
 		<key>types</key>
 		<array>

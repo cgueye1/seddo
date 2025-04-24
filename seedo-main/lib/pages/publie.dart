@@ -1,17 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:seddoapp/bloc/publie/publie_bloc.dart';
+import 'package:seddoapp/bloc/publie/publie_event.dart';
+import 'package:seddoapp/bloc/publie/publie_state.dart';
+import 'package:seddoapp/models/CategorieModel.dart';
+import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/widgets/publieform2.dart';
 
-class PubliePage extends StatefulWidget {
-  const PubliePage({Key? key}) : super(key: key);
+class PubliePage extends StatelessWidget {
+  final List<dynamic>? categories;
+
+  const PubliePage({Key? key, this.categories}) : super(key: key);
 
   @override
-  State<PubliePage> createState() => _PubliePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create:
+          (context) => PublicationBloc(
+            categorieRepository: CategorieRepository(),
+            categories: categories,
+          ),
+      child: const PubliePageView(),
+    );
+  }
 }
 
-class _PubliePageState extends State<PubliePage> {
-  int _currentStep = 1;
-  int _activeTabIndex = 0;
+class PubliePageView extends StatefulWidget {
+  const PubliePageView({Key? key}) : super(key: key);
+
+  @override
+  State<PubliePageView> createState() => _PubliePageViewState();
+}
+
+class _PubliePageViewState extends State<PubliePageView> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
@@ -19,7 +43,6 @@ class _PubliePageState extends State<PubliePage> {
   final TextEditingController _availabilityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _languagesController = TextEditingController();
-  List<String> _selectedImages = [];
 
   @override
   void dispose() {
@@ -35,178 +58,212 @@ class _PubliePageState extends State<PubliePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'Publications',
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Tabs
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 14),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(16),
+    return BlocConsumer<PublicationBloc, PublicationState>(
+      listener: (context, state) {
+        if (state.isSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Publication soumise avec succès!')),
+          );
+          Navigator.pop(context);
+        }
+
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Erreur: ${state.errorMessage}')),
+          );
+        }
+      },
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            backgroundColor: Colors.white,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: Colors.black),
+              onPressed: () => Navigator.of(context).pop(),
             ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _activeTabIndex = 0;
-                      });
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(8.0),
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color:
-                            _activeTabIndex == 0
-                                ? Colors.black
-                                : Colors.transparent,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Publier',
-                          style: TextStyle(
+            title: const Text(
+              'Publications',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          body: Column(
+            children: [
+              // Tabs
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.grey[100],
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.read<PublicationBloc>().add(TabChanged(0));
+                        },
+                        child: Container(
+                          margin: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
                             color:
-                                _activeTabIndex == 0
-                                    ? Colors.white
-                                    : Colors.black,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                                state.activeTabIndex == 0
+                                    ? Colors.black
+                                    : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Publier',
+                              style: TextStyle(
+                                color:
+                                    state.activeTabIndex == 0
+                                        ? Colors.white
+                                        : Colors.black,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _activeTabIndex = 1;
-                      });
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(8.0),
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      decoration: BoxDecoration(
-                        color:
-                            _activeTabIndex == 1
-                                ? Colors.black
-                                : const Color.fromARGB(251, 255, 255, 255),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          'Historique',
-                          style: TextStyle(
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () {
+                          context.read<PublicationBloc>().add(TabChanged(1));
+                        },
+                        child: Container(
+                          margin: EdgeInsets.all(8.0),
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          decoration: BoxDecoration(
                             color:
-                                _activeTabIndex == 1
-                                    ? Colors.white
-                                    : Colors.black,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 16,
+                                state.activeTabIndex == 1
+                                    ? Colors.black
+                                    : const Color.fromARGB(251, 255, 255, 255),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              'Historique',
+                              style: TextStyle(
+                                color:
+                                    state.activeTabIndex == 1
+                                        ? Colors.white
+                                        : Colors.black,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16,
+                              ),
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Step indicator - Only 2 steps
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 60, vertical: 16),
-            child: Row(
-              children: [
-                // Step 1 circle
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: _currentStep >= 1 ? Colors.green : Colors.grey[300],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '1',
-                      style: TextStyle(
-                        color: _currentStep >= 1 ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
+              // Step indicator - Only 2 steps
+              Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 60,
+                  vertical: 16,
+                ),
+                child: Row(
+                  children: [
+                    // Step 1 circle
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color:
+                            state.currentStep >= 1
+                                ? Colors.green
+                                : Colors.grey[300],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '1',
+                          style: TextStyle(
+                            color:
+                                state.currentStep >= 1
+                                    ? Colors.white
+                                    : Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                // Line
-                Expanded(
-                  child: Container(
-                    margin: EdgeInsets.all(5.0),
-                    height: 2,
-                    color: _currentStep >= 2 ? Colors.green : Colors.grey[300],
-                  ),
-                ),
-                // Step 2 circle
-                Container(
-                  width: 30,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    color: _currentStep >= 2 ? Colors.green : Colors.grey[300],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '2',
-                      style: TextStyle(
-                        color: _currentStep >= 2 ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.bold,
+                    // Line
+                    Expanded(
+                      child: Container(
+                        margin: EdgeInsets.all(5.0),
+                        height: 2,
+                        color:
+                            state.currentStep >= 2
+                                ? Colors.green
+                                : Colors.grey[300],
                       ),
                     ),
-                  ),
+                    // Step 2 circle
+                    Container(
+                      width: 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color:
+                            state.currentStep >= 2
+                                ? Colors.green
+                                : Colors.grey[300],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '2',
+                          style: TextStyle(
+                            color:
+                                state.currentStep >= 2
+                                    ? Colors.white
+                                    : Colors.black,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
 
-          // Form content - changes based on current step
-          Expanded(
-            child:
-                _activeTabIndex == 0
-                    ? SingleChildScrollView(
-                      padding: const EdgeInsets.all(16),
-                      child:
-                          _currentStep == 1
-                              ? _buildStep1Form()
-                              : _buildStep2Form(),
-                    )
-                    : const Center(child: Text('Historique des publications')),
+              // Form content - changes based on current step
+              Expanded(
+                child:
+                    state.activeTabIndex == 0
+                        ? SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child:
+                              state.currentStep == 1
+                                  ? _buildStep1Form(context, state)
+                                  : _buildStep2Form(context, state),
+                        )
+                        : const Center(
+                          child: Text('Historique des publications'),
+                        ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
-  Widget _buildStep1Form() {
+  Widget _buildStep1Form(BuildContext context, PublicationState state) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -217,7 +274,6 @@ class _PubliePageState extends State<PubliePage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 4),
-
             const Text(
               '*',
               style: TextStyle(
@@ -236,34 +292,37 @@ class _PubliePageState extends State<PubliePage> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: DropdownButtonFormField<String>(
-            style: TextStyle(
-              fontSize: 11,
-            ), // ← Style appliqué à l'élément sélectionné
+            value: state.selectedCategory,
+            style: const TextStyle(fontSize: 11),
             decoration: InputDecoration(
               hintText: 'Sélectionnez la catégorie',
-              hintStyle: TextStyle(fontSize: 11), // ← Style du hint
+              hintStyle: const TextStyle(fontSize: 10),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
             icon: const Icon(Icons.keyboard_arrow_down, size: 20),
             items:
-                ['catégorie 1', 'catégorie 2', 'catégorie 3']
+                state.categoryTitles
                     .map(
                       (String value) => DropdownMenuItem<String>(
                         value: value,
                         child: Text(
                           value,
-                          style: TextStyle(
-                            fontSize: 11,
-                          ), // ← Style des items de la liste
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     )
                     .toList(),
             onChanged: (String? newValue) {
-              setState(() {
-                // _selectedSubCategory = newValue;
-              });
+              if (newValue != null) {
+                context.read<PublicationBloc>().add(CategorySelected(newValue));
+              }
             },
           ),
         ),
@@ -277,7 +336,6 @@ class _PubliePageState extends State<PubliePage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 4),
-
             const Text(
               '*',
               style: TextStyle(
@@ -295,39 +353,50 @@ class _PubliePageState extends State<PubliePage> {
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: DropdownButtonFormField<String>(
-            style: TextStyle(
-              fontSize: 11,
-            ), // ← Style appliqué à l'élément sélectionné
-            decoration: InputDecoration(
+          child: DropdownButtonFormField<CategorieModel>(
+            value: state.selectedSubcategoryModel,
+            style: const TextStyle(fontSize: 11),
+            decoration: const InputDecoration(
               hintText: 'Sélectionnez la sous-catégorie',
-              hintStyle: TextStyle(fontSize: 11), // ← Style du hint
+              hintStyle: TextStyle(fontSize: 11, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             icon: const Icon(Icons.keyboard_arrow_down, size: 20),
             items:
-                ['Sous-catégorie 1', 'Sous-catégorie 2', 'Sous-catégorie 3']
-                    .map(
-                      (String value) => DropdownMenuItem<String>(
-                        value: value,
+                state.currentSubcategories.isEmpty
+                    ? [
+                      DropdownMenuItem<CategorieModel>(
+                        value: null,
                         child: Text(
-                          value,
-                          style: TextStyle(
-                            fontSize: 11,
-                          ), // ← Style des items de la liste
+                          'Aucune sous-catégorie disponible',
+                          style: const TextStyle(fontSize: 12),
                         ),
                       ),
-                    )
-                    .toList(),
-            onChanged: (String? newValue) {
-              setState(() {
-                // _selectedSubCategory = newValue;
-              });
+                    ]
+                    : state.currentSubcategories.map((subCategory) {
+                      return DropdownMenuItem<CategorieModel>(
+                        value: subCategory,
+                        child: Text(
+                          subCategory.titre,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+            onChanged: (CategorieModel? newValue) {
+              if (newValue != null) {
+                context.read<PublicationBloc>().add(
+                  SubcategorySelected(newValue),
+                );
+              }
             },
           ),
         ),
         const SizedBox(height: 24),
+
         // Title Field
         Row(
           children: [
@@ -336,7 +405,6 @@ class _PubliePageState extends State<PubliePage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 4),
-
             const Text(
               '*',
               style: TextStyle(
@@ -358,13 +426,18 @@ class _PubliePageState extends State<PubliePage> {
             controller: _titleController,
             decoration: const InputDecoration(
               hintText: 'Entrez le titre de la publication',
-              hintStyle: TextStyle(fontSize: 11),
+              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
               ),
             ),
+            onChanged: (value) {
+              context.read<PublicationBloc>().add(
+                FormFieldUpdated('title', value),
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -385,126 +458,18 @@ class _PubliePageState extends State<PubliePage> {
             maxLines: 6,
             decoration: const InputDecoration(
               hintText: 'Ecrivez quelque chose...',
-              hintStyle: TextStyle(fontSize: 11),
+              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 12,
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Location Field
-        Row(
-          children: [
-            const Text(
-              'Lieu de récupération',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 4),
-            const Text(
-              '*',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: _locationController,
-            decoration: const InputDecoration(
-              hintText: 'Entrez le lieu de récupération',
-              hintStyle: TextStyle(fontSize: 11),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Date and Time Field
-        Row(
-          children: [
-            const Text(
-              'Date et heure de récupération',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(width: 4),
-
-            const Text(
-              '*',
-              style: TextStyle(
-                color: Colors.red,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ],
-        ),
-
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: _dateTimeController,
-            readOnly: true,
-            decoration: InputDecoration(
-              hintText: 'Entrez la date et heure de récupération',
-              hintStyle: TextStyle(fontSize: 11),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.calendar_today),
-                onPressed: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedDate != null) {
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      final DateTime combinedDateTime = DateTime(
-                        pickedDate.year,
-                        pickedDate.month,
-                        pickedDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
-                      );
-                      setState(() {
-                        _dateTimeController.text = DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(combinedDateTime);
-                      });
-                    }
-                  }
-                },
-              ),
-            ),
+            onChanged: (value) {
+              context.read<PublicationBloc>().add(
+                FormFieldUpdated('description', value),
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -512,7 +477,7 @@ class _PubliePageState extends State<PubliePage> {
         // Availability Field
         const Text(
           'Disponibilités',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         Container(
@@ -524,7 +489,7 @@ class _PubliePageState extends State<PubliePage> {
             controller: _availabilityController,
             decoration: InputDecoration(
               hintText: 'Entrez vos disponibilités',
-              hintStyle: TextStyle(fontSize: 11),
+              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
@@ -552,16 +517,27 @@ class _PubliePageState extends State<PubliePage> {
                         pickedTime.hour,
                         pickedTime.minute,
                       );
+                      final formattedDateTime = DateFormat(
+                        'dd/MM/yyyy HH:mm',
+                      ).format(combinedDateTime);
+
                       setState(() {
-                        _dateTimeController.text = DateFormat(
-                          'dd/MM/yyyy HH:mm',
-                        ).format(combinedDateTime);
+                        _dateTimeController.text = formattedDateTime;
                       });
+
+                      context.read<PublicationBloc>().add(
+                        FormFieldUpdated('dateTime', formattedDateTime),
+                      );
                     }
                   }
                 },
               ),
             ),
+            onChanged: (value) {
+              context.read<PublicationBloc>().add(
+                FormFieldUpdated('availability', value),
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -569,7 +545,7 @@ class _PubliePageState extends State<PubliePage> {
         // Price Field with Currency
         const Text(
           'Prix / Tarification',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         Row(
@@ -585,12 +561,18 @@ class _PubliePageState extends State<PubliePage> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     hintText: 'Entrez le tarif',
+                    hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
                     border: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 12,
                     ),
                   ),
+                  onChanged: (value) {
+                    context.read<PublicationBloc>().add(
+                      FormFieldUpdated('price', value),
+                    );
+                  },
                 ),
               ),
             ),
@@ -605,7 +587,7 @@ class _PubliePageState extends State<PubliePage> {
               child: const Center(
                 child: Text(
                   'Fcfa',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
               ),
             ),
@@ -616,7 +598,7 @@ class _PubliePageState extends State<PubliePage> {
         // Languages Field
         const Text(
           'Langues parlées',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
         Container(
@@ -628,6 +610,7 @@ class _PubliePageState extends State<PubliePage> {
             controller: _languagesController,
             decoration: const InputDecoration(
               hintText: 'Entrez la ou les langues parlée(s)',
+              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
@@ -635,6 +618,11 @@ class _PubliePageState extends State<PubliePage> {
               ),
               suffixIcon: Icon(Icons.keyboard_arrow_down),
             ),
+            onChanged: (value) {
+              context.read<PublicationBloc>().add(
+                FormFieldUpdated('languages', value),
+              );
+            },
           ),
         ),
         const SizedBox(height: 24),
@@ -649,9 +637,7 @@ class _PubliePageState extends State<PubliePage> {
           ),
           child: TextButton(
             onPressed: () {
-              setState(() {
-                _currentStep = 2;
-              });
+              context.read<PublicationBloc>().add(StepChanged(2));
             },
             child: const Text(
               'Suivant',
@@ -667,24 +653,70 @@ class _PubliePageState extends State<PubliePage> {
     );
   }
 
-  Widget _buildStep2Form() {
+  Widget _buildStep2Form(BuildContext context, PublicationState state) {
     return Step2Form(
       onBackPressed: () {
-        setState(() {
-          _currentStep = 1;
-        });
+        context.read<PublicationBloc>().add(StepChanged(1));
       },
       onPublishPressed: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Publication soumise avec succès!')),
-        );
-        Navigator.pop(context);
+        context.read<PublicationBloc>().add(PublicationSubmitted());
       },
-      onAddImagesPressed: () {
-        // Logique pour ajouter des images
+      onAddImagesPressed: () async {
+        try {
+          final picker = ImagePicker();
+          final List<XFile>? images = await picker.pickMultiImage(
+            maxWidth: 1200,
+            maxHeight: 1200,
+            imageQuality: 85,
+          );
+
+          if (images != null && images.isNotEmpty) {
+            context.read<PublicationBloc>().add(
+              ImagesAdded(images.map((e) => e.path).toList()),
+            );
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+          }
+        }
       },
-      onCameraPressed: () {
-        // Logique pour la caméra
+      onCameraPressed: () async {
+        try {
+          final status = await Permission.camera.request();
+          if (!status.isGranted) {
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Permission caméra requise')),
+              );
+            }
+            return;
+          }
+
+          final picker = ImagePicker();
+          final XFile? image = await picker.pickImage(
+            source: ImageSource.camera,
+            maxWidth: 1200,
+            maxHeight: 1200,
+            imageQuality: 85,
+          );
+
+          if (image != null) {
+            context.read<PublicationBloc>().add(ImagesAdded([image.path]));
+          }
+        } catch (e) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Erreur caméra: ${e.toString()}')),
+            );
+          }
+        }
+      },
+      selectedImages: state.selectedImages,
+      onRemoveImage: (index) {
+        context.read<PublicationBloc>().add(ImageRemoved(index));
       },
     );
   }

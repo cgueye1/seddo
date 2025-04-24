@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class Step2Form extends StatelessWidget {
@@ -5,13 +7,16 @@ class Step2Form extends StatelessWidget {
   final VoidCallback onPublishPressed;
   final VoidCallback onAddImagesPressed;
   final VoidCallback onCameraPressed;
+  final List<String> selectedImages;
+  final Function(int) onRemoveImage;
 
   const Step2Form({
-    super.key,
     required this.onBackPressed,
     required this.onPublishPressed,
     required this.onAddImagesPressed,
     required this.onCameraPressed,
+    required this.selectedImages,
+    required this.onRemoveImage,
   });
 
   @override
@@ -30,7 +35,7 @@ class Step2Form extends StatelessWidget {
         ),
         const SizedBox(height: 24),
 
-        // Image upload area
+        // Main image container - Affiche la première image ou l'icône de téléchargement
         Container(
           width: double.infinity,
           height: 200,
@@ -38,28 +43,92 @@ class Step2Form extends StatelessWidget {
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.upload, size: 40),
-              const SizedBox(height: 8),
-              const Text(
-                'Télécharger une image',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                '(vous pouvez télécharger plus d\'images en',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const Text(
-                'appuyant sur l\'icone plus)',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-            ],
-          ),
+          child:
+              selectedImages.isNotEmpty
+                  ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(
+                      File(selectedImages.first),
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                  : Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.upload, size: 40),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'Télécharger une image',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        '(vous pouvez télécharger plus d\'images en',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                      const Text(
+                        'appuyant sur l\'icone plus)',
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
+                    ],
+                  ),
         ),
         const SizedBox(height: 24),
+
+        // Additional images grid
+        if (selectedImages.length > 1)
+          SizedBox(
+            height: 100,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount:
+                  selectedImages.length -
+                  1, // On affiche à partir de la 2ème image
+              itemBuilder: (context, index) {
+                final imageIndex = index + 1; // On commence à l'index 1
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: Stack(
+                    children: [
+                      Container(
+                        width: 100,
+                        height: 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          image: DecorationImage(
+                            image: FileImage(File(selectedImages[imageIndex])),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          // onTap: () => onRemoveImage(imageIndex),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.5),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+        if (selectedImages.length > 1) const SizedBox(height: 16),
 
         // Add more images button
         Row(

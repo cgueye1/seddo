@@ -5,11 +5,13 @@ import 'package:intl/date_symbol_data_local.dart';
 // Blocs
 import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
-import 'package:seddoapp/pages/auth/login.dart';
-import 'package:seddoapp/pages/home.dart';
 import 'package:seddoapp/pages/publie.dart';
-// import 'package:seddoapp/pages/SignalPage.dart';
 import 'package:seddoapp/pages/setting.dart';
+// import 'package:seddoapp/pages/auth/login.dart';
+// import 'package:seddoapp/pages/home.dart';
+// import 'package:seddoapp/pages/publie.dart';
+// import 'package:seddoapp/pages/SignalPage.dart';
+// import 'package:seddoapp/pages/setting.dart';
 
 // Pages
 // import 'package:seddoapp/pages/home.dart';
@@ -17,7 +19,7 @@ import 'package:seddoapp/pages/setting.dart';
 
 // Repositories & Services
 import 'package:seddoapp/repositories/publication_repository.dart';
-import 'package:seddoapp/services/AdMobService.dart';
+// import 'package:seddoapp/services/AdMobService.dart';ß
 // import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
@@ -101,8 +103,10 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      home: MainScreen())
-          //const PubliePage(),
+      // home: MainScreen(),
+      home: SettingPage(),
+    )
+    //const PubliePage(),
     ;
   }
 }
