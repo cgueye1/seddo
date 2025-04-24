@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
-import 'package:seddoapp/widgets/navitems.dart';
 
 class SmsPage extends StatefulWidget {
   const SmsPage({Key? key}) : super(key: key);
@@ -31,7 +30,6 @@ class _SmsPageState extends State<SmsPage> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          bottomNavigationBar: CustomBottomNavigationBar(state: state),
           backgroundColor: Colors.white,
           appBar: AppBar(
             title: const Text('Messages'),

@@ -17,7 +17,6 @@ import 'package:seddoapp/widgets/home/CategoryDropdown.dart';
 import 'package:seddoapp/widgets/home/PublicationsSection.dart';
 import 'package:seddoapp/widgets/home/UserNameSection.dart';
 import 'package:seddoapp/widgets/home/SearchBar.dart';
-import 'package:seddoapp/widgets/navitems.dart';
 
 import '../widgets/home/ads/AdsHorizontalList.dart';
 // import '../widgets/home/ads/PubWidget.dart';
@@ -72,9 +71,7 @@ class _HomePageContentState extends State<_HomePageContent> {
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
-          bottomNavigationBar: CustomBottomNavigationBar(
-            state: state,
-          ), // Ajout du bouton flottant avec navigation vers la page de signalement
+         // Ajout du bouton flottant avec navigation vers la page de signalement
           floatingActionButton: CustomFloatingButton(
             imagePath:
                 'assets/icons/siren.png', // Chemin vers votre image d'alerte

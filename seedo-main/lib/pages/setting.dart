@@ -5,7 +5,6 @@ import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/pages/profil.dart';
 import 'package:seddoapp/pages/publie.dart';
 import 'package:seddoapp/utils/HexColor.dart';
-import 'package:seddoapp/widgets/navitems.dart';
 
 class SettingPage extends StatelessWidget {
   const SettingPage({Key? key}) : super(key: key);
@@ -15,7 +14,6 @@ class SettingPage extends StatelessWidget {
       builder: (context, state) {
         return Scaffold(
           backgroundColor: Colors.white,
-          bottomNavigationBar: CustomBottomNavigationBar(state: state),
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,

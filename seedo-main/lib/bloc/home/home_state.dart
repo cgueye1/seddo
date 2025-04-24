@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/menumodels.dart';
 import 'package:seddoapp/models/publication_model.dart';
+import '../../models/AppParamModel.dart';
 import '../../models/CategorieModel.dart';
 import '../../models/user_model.dart';
 
@@ -33,6 +34,9 @@ class HomeState extends Equatable {
   final String? lastSearchKeyword;
   final bool isSearching;
   final bool hasLoadedInitialPublications;
+  final AppParamModel? appParam;
+
+
 
   const HomeState({
     this.selectedTabIndex = 0,
@@ -62,6 +66,7 @@ class HomeState extends Equatable {
     this.lastSearchKeyword,
     this.isSearching = false,
     this.hasLoadedInitialPublications= false,
+    this.appParam
   });
 
   factory HomeState.initial() {
@@ -90,6 +95,7 @@ class HomeState extends Equatable {
       isSearching: false,
       hasLoadedInitialPublications: false,
       adsList:  const [],
+       appParam:null
     );
   }
 
@@ -120,11 +126,13 @@ class HomeState extends Equatable {
     int? selectedSubcategoryId,
     String? lastSearchKeyword,
     bool? isSearching,
-    bool? hasLoadedInitialPublications
+    bool? hasLoadedInitialPublications,
+    AppParamModel? appParam
 
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
+      appParam:  appParam?? this. appParam,
       currentCategory: currentCategory ?? this.currentCategory,
       selectedTabIndex: selectedTabIndex ?? this.selectedTabIndex,
       currentNavigationIndex:
@@ -185,6 +193,7 @@ class HomeState extends Equatable {
     lastSearchKeyword,
     adsList,
     isSearching,
-    hasLoadedInitialPublications
+    hasLoadedInitialPublications,
+    appParam
   ];
 }

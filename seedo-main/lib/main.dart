@@ -21,6 +21,7 @@ import 'package:seddoapp/services/AdMobService.dart';
 // import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
+import 'package:seddoapp/widgets/navitems.dart';
 
 import 'firebase_options.dart';
 
@@ -100,8 +101,8 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      home: //HomePage
-          const PubliePage(),
-    );
+      home: MainScreen())
+          //const PubliePage(),
+    ;
   }
 }

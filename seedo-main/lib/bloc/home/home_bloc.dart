@@ -12,6 +12,7 @@ import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
 import 'package:seddoapp/services/menu_service.dart';
+import '../../models/AppParamModel.dart';
 import '../../repositories/defaultRepository.dart';
 import 'home_state.dart';
 import 'home_event.dart';
@@ -72,7 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     try {
       // Load menu data
       final categoryPublications = await _menuService.loadMenuData();
-
+      final appParam = await _getAppParam();
       // Load categories
       final categories = await _categorieRepository.fetchCategoriesNoParent();
 
@@ -87,6 +88,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       emit(
         state.copyWith(
+          appParam: appParam,
           categoryPublications: categoryPublications,
           currentCategory: firstCategory,
           categories: categories,
@@ -680,6 +682,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
 
     return [];
+  }
+
+  Future<AppParamModel> _getAppParam() async {
+    try {
+      final response = await repository.getData("/appparam");
+
+      if (response.data != null) {
+        return AppParamModel.fromJson(response.data);
+      } else {
+        return AppParamModel(
+          id: 0,
+          hideAds: false,
+          hideTransit: false,
+          appVersion: "",
+          androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+          iosLink: "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+        );
+      }
+    } catch (e) {
+      return AppParamModel(
+        id: 0,
+        hideAds: false,
+        hideTransit:false,
+        appVersion: "",
+        androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+        iosLink: "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+      );
+    }
   }
 
 }
