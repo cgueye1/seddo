@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:seddoapp/models/AppParamModel.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../services/AdMobService.dart';
@@ -10,7 +11,9 @@ import '../../widgets/transit/DakarSearchWidget.dart';
 import 'RouteTimelinePage.dart';
 
 class TransportCommun extends StatefulWidget {
-  TransportCommun({Key? key}) : super(key: key);
+  AppParamModel? appParam;
+
+  TransportCommun({Key? key, this.appParam}) : super(key: key);
 
   @override
   _HomeState createState() => _HomeState();
@@ -207,7 +210,7 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
               ),
             ),
           ),
-          if (_isBannerAdReady)
+          if (_isBannerAdReady && widget.appParam!=null && !widget.appParam!.hideAds )
             Positioned(
               bottom: 2,
               left: 0,

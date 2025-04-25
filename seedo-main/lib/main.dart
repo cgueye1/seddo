@@ -103,8 +103,7 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      // home: MainScreen(),
-      home: SettingPage(),
+       home: MainScreen(),
     )
     //const PubliePage(),
     ;

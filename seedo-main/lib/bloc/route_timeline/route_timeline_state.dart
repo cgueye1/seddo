@@ -16,6 +16,7 @@ class RouteTimelineState extends Equatable {
   final bool departureLoader;
   final Position? currentPosition;
   final bool adShown;
+  final AppParamModel? appParam;
 
 
   const RouteTimelineState({
@@ -32,6 +33,7 @@ class RouteTimelineState extends Equatable {
     this.errorMessage,
     this.currentPosition,
     this.adShown = false,
+    this.appParam
   });
 
   RouteTimelineState copyWith({
@@ -48,6 +50,7 @@ class RouteTimelineState extends Equatable {
     String? errorMessage,
     Position? currentPosition,
     bool? adShown,
+    AppParamModel? appParam
   }) {
     return RouteTimelineState(
       status: status ?? this.status,
@@ -63,6 +66,8 @@ class RouteTimelineState extends Equatable {
       departureLoader: departureLoader ?? this.departureLoader,
       currentPosition: currentPosition ?? this.currentPosition,
       adShown: adShown ?? this.adShown,
+      appParam:  appParam?? this. appParam,
+
     );
   }
 
@@ -80,6 +85,7 @@ class RouteTimelineState extends Equatable {
     errorMessage,
     departureLoader,
     currentPosition,
-    adShown
+    adShown,
+    appParam
   ];
 }

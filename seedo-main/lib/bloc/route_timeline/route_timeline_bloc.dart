@@ -3,6 +3,7 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
 
+import '../../models/AppParamModel.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../models/transit/StopTimeResponse.dart';
 import '../../models/transit/TransitResponseModel.dart';
@@ -43,6 +44,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     RouteTimelineInitialized event,
     Emitter<RouteTimelineState> emit,
   ) async {
+    final appParam = await _getAppParam();
     emit(state.copyWith(status: RouteTimelineStatus.loading));
 
     try {
@@ -54,16 +56,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
 
       emit(
         state.copyWith(
-          status: RouteTimelineStatus.success,
-          startLat: startLat,
-          startLon: startLon,
-          endLat: endLat,
-          endLon: endLon,
-        ),
-      );
-      emit(
-        state.copyWith(
-          currentPosition: currentPosition,
+          appParam: appParam,
           status: RouteTimelineStatus.success,
           startLat: startLat,
           startLon: startLon,
@@ -219,7 +212,9 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       );
 
       if (state.departureTransit.isNotEmpty) {
-        if (!state.adShown) {
+        if (!state.adShown &&
+            state.appParam != null &&
+            !state.appParam!.hideAds) {
           await _showInterstitialAd();
           emit(state.copyWith(adShown: true));
         }
@@ -347,5 +342,36 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     TransitResponseModel tr,
   ) {
     return !data.any((item) => item.stopEnd!.stopId == tr.stopEnd!.stopId);
+  }
+
+  Future<AppParamModel> _getAppParam() async {
+    try {
+      final response = await repository.getData("/appparam");
+
+      if (response.data != null) {
+        return AppParamModel.fromJson(response.data);
+      } else {
+        return AppParamModel(
+          id: 0,
+          hideAds: false,
+          hideTransit: false,
+          appVersion: "",
+          androidLink:
+              "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+          iosLink:
+              "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+        );
+      }
+    } catch (e) {
+      return AppParamModel(
+        id: 0,
+        hideAds: false,
+        hideTransit: false,
+        appVersion: "",
+        androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+        iosLink:
+            "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+      );
+    }
   }
 }

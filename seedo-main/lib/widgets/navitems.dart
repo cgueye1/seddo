@@ -8,21 +8,39 @@ import 'package:seddoapp/pages/setting.dart';
 import 'package:seddoapp/pages/sms.dart';
 import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/utils/HexColor.dart';
-
+import 'package:seddoapp/widgets/update_required_screen.dart';
 import '../pages/splash/Splash.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+
 
 class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
-      builder: (context, state) {
-        if (state.appParam == null) {
-          return  SplashPage();
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
         }
 
-        return Scaffold(
-          body: _getPage(state),
-          bottomNavigationBar: CustomBottomNavigationBar(state: state),
+        final currentAppVersion = snapshot.data!.version;
+
+        return BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.appParam == null) {
+              return SplashPage();
+            }
+            if (state.appParam!.appVersion != currentAppVersion) {
+              return UpdateRequiredScreen(
+                androidLink: state.appParam!.androidLink,
+                iosLink: state.appParam!.iosLink,
+              );
+            }
+            return Scaffold(
+              body: _getPage(state),
+              bottomNavigationBar: CustomBottomNavigationBar(state: state),
+            );
+          },
         );
       },
     );
@@ -35,11 +53,10 @@ class MainScreen extends StatelessWidget {
     final pages = [
       HomePage(),
       if (!hideTransit) SmsPage(),
-      if (!hideTransit) TransportCommun(),
+      if (!hideTransit) TransportCommun(appParam: state.appParam,),
       SettingPage(),
     ];
 
-    // Sécurité si index est trop grand
     if (index >= pages.length) return HomePage();
     return pages[index];
   }
