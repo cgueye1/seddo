@@ -1,6 +1,7 @@
+// ignore_for_file: must_be_immutable
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:seddoapp/models/AppParamModel.dart';
@@ -210,7 +211,9 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
               ),
             ),
           ),
-          if (_isBannerAdReady && widget.appParam!=null && !widget.appParam!.hideAds )
+          if (_isBannerAdReady &&
+              widget.appParam != null &&
+              !widget.appParam!.hideAds)
             Positioned(
               bottom: 2,
               left: 0,

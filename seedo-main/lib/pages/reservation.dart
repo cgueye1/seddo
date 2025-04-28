@@ -4,7 +4,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
@@ -15,6 +14,7 @@ import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
+import 'package:seddoapp/widgets/CustomFloatingButton.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
 
 import '../services/PhoneCallService.dart';
@@ -89,31 +89,30 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     // Afficher l'image principale ou un conteneur gris par défaut
                     widget.publication.picture.isNotEmpty
                         ? Image.network(
-                      '${APIConstants.API_BASE_URL_IMG}${widget.publication
-                          .picture}',
-                      width: double.infinity,
-                      height: 250,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
+                          '${APIConstants.API_BASE_URL_IMG}${widget.publication.picture}',
+                          width: double.infinity,
+                          height: 250,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              height: 250,
+                              color: Colors.grey[300],
+                              child: const Center(
+                                child: Icon(
+                                  Icons.image_not_supported,
+                                  size: 50,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                        : Container(
                           height: 250,
                           color: Colors.grey[300],
                           child: const Center(
-                            child: Icon(
-                              Icons.image_not_supported,
-                              size: 50,
-                            ),
+                            child: Icon(Icons.image_not_supported, size: 50),
                           ),
-                        );
-                      },
-                    )
-                        : Container(
-                      height: 250,
-                      color: Colors.grey[300],
-                      child: const Center(
-                        child: Icon(Icons.image_not_supported, size: 50),
-                      ),
-                    ),
+                        ),
 
                     // Heart icon positionné comme dans PublicationCard
                     Positioned(
@@ -127,9 +126,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                               ? Icons.favorite
                               : Icons.favorite_border,
                           color:
-                          widget.publication.isFavorite
-                              ? Colors.red
-                              : const Color.fromARGB(255, 0, 0, 0),
+                              widget.publication.isFavorite
+                                  ? Colors.red
+                                  : const Color.fromARGB(255, 0, 0, 0),
                           size: 35,
                         ),
                         onPressed: () {
@@ -161,9 +160,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                       // Add dots for additional images
                       for (
-                      int i = 0;
-                      i < widget.publication.pictures.length;
-                      i++
+                        int i = 0;
+                        i < widget.publication.pictures.length;
+                        i++
                       )
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -354,9 +353,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   children: [
                                     Text(
                                       widget.publication.author != null
-                                          ? '${widget.publication.author!
-                                          .firstName} ${widget.publication
-                                          .author!.lastName}'
+                                          ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
                                           : 'Utilisateur',
                                       style: const TextStyle(
                                         fontSize: 12,
@@ -431,9 +428,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                 children: [
                                   Text(
                                     widget.publication.author != null
-                                        ? '${widget.publication.author!
-                                        .firstName} ${widget.publication.author!
-                                        .lastName} - Lieu'
+                                        ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName} - Lieu'
                                         : 'Partageur - Lieu',
                                     style: const TextStyle(
                                       fontSize: 11,
@@ -451,10 +446,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   const SizedBox(height: 26),
                                   // Dans la section où vous affichez "Vous - Nord Foire"
                                   Text(
-                                    'Vous - ${context
-                                        .watch<HomeBloc>()
-                                        .state
-                                        .currentLocation}',
+                                    'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -607,10 +599,11 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   InkWell(
                     onTap: () {
                       WhatsAppService().openWhatsApp(
-                          widget.publication.telephone.isNotEmpty
-                              ? widget.publication.telephone
-                              : widget.publication.author!.phone.toString() ,
-                          message: 'Salut ! Comment ça va ?');
+                        widget.publication.telephone.isNotEmpty
+                            ? widget.publication.telephone
+                            : widget.publication.author!.phone.toString(),
+                        message: 'Salut ! Comment ça va ?',
+                      );
                     },
                     child: Container(
                       width: 50,
@@ -629,7 +622,6 @@ class _MealDetailPageState extends State<MealDetailPage> {
 
                   SizedBox(width: 16),
                   InkWell(
-
                     child: Container(
                       width: 50,
                       height: 50,
@@ -642,7 +634,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                     ),
                     onTap: () {
-                      if (widget.currentPosition != null)
+                      if (widget.currentPosition != null) {
                         UrlLauncher().openMapsNavigation(
                           double.parse(
                             widget.currentPosition!.latitude.toString(),
@@ -654,13 +646,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           widget.publication.longitude,
                           travelMode: "walk",
                         );
+                      }
                     },
                   ),
 
                   SizedBox(width: 16),
 
                   Expanded(
-                    child: Container(
+                    child: SizedBox(
                       height: 50,
 
                       child: Center(
@@ -707,6 +700,45 @@ class _MealDetailPageState extends State<MealDetailPage> {
           ),
         ],
       ),
+      // Voici comment utiliser correctement le floatingActionButton
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.end,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Bouton d'appel
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: CustomFloatingButton(
+              imagePath: "assets/icons/call.png",
+              onPressed: () {
+                PhoneCallService().makePhoneCall(
+                  widget.publication.telephone.isNotEmpty
+                      ? widget.publication.telephone
+                      : widget.publication.author!.phone.toString(),
+                );
+              },
+            ),
+          ),
+
+          // Bouton WhatsApp
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16.0),
+            child: CustomFloatingButton(
+              imagePath: "assets/icons/whatsapp.png",
+              onPressed: () {
+                WhatsAppService().openWhatsApp(
+                  widget.publication.telephone.isNotEmpty
+                      ? widget.publication.telephone
+                      : widget.publication.author!.phone.toString(),
+                  message: 'Salut ! Je suis intéressé par votre publication.',
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

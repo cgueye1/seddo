@@ -56,9 +56,19 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     CategorySelected event,
     Emitter<PublicationState> emit,
   ) async {
+    // Trouvez la catégorie correspondante dans allCategories
+    CategorieModel? foundCategory;
+    for (var category in allCategories) {
+      if (category.titre == event.category) {
+        foundCategory = category;
+        break;
+      }
+    }
+
     emit(
       state.copyWith(
         selectedCategory: event.category,
+        categorie: foundCategory, // Mise à jour de l'attribut categorie
         selectedSubcategoryModel: null,
         currentSubcategories: [],
       ),
@@ -79,8 +89,8 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     Emitter<PublicationState> emit,
   ) {
     switch (event.field) {
-      case 'title':
-        emit(state.copyWith(title: event.value));
+      case 'titre':
+        emit(state.copyWith(titre: event.value));
         break;
       case 'description':
         emit(state.copyWith(description: event.value));
@@ -88,27 +98,46 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       case 'location':
         emit(state.copyWith(location: event.value));
         break;
-      case 'dateTime':
-        emit(state.copyWith(dateTime: event.value));
+      case 'date':
+        emit(state.copyWith(date: event.value));
         break;
       case 'availability':
         emit(state.copyWith(availability: event.value));
         break;
       case 'price':
-        emit(state.copyWith(price: event.value));
+        // Convertir le prix en double ou utiliser 0.0 si la conversion échoue
+        final priceValue = double.tryParse(event.value) ?? 0.0;
+        emit(state.copyWith(price: priceValue));
+        break;
+      case 'telephone':
+        emit(state.copyWith(telephone: event.value));
         break;
       case 'languages':
         emit(state.copyWith(languages: event.value));
         break;
+      case 'link':
+        emit(state.copyWith(link: event.value));
+        break;
+      case 'audio':
+        emit(state.copyWith(audio: event.value));
+        break;
+      case 'action':
+        emit(state.copyWith(action: event.value));
+        break;
+      // Gérer les booléens
+      case 'available':
+        emit(state.copyWith(available: event.value.toLowerCase() == 'true'));
+        break;
+      case 'universel':
+        emit(state.copyWith(universel: event.value.toLowerCase() == 'true'));
+        break;
+      case 'emergency':
+        emit(state.copyWith(emergency: event.value.toLowerCase() == 'true'));
+        break;
+      case 'ad':
+        emit(state.copyWith(ad: event.value.toLowerCase() == 'true'));
+        break;
     }
-  }
-
-  void _onImagesAdded(ImagesAdded event, Emitter<PublicationState> emit) {
-    emit(
-      state.copyWith(
-        selectedImages: [...state.selectedImages, ...event.images],
-      ),
-    );
   }
 
   Future<void> _onPublicationSubmitted(
@@ -229,9 +258,13 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     }
   }
 
+  void _onImagesAdded(ImagesAdded event, Emitter<PublicationState> emit) {
+    emit(state.copyWith(pictures: [...state.pictures, ...event.images]));
+  }
+
   void _onImageRemoved(ImageRemoved event, Emitter<PublicationState> emit) {
-    final newImages = List<String>.from(state.selectedImages);
+    final newImages = List<String>.from(state.pictures);
     newImages.removeAt(event.index);
-    emit(state.copyWith(selectedImages: newImages));
+    emit(state.copyWith(pictures: newImages));
   }
 }

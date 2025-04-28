@@ -36,7 +36,7 @@ class PubliePageView extends StatefulWidget {
 }
 
 class _PubliePageViewState extends State<PubliePageView> {
-  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _titreController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _dateTimeController = TextEditingController();
@@ -46,7 +46,7 @@ class _PubliePageViewState extends State<PubliePageView> {
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _titreController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
     _dateTimeController.dispose();
@@ -423,7 +423,7 @@ class _PubliePageViewState extends State<PubliePageView> {
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
-            controller: _titleController,
+            controller: _titreController,
             decoration: const InputDecoration(
               hintText: 'Entrez le titre de la publication',
               hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
@@ -714,7 +714,7 @@ class _PubliePageViewState extends State<PubliePageView> {
           }
         }
       },
-      selectedImages: state.selectedImages,
+      selectedImages: state.pictures,
       onRemoveImage: (index) {
         context.read<PublicationBloc>().add(ImageRemoved(index));
       },

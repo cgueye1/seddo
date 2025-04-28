@@ -168,6 +168,10 @@ flutter:
     - assets/icons/discuss.png
     - assets/icons/plat.png
     - assets/icons/senegal.png
+    - assets/icons/chat_bubble.png
+    - assets/icons/chat.png
+    - assets/icons/call.png
+    - assets/icons/whatsapp.png
     - assets/transit/
 
     #Date for JSON

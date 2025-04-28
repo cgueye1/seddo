@@ -1,8 +1,7 @@
-// 1. First, let's create the BLoC events
+// publication_event.dart
 import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 
-// Events
 abstract class PublicationEvent extends Equatable {
   @override
   List<Object?> get props => [];
@@ -66,7 +65,7 @@ class ImagesAdded extends PublicationEvent {
 class ImageRemoved extends PublicationEvent {
   final int index;
 
-  ImageRemoved(this.index); // Retirez le mot-clé const ici
+  ImageRemoved(this.index);
 
   @override
   List<Object?> get props => [index];
