@@ -1,7 +1,11 @@
 // ignore_for_file: library_private_types_in_public_api, library_prefixes
 
+//import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/models/publication_model.dart';
@@ -12,6 +16,10 @@ import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
+
+import '../services/PhoneCallService.dart';
+import '../services/WhatsAppService.dart';
+import '../utils/url_launcher.dart';
 
 // Réutilisation de l'événement de basculement des favoris
 // (importé de PublicationCard pour assurer la cohérence)
@@ -27,8 +35,14 @@ class ToggleFavoritePublication extends HomeEvent {
 class MealDetailPage extends StatefulWidget {
   final Publication publication;
   final String? location;
+  final Position? currentPosition;
 
-  const MealDetailPage({super.key, required this.publication, this.location});
+  const MealDetailPage({
+    super.key,
+    required this.publication,
+    this.location,
+    this.currentPosition,
+  });
 
   @override
   _MealDetailPageState createState() => _MealDetailPageState();
@@ -75,30 +89,31 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     // Afficher l'image principale ou un conteneur gris par défaut
                     widget.publication.picture.isNotEmpty
                         ? Image.network(
-                          '${APIConstants.API_BASE_URL_IMG}${widget.publication.picture}',
-                          width: double.infinity,
-                          height: 250,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 250,
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                        : Container(
+                      '${APIConstants.API_BASE_URL_IMG}${widget.publication
+                          .picture}',
+                      width: double.infinity,
+                      height: 250,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
                           height: 250,
                           color: Colors.grey[300],
                           child: const Center(
-                            child: Icon(Icons.image_not_supported, size: 50),
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 50,
+                            ),
                           ),
-                        ),
+                        );
+                      },
+                    )
+                        : Container(
+                      height: 250,
+                      color: Colors.grey[300],
+                      child: const Center(
+                        child: Icon(Icons.image_not_supported, size: 50),
+                      ),
+                    ),
 
                     // Heart icon positionné comme dans PublicationCard
                     Positioned(
@@ -112,9 +127,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                               ? Icons.favorite
                               : Icons.favorite_border,
                           color:
-                              widget.publication.isFavorite
-                                  ? Colors.red
-                                  : const Color.fromARGB(255, 0, 0, 0),
+                          widget.publication.isFavorite
+                              ? Colors.red
+                              : const Color.fromARGB(255, 0, 0, 0),
                           size: 35,
                         ),
                         onPressed: () {
@@ -146,9 +161,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                       // Add dots for additional images
                       for (
-                        int i = 0;
-                        i < widget.publication.pictures.length;
-                        i++
+                      int i = 0;
+                      i < widget.publication.pictures.length;
+                      i++
                       )
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 3),
@@ -339,7 +354,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   children: [
                                     Text(
                                       widget.publication.author != null
-                                          ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
+                                          ? '${widget.publication.author!
+                                          .firstName} ${widget.publication
+                                          .author!.lastName}'
                                           : 'Utilisateur',
                                       style: const TextStyle(
                                         fontSize: 12,
@@ -414,7 +431,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                 children: [
                                   Text(
                                     widget.publication.author != null
-                                        ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName} - Lieu'
+                                        ? '${widget.publication.author!
+                                        .firstName} ${widget.publication.author!
+                                        .lastName} - Lieu'
                                         : 'Partageur - Lieu',
                                     style: const TextStyle(
                                       fontSize: 11,
@@ -432,7 +451,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   const SizedBox(height: 26),
                                   // Dans la section où vous affichez "Vous - Nord Foire"
                                   Text(
-                                    'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
+                                    'Vous - ${context
+                                        .watch<HomeBloc>()
+                                        .state
+                                        .currentLocation}',
                                     style: TextStyle(
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
@@ -479,52 +501,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   ),
                 ),
 
-                // Boutons d'action au bas de la page
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16.0,
-                    vertical: 8.0,
-                  ),
-                  child: Column(
-                    children: [
-                      // Bouton de réservation - style cohérent avec PublicationCard
-                      SizedBox(
-                        width: 400,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _showConfirmation = true;
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              208,
-                              88,
-                              23,
-                            ),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 10),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            'Faire une réservation',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      // Bouton de discussion
-                      // Dans MealDetailPage, modifiez le bouton "Discuter avec le partageur":
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 70),
               ],
             ),
           ),
@@ -596,6 +573,138 @@ class _MealDetailPageState extends State<MealDetailPage> {
                 ),
               ),
             ),
+
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: EdgeInsets.only(left: 16, right: 16, bottom: 3),
+              color: Colors.white,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  InkWell(
+                    onTap: () {
+                      PhoneCallService().makePhoneCall(
+                        widget.publication.telephone.isNotEmpty
+                            ? widget.publication.telephone
+                            : widget.publication.author!.phone.toString(),
+                      );
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/icons/actions/call.png"),
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  InkWell(
+                    onTap: () {
+                      WhatsAppService().openWhatsApp(
+                          widget.publication.telephone.isNotEmpty
+                              ? widget.publication.telephone
+                              : widget.publication.author!.phone.toString() ,
+                          message: 'Salut ! Comment ça va ?');
+                    },
+                    child: Container(
+                      width: 50,
+                      height: 50,
+
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage(
+                            "assets/icons/actions/whatsapp.png",
+                          ),
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                  ),
+
+                  SizedBox(width: 16),
+                  InkWell(
+
+                    child: Container(
+                      width: 50,
+                      height: 50,
+
+                      decoration: BoxDecoration(
+                        image: DecorationImage(
+                          image: AssetImage("assets/icons/actions/map.png"),
+                        ),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                    ),
+                    onTap: () {
+                      if (widget.currentPosition != null)
+                        UrlLauncher().openMapsNavigation(
+                          double.parse(
+                            widget.currentPosition!.latitude.toString(),
+                          ),
+                          double.parse(
+                            widget.currentPosition!.longitude.toString(),
+                          ),
+                          widget.publication.latitude,
+                          widget.publication.longitude,
+                          travelMode: "walk",
+                        );
+                    },
+                  ),
+
+                  SizedBox(width: 16),
+
+                  Expanded(
+                    child: Container(
+                      height: 50,
+
+                      child: Center(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            /* setState(() {
+                              _showConfirmation = true;
+                            });*/
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              208,
+                              88,
+                              23,
+                            ),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: Text(
+                            widget.publication.action.isNotEmpty
+                                ? widget.publication.action
+                                : widget.publication.categorie.action,
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1, // Ajoute cette ligne
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

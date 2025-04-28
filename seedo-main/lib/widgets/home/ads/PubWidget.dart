@@ -3,6 +3,8 @@
 import 'package:flutter/material.dart';
 import 'package:seddoapp/utils/constant.dart';
 import '../../../models/publication_model.dart';
+import '../../../pages/reservation.dart';
+import '../../../pages/webview/WebViewPage.dart';
 import '../../../utils/date_formatter.dart';
 
 class PubWidget extends StatelessWidget {
@@ -78,7 +80,23 @@ class PubWidget extends StatelessWidget {
             bottom: 12,
             right: 12,
             child: ElevatedButton(
-              onPressed: () {},
+              onPressed: () {
+                if (item.link.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WebViewPage(url: item.link),
+                    ),
+                  );
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MealDetailPage(publication: item),
+                    ),
+                  );
+                }
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
                 foregroundColor: Colors.black,
@@ -91,7 +109,7 @@ class PubWidget extends StatelessWidget {
                 ),
               ),
               child: Text(
-                item.categorie.action,
+                item.action.isNotEmpty ? item.action : item.categorie.action,
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),

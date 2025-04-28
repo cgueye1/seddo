@@ -18,11 +18,11 @@ part 'route_timeline_state.dart';
 
 class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
   final DefaultRepository repository = DefaultRepository();
-  final LocationService locationService = LocationService();
   final AdService adService = AdService();
 
   int maxDistanceToIncrementCount = 0;
   int maxDistanceFromIncrementCount = 0;
+  final LocationService locationService = LocationService();
 
   StreamSubscription<Position>? positionStreamSubscription;
 
@@ -62,6 +62,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           startLon: startLon,
           endLat: endLat,
           endLon: endLon,
+          currentPosition: currentPosition
         ),
       );
 

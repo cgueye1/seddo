@@ -12,7 +12,6 @@ import 'package:seddoapp/widgets/update_required_screen.dart';
 import '../pages/splash/Splash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
-
 class MainScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -52,8 +51,8 @@ class MainScreen extends StatelessWidget {
 
     final pages = [
       HomePage(),
-      if (!hideTransit) SmsPage(),
-      if (!hideTransit) TransportCommun(appParam: state.appParam,),
+      SmsPage(),
+      if (!hideTransit) TransportCommun(appParam: state.appParam),
       SettingPage(),
     ];
 
@@ -65,7 +64,8 @@ class MainScreen extends StatelessWidget {
 class CustomBottomNavigationBar extends StatelessWidget {
   final HomeState state;
 
-  const CustomBottomNavigationBar({Key? key, required this.state}) : super(key: key);
+  const CustomBottomNavigationBar({Key? key, required this.state})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -73,9 +73,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     final navItems = [
       _buildNavItem(context, 0, 'assets/icons/hom.png', 'Accueil'),
-      if (!hideTransit) _buildNavItem(context, 1, 'assets/icons/Sms.png', 'SMS'),
-      if (!hideTransit) _buildNavItem(context, 2, 'assets/icons/Bus.png', 'Transport'),
-      _buildNavItem(context, hideTransit ? 1 : 3, 'assets/icons/param.png', 'Paramètres'),
+      _buildNavItem(context, 1, 'assets/icons/Sms.png', 'SMS'),
+      if (!hideTransit)
+        _buildNavItem(context, 2, 'assets/icons/Bus.png', 'Transport'),
+      _buildNavItem(
+        context,
+        hideTransit ? 1 : 3,
+        'assets/icons/param.png',
+        'Paramètres',
+      ),
     ];
 
     return Container(
@@ -103,16 +109,27 @@ class CustomBottomNavigationBar extends StatelessWidget {
     );
   }
 
-  Widget _buildNavItem(BuildContext context, int index, String imagePath, String label) {
+  Widget _buildNavItem(
+    BuildContext context,
+    int index,
+    String imagePath,
+    String label,
+  ) {
     final isSelected = index == state.currentNavigationIndex;
     final iconSize = 28.0;
-    final displayImagePath = isSelected ? imagePath.replaceFirst('.png', '_selected.png') : imagePath;
-    final Color iconColor = isSelected ? HexColor("#D95C18") : const Color.fromARGB(255, 0, 0, 0);
+    final displayImagePath =
+        isSelected
+            ? imagePath.replaceFirst('.png', '_selected.png')
+            : imagePath;
+    final Color iconColor =
+        isSelected ? HexColor("#D95C18") : const Color.fromARGB(255, 0, 0, 0);
 
     return InkWell(
       onTap: () {
         if (!isSelected) {
-          context.read<HomeBloc>().add(NavigationIndexChanged(navigationIndex: index));
+          context.read<HomeBloc>().add(
+            NavigationIndexChanged(navigationIndex: index),
+          );
         }
       },
       splashColor: const Color.fromARGB(90, 0, 0, 0),
@@ -136,7 +153,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? HexColor("#D95C18") : const Color.fromARGB(255, 113, 113, 113),
+                color:
+                    isSelected
+                        ? HexColor("#D95C18")
+                        : const Color.fromARGB(255, 113, 113, 113),
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

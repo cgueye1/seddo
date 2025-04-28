@@ -1,8 +1,11 @@
 // Dans homeBloc.dart
 // ignore_for_file: avoid_init_to_null, unused_local_variable, unnecessary_null_comparison
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/publicationState.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/models/menumodels.dart';
@@ -32,6 +35,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TextEditingController searchController = TextEditingController();
   final SearchManager searchManager = SearchManager();
   final DefaultRepository repository = DefaultRepository();
+
+  final LocationService locationService = LocationService();
+
+  StreamSubscription<Position>? positionStreamSubscription;
 
   HomeBloc(this._publicationRepository) : super(HomeState.initial()) {
     on<InitializeHomeEvent>(_onInitializeHome);
@@ -76,6 +83,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final appParam = await _getAppParam();
       // Load categories
       final categories = await _categorieRepository.fetchCategoriesNoParent();
+      final currentPosition = await locationService.getCurrentLocation();
 
       // Ne sélectionne aucune catégorie au démarrage
       CategorieModel? initialCategory = null;
@@ -93,6 +101,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           currentCategory: firstCategory,
           categories: categories,
           selectedCategory: initialCategory,
+          currentPosition: currentPosition
         ),
       );
 

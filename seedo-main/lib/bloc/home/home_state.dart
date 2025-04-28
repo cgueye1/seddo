@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/models/menumodels.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import '../../models/AppParamModel.dart';
@@ -35,6 +36,7 @@ class HomeState extends Equatable {
   final bool isSearching;
   final bool hasLoadedInitialPublications;
   final AppParamModel? appParam;
+  final Position? currentPosition;
 
 
 
@@ -66,7 +68,8 @@ class HomeState extends Equatable {
     this.lastSearchKeyword,
     this.isSearching = false,
     this.hasLoadedInitialPublications= false,
-    this.appParam
+    this.appParam,
+    this.currentPosition,
   });
 
   factory HomeState.initial() {
@@ -93,9 +96,12 @@ class HomeState extends Equatable {
       hasReachedMax: false,
       lastSearchKeyword: '',
       isSearching: false,
+      currentPosition: null,
+
       hasLoadedInitialPublications: false,
       adsList:  const [],
-       appParam:null
+       appParam:null,
+
     );
   }
 
@@ -127,7 +133,8 @@ class HomeState extends Equatable {
     String? lastSearchKeyword,
     bool? isSearching,
     bool? hasLoadedInitialPublications,
-    AppParamModel? appParam
+    AppParamModel? appParam,
+    Position? currentPosition,
 
   }) {
     return HomeState(
@@ -162,6 +169,7 @@ class HomeState extends Equatable {
       isSearching: isSearching ?? this.isSearching,
       adsList: adsList ?? this.adsList,
       hasLoadedInitialPublications: hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
+      currentPosition: currentPosition ?? this.currentPosition,
 
     );
   }
@@ -194,6 +202,7 @@ class HomeState extends Equatable {
     adsList,
     isSearching,
     hasLoadedInitialPublications,
-    appParam
+    appParam,
+    currentPosition
   ];
 }

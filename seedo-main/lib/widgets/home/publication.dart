@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/pages/reservation.dart';
@@ -14,6 +15,7 @@ class PublicationCard extends StatelessWidget {
   final String? location;
   final double height;
   final Publication item;
+  final Position currentPosition;
 
   const PublicationCard({
     super.key,
@@ -22,6 +24,7 @@ class PublicationCard extends StatelessWidget {
     this.location,
     this.height = 200,
     required this.item,
+    required this.currentPosition,
   });
 
   @override
@@ -32,7 +35,7 @@ class PublicationCard extends StatelessWidget {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => MealDetailPage(publication: publication),
+            builder: (context) => MealDetailPage(publication: publication,currentPosition: currentPosition!,),
           ),
         );
       },

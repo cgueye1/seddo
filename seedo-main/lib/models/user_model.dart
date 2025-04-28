@@ -1,18 +1,18 @@
 class UserModel {
   final int id;
-  String firstName;
-  String lastName;
-  String email;
-  String password;
-  String uid;
-  String date;
-  String lieunaissance;
-  String adress;
-  String role;
-  String profil;
-  bool activated;
-  bool notifiable;
-  String phone;
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String password;
+  final String uid;
+  final String date;
+  final String lieunaissance;
+  final String adress;
+  final String role;
+  final String profil;
+  final bool activated;
+  final bool notifiable;
+  final String phone;
   UserModel({
     required this.id,
     required this.firstName,

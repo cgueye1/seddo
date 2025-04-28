@@ -128,6 +128,7 @@ class PublicationsSection extends StatelessWidget {
             publication: state.publications[index],
             width: cardWidth,
             item: state.publications[index],
+            currentPosition: state.currentPosition!,
           );
         },
       ),
