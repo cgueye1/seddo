@@ -1,5 +1,5 @@
+import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/models/user_model.dart';
-import 'CategorieModel.dart';
 
 class Publication {
   final int id;
@@ -15,6 +15,7 @@ class Publication {
   final double latitude;
   final double longitude;
   final CategorieModel categorie;
+  final CategorieModel? categorieParent; // Nouveau champ ajouté
   final bool available;
   final bool universel;
   final String createdDate;
@@ -41,6 +42,7 @@ class Publication {
     required this.latitude,
     required this.longitude,
     required this.categorie,
+    this.categorieParent, // Ajout du paramètre
     required this.available,
     required this.universel,
     required this.createdDate,
@@ -55,11 +57,16 @@ class Publication {
   });
 
   factory Publication.fromJson(Map<String, dynamic> json) {
+    final CategorieModel categorieObj = CategorieModel.fromJson(
+      json['categorie'],
+    );
+
     return Publication(
       id: json['id'],
       titre: json['titre'],
       description: json['description'],
-      author: json['author'] != null ? UserModel.fromJson(json['author']) : null,
+      author:
+          json['author'] != null ? UserModel.fromJson(json['author']) : null,
       picture: json['picture'] ?? '',
       telephone: json['telephone'] ?? '',
       audio: json['audio'] ?? '',
@@ -70,9 +77,11 @@ class Publication {
       paticipants: json['paticipants'] ?? [],
       latitude: json['latitude'],
       longitude: json['longitude'],
-      price: json['price']??0,
+      price: json['price'] ?? 0,
       createdDate: json['createdDate'].toString(),
-      categorie:   CategorieModel.fromJson(json['categorie']),
+      categorie: categorieObj,
+      categorieParent:
+          categorieObj.parentCategorie, // Assignation de la catégorie parente
       available: json['available'] ?? false,
       universel: json['universel'] ?? false,
       emergency: json['emergency'] ?? false,

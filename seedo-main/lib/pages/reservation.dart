@@ -1,36 +1,23 @@
-// ignore_for_file: library_private_types_in_public_api, library_prefixes
+// Nous allons utiliser PageView pour le défilement et un Timer pour l'automatisation
 
-//import 'dart:nativewrappers/_internal/vm/lib/ffi_allocation_patch.dart';
+// ignore_for_file: library_prefixes
 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/models/publication_model.dart';
-import 'package:seddoapp/pages/home.dart';
 import 'package:seddoapp/pages/reservation.dart' as pageController;
+import 'package:seddoapp/services/PhoneCallService.dart';
+import 'package:seddoapp/services/WhatsAppService.dart';
 import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
-import 'package:seddoapp/widgets/CustomFloatingButton.dart';
+import 'package:seddoapp/utils/url_launcher.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
-
-import '../services/PhoneCallService.dart';
-import '../services/WhatsAppService.dart';
-import '../utils/url_launcher.dart';
-
-// Réutilisation de l'événement de basculement des favoris
-// (importé de PublicationCard pour assurer la cohérence)
-class ToggleFavoritePublication extends HomeEvent {
-  final int publicationId;
-
-  const ToggleFavoritePublication({required this.publicationId});
-
-  @override
-  List<Object> get props => [publicationId];
-}
 
 class MealDetailPage extends StatefulWidget {
   final Publication publication;
@@ -54,6 +41,50 @@ void dispose() {
 
 class _MealDetailPageState extends State<MealDetailPage> {
   bool _showConfirmation = false;
+  final PageController _pageController = PageController();
+  int _currentPage = 0;
+  Timer? _timer;
+  bool _isFavorite = false;
+
+  // Liste des images à afficher - inclut l'image principale et les images supplémentaires
+  late List<String> pictures;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Initialiser la liste d'images avec l'image principale et les images supplémentaires
+    pictures = [widget.publication.picture];
+    if (widget.publication.pictures.isNotEmpty) {
+      pictures.addAll(widget.publication.pictures);
+    }
+
+    // Démarrer le timer pour changer automatiquement les images
+    _startImageTimer();
+    _isFavorite = widget.publication.isFavorite;
+  }
+
+  @override
+  void dispose() {
+    // Arrêter le timer et libérer le contrôleur de page
+    _timer?.cancel();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _startImageTimer() {
+    // Créer un timer qui change d'image toutes les 3 secondes
+    _timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+      if (pictures.length > 1) {
+        final nextPage = (_currentPage + 1) % pictures.length;
+        _pageController.animateToPage(
+          nextPage,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+        );
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +95,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.popUntil(context, (route) => route.isFirst);
+          },
         ),
         title: const Text(
           'Retour',
@@ -82,39 +115,55 @@ class _MealDetailPageState extends State<MealDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Image du plat avec bouton favori superposé
-                // Image du plat avec bouton favori superposé
+                // Carousel d'images avec PageView
                 Stack(
                   children: [
-                    // Afficher l'image principale ou un conteneur gris par défaut
-                    widget.publication.picture.isNotEmpty
-                        ? Image.network(
-                          '${APIConstants.API_BASE_URL_IMG}${widget.publication.picture}',
-                          width: double.infinity,
-                          height: 250,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              height: 250,
-                              color: Colors.grey[300],
-                              child: const Center(
-                                child: Icon(
-                                  Icons.image_not_supported,
-                                  size: 50,
+                    SizedBox(
+                      height: 250,
+                      child: PageView.builder(
+                        controller: _pageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentPage = index;
+                          });
+                        },
+                        itemCount: pictures.length,
+                        itemBuilder: (context, index) {
+                          final imagePath = pictures[index];
+                          return imagePath.isNotEmpty
+                              ? Image.network(
+                                '${APIConstants.API_BASE_URL_IMG}$imagePath',
+                                width: double.infinity,
+                                height: 250,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    height: 250,
+                                    color: Colors.grey[300],
+                                    child: const Center(
+                                      child: Icon(
+                                        Icons.image_not_supported,
+                                        size: 50,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              )
+                              : Container(
+                                height: 250,
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image_not_supported,
+                                    size: 50,
+                                  ),
                                 ),
-                              ),
-                            );
-                          },
-                        )
-                        : Container(
-                          height: 250,
-                          color: Colors.grey[300],
-                          child: const Center(
-                            child: Icon(Icons.image_not_supported, size: 50),
-                          ),
-                        ),
+                              );
+                        },
+                      ),
+                    ),
 
-                    // Heart icon positionné comme dans PublicationCard
+                    // Heart icon positionné comme avant
                     Positioned(
                       bottom: 10,
                       right: 10,
@@ -122,16 +171,20 @@ class _MealDetailPageState extends State<MealDetailPage> {
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
                         icon: Icon(
-                          widget.publication.isFavorite
-                              ? Icons.favorite
-                              : Icons.favorite_border,
+                          _isFavorite ? Icons.favorite : Icons.favorite_border,
                           color:
-                              widget.publication.isFavorite
+                              _isFavorite
                                   ? Colors.red
                                   : const Color.fromARGB(255, 0, 0, 0),
                           size: 35,
                         ),
                         onPressed: () {
+                          // Mettre à jour l'état local immédiatement pour une réponse UI instantanée
+                          setState(() {
+                            _isFavorite = !_isFavorite;
+                          });
+
+                          // Envoyer l'événement au bloc pour mettre à jour l'état global
                           context.read<HomeBloc>().add(
                             ToggleFavoritePublication(
                               publicationId: widget.publication.id,
@@ -143,39 +196,30 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   ],
                 ),
 
+                // Indicateurs de position (dots) - mis à jour pour refléter la position actuelle
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // Always show at least one dot for the main image
-                      Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color.fromARGB(255, 110, 110, 110),
-                        ),
-                      ),
-                      // Add dots for additional images
-                      for (
-                        int i = 0;
-                        i < widget.publication.pictures.length;
-                        i++
-                      )
+                      for (int i = 0; i < pictures.length; i++)
                         Container(
                           margin: const EdgeInsets.symmetric(horizontal: 3),
                           width: 8,
                           height: 8,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color.fromARGB(255, 200, 200, 200),
+                            color:
+                                i == _currentPage
+                                    ? const Color.fromARGB(255, 110, 110, 110)
+                                    : const Color.fromARGB(255, 200, 200, 200),
                           ),
                         ),
                     ],
                   ),
                 ),
+
+                // Le reste du contenu reste identique
                 // Titre
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -192,14 +236,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
                         ),
                       ),
                       // Distance tag comme dans PublicationCard
-                      DistanceBadge(
-                        distance: widget.publication.distance,
-                        // Option pour une version plus compacte
-                      ),
+                      DistanceBadge(distance: widget.publication.distance),
                     ],
                   ),
                 ),
-
                 // Temps de publication
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -238,7 +278,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           borderRadius: BorderRadius.circular(15),
                         ),
                         child: Text(
-                          'categorie parent',
+                          widget.publication.categorieParent?.titre ??
+                              "No Category",
                           style: const TextStyle(
                             color: Color.fromARGB(255, 255, 221, 0),
                             fontSize: 10,
@@ -546,10 +587,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       const SizedBox(height: 20),
                       TextButton(
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) => HomePage()),
-                          );
+                          Navigator.popUntil(context, (route) => route.isFirst);
                         },
                         child: const Text(
                           'Continuer à naviguer',
@@ -659,9 +697,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       child: Center(
                         child: ElevatedButton(
                           onPressed: () {
-                            /* setState(() {
+                            setState(() {
                               _showConfirmation = true;
-                            });*/
+                            });
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(
@@ -700,45 +738,6 @@ class _MealDetailPageState extends State<MealDetailPage> {
           ),
         ],
       ),
-      // Voici comment utiliser correctement le floatingActionButton
-      floatingActionButton: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Bouton d'appel
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: CustomFloatingButton(
-              imagePath: "assets/icons/call.png",
-              onPressed: () {
-                PhoneCallService().makePhoneCall(
-                  widget.publication.telephone.isNotEmpty
-                      ? widget.publication.telephone
-                      : widget.publication.author!.phone.toString(),
-                );
-              },
-            ),
-          ),
-
-          // Bouton WhatsApp
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16.0),
-            child: CustomFloatingButton(
-              imagePath: "assets/icons/whatsapp.png",
-              onPressed: () {
-                WhatsAppService().openWhatsApp(
-                  widget.publication.telephone.isNotEmpty
-                      ? widget.publication.telephone
-                      : widget.publication.author!.phone.toString(),
-                  message: 'Salut ! Je suis intéressé par votre publication.',
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
   }
 }

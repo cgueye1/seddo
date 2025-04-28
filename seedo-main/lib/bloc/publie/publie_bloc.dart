@@ -56,7 +56,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     CategorySelected event,
     Emitter<PublicationState> emit,
   ) async {
-    // Trouvez la catégorie correspondante dans allCategories
+    // Find the category
     CategorieModel? foundCategory;
     for (var category in allCategories) {
       if (category.titre == event.category) {
@@ -65,15 +65,17 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       }
     }
 
+    // Always clear the subcategory selection
     emit(
       state.copyWith(
         selectedCategory: event.category,
-        categorie: foundCategory, // Mise à jour de l'attribut categorie
-        selectedSubcategoryModel: null,
-        currentSubcategories: [],
+        categorie: foundCategory,
+        selectedSubcategoryModel: null, // Make sure this is null
+        currentSubcategories: [], // Clear the list while loading
       ),
     );
 
+    // Then load subcategories
     await _loadSubcategories(event.category, emit);
   }
 

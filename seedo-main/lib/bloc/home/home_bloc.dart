@@ -101,7 +101,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           currentCategory: firstCategory,
           categories: categories,
           selectedCategory: initialCategory,
-          currentPosition: currentPosition
+          currentPosition: currentPosition,
         ),
       );
 
@@ -343,8 +343,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       ),
     );
 
-
-
     try {
       if (state.currentLatitude != null && state.currentLongitude != null) {
         final publications = await _publicationRepository.getNearbyPublications(
@@ -354,15 +352,13 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           subcategoryId: newSubcategoryId,
         );
 
-
-
         emit(
           state.copyWith(
             publications: publications,
             isLoadingPublications: false,
             selectedSubcategoryId: newSubcategoryId,
-            selectedSubcategory:     selectedSubcategory ??
-                state.selectedSubcategory,
+            selectedSubcategory:
+                selectedSubcategory ?? state.selectedSubcategory,
             selectedCategory: currentCategory,
             selectedCategoryId: currentCategoryId,
             hasLoadedInitialPublications: true,
@@ -424,7 +420,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         (event.subcategory?.id == state.selectedSubcategory?.id)
             ? null
             : event.subcategory;
-
 
     emit(
       state.copyWith(
@@ -601,8 +596,12 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           ),
         );
 
-        add(LoadNearbyADS(latitude:position.latitude,longitude:position.longitude ));
-
+        add(
+          LoadNearbyADS(
+            latitude: position.latitude,
+            longitude: position.longitude,
+          ),
+        );
       }
     } catch (e) {
       emit(state.copyWith(currentLocation: "Localisation non disponible"));
@@ -614,28 +613,37 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) async {
     try {
-      // Créer une copie de la liste de publications pour pouvoir la modifier
+      // Créer une nouvelle liste pour garantir que la référence change
       final List<Publication> updatedPublications = List<Publication>.from(
         state.publications,
       );
 
-      // Mettre à jour le statut favori pour la publication spécifique
+      // Trouver la publication à mettre à jour
+      int index = -1;
       for (int i = 0; i < updatedPublications.length; i++) {
         if (updatedPublications[i].id == event.publicationId) {
-          // Créer une copie de la publication avec la valeur isFavorite inversée
-          final publication = updatedPublications[i];
-          publication.isFavorite = !publication.isFavorite;
+          index = i;
           break;
         }
       }
 
-      // Émettre le nouvel état avec les publications mises à jour
-      emit(state.copyWith(publications: updatedPublications));
+      if (index != -1) {
+        // Modifier la publication existante
+        final currentPublication = updatedPublications[index];
+        currentPublication.isFavorite = !currentPublication.isFavorite;
 
-      // Vous pourriez également ajouter ici une logique pour sauvegarder le statut favori
-      // via une API ou en local storage si nécessaire
-      // await _publicationRepository.toggleFavorite(event.publicationId);
+        // Émettre le nouvel état avec les publications mises à jour
+        emit(state.copyWith(publications: updatedPublications));
+
+        // Ajouter un log pour déboguer
+        print(
+          'Publication ${event.publicationId} favorite status changed to: ${currentPublication.isFavorite}',
+        );
+      } else {
+        print('Publication with ID ${event.publicationId} not found');
+      }
     } catch (e) {
+      print('Error toggling favorite: ${e.toString()}');
       emit(
         state.copyWith(
           error: 'Erreur lors de la mise à jour des favoris: ${e.toString()}',
@@ -668,23 +676,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     ResetInitialPublicationsFlag event,
     Emitter<HomeState> emit,
   ) {
-    emit(state.copyWith(hasLoadedInitialPublications: false, publications: [],));
+    emit(state.copyWith(hasLoadedInitialPublications: false, publications: []));
   }
 
-  void _loadNearbyADS(
-      LoadNearbyADS event,
-      Emitter<HomeState> emit,
-      ) async {
-    final adsList = await _getAds(event.latitude,event.longitude);
+  void _loadNearbyADS(LoadNearbyADS event, Emitter<HomeState> emit) async {
+    final adsList = await _getAds(event.latitude, event.longitude);
 
     debugPrint("Lisy : ${adsList.length} ads");
     emit(state.copyWith(adsList: adsList));
     debugPrint("État actuel : ${state.adsList.length} ads");
-
   }
 
-  Future<List<Publication>> _getAds(double lat , double lon) async {
-    final response = await repository.getData("meals/sponsored?latitude=${lat}&longitude=${lon}");
+  Future<List<Publication>> _getAds(double lat, double lon) async {
+    final response = await repository.getData(
+      "meals/sponsored?latitude=${lat}&longitude=${lon}",
+    );
 
     if (response.data != null) {
       return Publication.fromJsonList(response.data["content"]);
@@ -705,20 +711,22 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           hideAds: false,
           hideTransit: false,
           appVersion: "",
-          androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
-          iosLink: "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+          androidLink:
+              "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+          iosLink:
+              "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         );
       }
     } catch (e) {
       return AppParamModel(
         id: 0,
         hideAds: false,
-        hideTransit:false,
+        hideTransit: false,
         appVersion: "",
         androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
-        iosLink: "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+        iosLink:
+            "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
       );
     }
   }
-
 }

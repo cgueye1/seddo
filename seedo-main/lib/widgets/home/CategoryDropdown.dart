@@ -78,9 +78,6 @@ class CategoryDropdown extends StatelessWidget {
                         context.read<HomeBloc>().add(
                           const CategoryChanged(category: null),
                         );
-
-
-
                       } else {
                         // Catégorie parente sélectionnée
                         context.read<HomeBloc>().add(
@@ -170,10 +167,20 @@ class CategoryDropdown extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: Padding(
-                            padding: const EdgeInsets.all(8.0),
+                            padding: const EdgeInsets.all(4.0),
                             child: Column(
+                              mainAxisSize:
+                                  MainAxisSize.min, // Prend le minimum d'espace
                               children: [
-                                _buildSubcategoryIcon(subcategory),
+                                SizedBox(
+                                  // Fixe la hauteur de l'icône
+                                  height:
+                                      30, // Ajusté pour correspondre à la taille de l'icône
+                                  child: _buildSubcategoryIcon(subcategory),
+                                ),
+                                const SizedBox(
+                                  height: 4,
+                                ), // Espacement contrôlé
                                 Text(
                                   subcategory.titre,
                                   textAlign: TextAlign.center,
@@ -231,7 +238,7 @@ class CategoryDropdown extends StatelessWidget {
           errorBuilder: (context, error, stackTrace) {
             return Icon(
               Icons.restaurant,
-              size: 36,
+              size: 30,
               color: Colors.orange.shade700,
             );
           },

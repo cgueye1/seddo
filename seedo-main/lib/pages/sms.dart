@@ -29,7 +29,6 @@ class _SmsPageState extends State<SmsPage> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             ),
             centerTitle: true,
-            leading: const BackButton(),
             backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           ),
           body: SingleChildScrollView(

@@ -56,4 +56,13 @@ class CategorieModel {
     return list.map((item) => CategorieModel.fromJson(item)).toList();
   }
 
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CategorieModel &&
+          runtimeType == other.runtimeType &&
+          id == other.id;
+
+  @override
+  int get hashCode => id.hashCode;
 }

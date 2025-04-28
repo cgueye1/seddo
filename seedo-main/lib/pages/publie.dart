@@ -43,6 +43,11 @@ class _PubliePageViewState extends State<PubliePageView> {
   final TextEditingController _availabilityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _languagesController = TextEditingController();
+  bool _validateStep1(PublicationState state) {
+    return state.selectedCategory != null &&
+        state.selectedSubcategoryModel != null &&
+        _titreController.text.isNotEmpty;
+  }
 
   @override
   void dispose() {
@@ -267,6 +272,7 @@ class _PubliePageViewState extends State<PubliePageView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // category Field
         Row(
           children: [
             const Text(
@@ -293,10 +299,10 @@ class _PubliePageViewState extends State<PubliePageView> {
           ),
           child: DropdownButtonFormField<String>(
             value: state.selectedCategory,
-            style: const TextStyle(fontSize: 11),
+            style: const TextStyle(fontSize: 11, color: Colors.grey),
             decoration: InputDecoration(
               hintText: 'Sélectionnez la catégorie',
-              hintStyle: const TextStyle(fontSize: 10),
+              hintStyle: const TextStyle(fontSize: 11, color: Colors.grey),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -324,6 +330,10 @@ class _PubliePageViewState extends State<PubliePageView> {
                 context.read<PublicationBloc>().add(CategorySelected(newValue));
               }
             },
+            isExpanded: true,
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            itemHeight: 50,
           ),
         ),
         const SizedBox(height: 24),
@@ -350,49 +360,67 @@ class _PubliePageViewState extends State<PubliePageView> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
+            color: Colors.white,
             border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(8),
           ),
           child: DropdownButtonFormField<CategorieModel>(
-            value: state.selectedSubcategoryModel,
-            style: const TextStyle(fontSize: 11),
+            // Only set a value if it's actually in the current list
+            value:
+                state.selectedSubcategoryModel != null &&
+                        state.currentSubcategories.any(
+                          (item) =>
+                              item.id == state.selectedSubcategoryModel!.id,
+                        )
+                    ? state.selectedSubcategoryModel
+                    : null,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.grey,
+              fontWeight: FontWeight.normal,
+            ),
             decoration: const InputDecoration(
               hintText: 'Sélectionnez la sous-catégorie',
               hintStyle: TextStyle(fontSize: 11, color: Colors.grey),
               border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              isDense: true,
             ),
-            icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+            icon: const Icon(
+              Icons.keyboard_arrow_down,
+              size: 20,
+              color: Color.fromARGB(255, 0, 0, 0),
+            ),
             items:
-                state.currentSubcategories.isEmpty
-                    ? [
-                      DropdownMenuItem<CategorieModel>(
-                        value: null,
-                        child: Text(
-                          'Aucune sous-catégorie disponible',
-                          style: const TextStyle(fontSize: 12),
-                        ),
+                state.currentSubcategories.map((subCategory) {
+                  return DropdownMenuItem<CategorieModel>(
+                    value: subCategory,
+                    child: Text(
+                      subCategory.titre,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Colors.black87,
                       ),
-                    ]
-                    : state.currentSubcategories.map((subCategory) {
-                      return DropdownMenuItem<CategorieModel>(
-                        value: subCategory,
-                        child: Text(
-                          subCategory.titre,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
-                          ),
-                        ),
-                      );
-                    }).toList(),
-            onChanged: (CategorieModel? newValue) {
-              if (newValue != null) {
-                context.read<PublicationBloc>().add(
-                  SubcategorySelected(newValue),
-                );
-              }
-            },
+                    ),
+                  );
+                }).toList(),
+            onChanged:
+                state.currentSubcategories.isEmpty
+                    ? null
+                    : (CategorieModel? newValue) {
+                      if (newValue != null) {
+                        context.read<PublicationBloc>().add(
+                          SubcategorySelected(newValue),
+                        );
+                      }
+                    },
+            isExpanded: true,
+            dropdownColor: Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            itemHeight: 50,
           ),
         ),
         const SizedBox(height: 24),
@@ -434,8 +462,11 @@ class _PubliePageViewState extends State<PubliePageView> {
               ),
             ),
             onChanged: (value) {
+              if (value.length < 5) {
+                // Afficher une erreur si le titre est trop court
+              }
               context.read<PublicationBloc>().add(
-                FormFieldUpdated('title', value),
+                FormFieldUpdated('titre', value),
               );
             },
           ),
@@ -637,6 +668,17 @@ class _PubliePageViewState extends State<PubliePageView> {
           ),
           child: TextButton(
             onPressed: () {
+              if (!_validateStep1(state)) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Veuillez remplir tous les champs obligatoires (*)',
+                    ),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
               context.read<PublicationBloc>().add(StepChanged(2));
             },
             child: const Text(
