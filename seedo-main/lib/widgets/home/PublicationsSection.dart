@@ -21,48 +21,39 @@ class PublicationsSection extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    state.lastSearchKeyword != null &&
-                            state.lastSearchKeyword!.isNotEmpty
-                        ? 'Résultats de recherche'
-                        : 'Publications',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 20,
-                      color: Colors.black,
-                    ),
-                  ),
-
-                  if (state.lastSearchKeyword == null ||
-                      state.lastSearchKeyword!.isEmpty)
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder:
-                                (context) => DetailPage(
-                                  categoryName: state.currentCategory,
-                                ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        'Voir plus',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: Color.fromARGB(255, 0, 0, 0),
-                        ),
+              child: SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      state.lastSearchKeyword != null &&
+                              state.lastSearchKeyword!.isNotEmpty
+                          ? 'Résultats de recherche'
+                          : 'Publications',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 20,
+                        color: Colors.black,
                       ),
                     ),
-                ],
+                    if (state.lastSearchKeyword == null ||
+                        state.lastSearchKeyword!.isEmpty)
+                      GestureDetector(
+                        onTap: () {},
+                        child: const Text(
+                          '',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: Color.fromARGB(255, 0, 0, 0),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
-
             _buildPublicationsList(context, state),
           ],
         );

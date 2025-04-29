@@ -1,4 +1,5 @@
-// file: signal_event.dart
+// 3. Mettez à jour le fichier signal_event.dart pour ajouter les événements de lecture audio
+
 import 'dart:io';
 import 'package:equatable/equatable.dart';
 
@@ -15,7 +16,7 @@ class TypeSelected extends SignalementEvent {
   const TypeSelected(this.type);
 
   @override
-  List<Object> get props => [type];
+  List<Object?> get props => [type];
 }
 
 class PhotoCaptured extends SignalementEvent {
@@ -24,7 +25,7 @@ class PhotoCaptured extends SignalementEvent {
   const PhotoCaptured(this.photo);
 
   @override
-  List<Object> get props => [photo];
+  List<Object?> get props => [photo];
 }
 
 class DescriptionChanged extends SignalementEvent {
@@ -33,7 +34,7 @@ class DescriptionChanged extends SignalementEvent {
   const DescriptionChanged(this.description);
 
   @override
-  List<Object> get props => [description];
+  List<Object?> get props => [description];
 }
 
 class StartRecording extends SignalementEvent {}
@@ -45,6 +46,15 @@ class StopRecording extends SignalementEvent {
 
   @override
   List<Object?> get props => [path];
+}
+
+// Nouveaux événements pour la lecture audio
+class PlayAudio extends SignalementEvent {
+  const PlayAudio();
+}
+
+class StopAudio extends SignalementEvent {
+  const StopAudio();
 }
 
 class SubmitSignalement extends SignalementEvent {}

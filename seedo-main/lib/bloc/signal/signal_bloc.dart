@@ -1,16 +1,27 @@
-// file: signal_bloc.dart
+// 1. Ajoutez d'abord le package just_audio à votre pubspec.yaml:
+// dependencies:
+//   just_audio: ^0.9.34
+
+// 2. Modifiez votre signal_bloc.dart pour ajouter les fonctionnalités de lecture:
+
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:dio/dio.dart';
+import 'package:record/record.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
 import 'package:seddoapp/services/api_service.dart';
 
 class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   final _imagePicker = ImagePicker();
+  final _audioRecorder = AudioRecorder();
+  final _audioPlayer = AudioPlayer();
   final ApiService _apiService = ApiService();
 
   SignalementBloc() : super(const SignalementState()) {
@@ -19,6 +30,8 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     on<DescriptionChanged>(_onDescriptionChanged);
     on<StartRecording>(_onStartRecording);
     on<StopRecording>(_onStopRecording);
+    on<PlayAudio>(_onPlayAudio);
+    on<StopAudio>(_onStopAudio);
     on<SubmitSignalement>(_onSubmitSignalement);
     on<ResetSignalement>(_onResetSignalement);
   }
@@ -56,59 +69,114 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     StartRecording event,
     Emitter<SignalementState> emit,
   ) async {
-    // try {
-    //   // Demander les permissions
-    //   if (await _audioRecorder.hasPermission()) {
-    //     // Préparer le chemin pour l'enregistrement
-    //     final directory = await getTemporaryDirectory();
-    //     final path =
-    //         '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+    try {
+      // Arrêter la lecture audio si elle est en cours
+      if (state.isPlaying) {
+        await _audioPlayer.stop();
+        emit(state.copyWith(isPlaying: false));
+      }
 
-    //     // Configurer l'enregistrement
-    //     await _audioRecorder.start(
-    //       path: path,
-    //       encoder: AudioEncoder.aacLc,
-    //       bitRate: 128000,
-    //       samplingRate: 44100,
-    //     );
+      // Vérifier les permissions
+      final status = await Permission.microphone.request();
+      if (status.isGranted) {
+        // Préparer le chemin pour l'enregistrement
+        final directory = await getTemporaryDirectory();
+        final path =
+            '${directory.path}/audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
 
-    //     emit(state.copyWith(isRecording: true));
-    //   } else {
-    //     emit(state.copyWith(error: 'Permission d\'enregistrement refusée'));
-    //   }
-    // } catch (e) {
-    //   emit(
-    //     state.copyWith(
-    //       error: 'Erreur lors du démarrage de l\'enregistrement: $e',
-    //     ),
-    //   );
-    // }
+        // Configurer et démarrer l'enregistrement
+        await _audioRecorder.start(
+          const RecordConfig(
+            encoder: AudioEncoder.aacLc,
+            bitRate: 128000,
+            sampleRate: 44100,
+          ),
+          path: path,
+        );
+
+        emit(state.copyWith(isRecording: true));
+      } else {
+        emit(state.copyWith(error: 'Permission d\'enregistrement refusée'));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          error: 'Erreur lors du démarrage de l\'enregistrement: $e',
+        ),
+      );
+    }
   }
 
   Future<void> _onStopRecording(
     StopRecording event,
     Emitter<SignalementState> emit,
   ) async {
-    // try {
-    //   final path = await _audioRecorder.stop();
-    //   if (path != null) {
-    //     emit(state.copyWith(audioPath: path, isRecording: false));
-    //   } else {
-    //     emit(
-    //       state.copyWith(
-    //         isRecording: false,
-    //         error: 'Erreur: Aucun fichier audio enregistré',
-    //       ),
-    //     );
-    //   }
-    // } catch (e) {
-    //   emit(
-    //     state.copyWith(
-    //       isRecording: false,
-    //       error: 'Erreur lors de l\'arrêt de l\'enregistrement: $e',
-    //     ),
-    //   );
-    // }
+    try {
+      final path = await _audioRecorder.stop();
+      if (path != null) {
+        emit(state.copyWith(audioPath: path, isRecording: false));
+      } else {
+        emit(
+          state.copyWith(
+            isRecording: false,
+            error: 'Erreur: Aucun fichier audio enregistré',
+          ),
+        );
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(
+          isRecording: false,
+          error: 'Erreur lors de l\'arrêt de l\'enregistrement: $e',
+        ),
+      );
+    }
+  }
+
+  Future<void> _onPlayAudio(
+    PlayAudio event,
+    Emitter<SignalementState> emit,
+  ) async {
+    if (state.audioPath == null) {
+      emit(state.copyWith(error: 'Aucun audio à écouter'));
+      return;
+    }
+
+    try {
+      // Si une lecture est déjà en cours, l'arrêter d'abord
+      if (state.isPlaying) {
+        await _audioPlayer.stop();
+        emit(state.copyWith(isPlaying: false));
+      } else {
+        // Configurer le lecteur audio
+        await _audioPlayer.setFilePath(state.audioPath!);
+        emit(state.copyWith(isPlaying: true));
+
+        // Démarrer la lecture
+        await _audioPlayer.play();
+
+        // À la fin de la lecture, mettre à jour l'état
+        _audioPlayer.playerStateStream.listen((playerState) {
+          if (playerState.processingState == ProcessingState.completed) {
+            add(StopAudio());
+          }
+        });
+      }
+    } catch (e) {
+      emit(state.copyWith(error: 'Erreur lors de la lecture de l\'audio: $e'));
+    }
+  }
+
+  Future<void> _onStopAudio(
+    StopAudio event,
+    Emitter<SignalementState> emit,
+  ) async {
+    try {
+      await _audioPlayer.stop();
+      emit(state.copyWith(isPlaying: false));
+    } catch (e) {
+      emit(state.copyWith(error: 'Erreur lors de l\'arrêt de l\'audio: $e'));
+    }
   }
 
   Future<void> _onSubmitSignalement(
@@ -208,8 +276,8 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   }
 
   @override
-  Future<void> close() {
-    // _audioRecorder.dispose();
+  Future<void> close() async {
+    await _audioPlayer.dispose();
     return super.close();
   }
 }

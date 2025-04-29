@@ -11,8 +11,8 @@ class PublicationService {
     required double latitude,
     required double longitude,
     double radius = 5000,
-    int? categorieId,
-    int? subcategoryId,
+    int? categorieId, // Gardez ce paramètre comme c'est
+    int? subcategoryId, // Gardez ce paramètre pour les sous-catégories
     String? keyword,
     int page = 0,
     int size = 30,
@@ -26,6 +26,12 @@ class PublicationService {
         'size': size,
       };
 
+      // Utilisez categorieId pour les catégories principales
+      if (categorieId != null) {
+        queryParams['categorieId'] = categorieId;
+      }
+
+      // Si une sous-catégorie est spécifiée, elle remplace la catégorie principale
       if (subcategoryId != null) {
         queryParams['categorieId'] = subcategoryId;
       }
@@ -36,29 +42,25 @@ class PublicationService {
           "Recherche avec mot-clé: '$keyword' (URL: meals/nearby avec params: $queryParams)",
         );
       }
-      print(
-        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId != null ? subcategoryId : ""}&keyword=${keyword != null ? keyword : ""}&page=${page}&size=${size}',
-      );
 
-      final response = await _dio.get(
-        'meals/nearby?latitude=${latitude}&longitude=${longitude}&radius=${radius}&categorieId=${subcategoryId != null ? subcategoryId : ""}&keyword=${keyword != null ? keyword : ""}&page=${page}&size=${size}',
-      );
+      // Construire l'URL correctement avec les paramètres
+      String url = 'meals/nearby?';
+      queryParams.forEach((key, value) {
+        url += '$key=$value&';
+      });
+      url = url.substring(0, url.length - 1); // Enlever le dernier '&'
 
-      // Afficher l'URL complète avec tous les paramètres pour le débogage
-      print(
-        "URL complète: ${_dio.options.baseUrl}meals/nearby avec params: $queryParams",
-      );
+      print("URL de requête: $_dio.options.baseUrl$url");
+
+      final response = await _dio.get(url);
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = response.data;
         final List<dynamic> content = data['content'];
-        print("fuck");
-        print(response.data);
 
         final publications =
             content.map((item) {
               final publication = Publication.fromJson(item);
-              // Calculer et assigner la distance
               publication.distance = DistanceUtils.calculateDistance(
                 latitude,
                 longitude,
@@ -69,20 +71,18 @@ class PublicationService {
             }).toList();
 
         print(
-          "Récupéré ${publications.length} publications avec keyword='$keyword'",
+          "Récupéré ${publications.length} publications avec filtres: categorieId=$categorieId, subcategoryId=$subcategoryId, keyword='$keyword'",
         );
         return publications;
       } else {
         throw Exception('Erreur HTTP: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print(
-        "DioException lors de la recherche avec keyword='$keyword': ${e.message}",
-      );
+      print("DioException lors de la requête: ${e.message}");
       print("Response data: ${e.response?.data}");
       throw Exception('Erreur Dio: ${e.message}');
     } catch (e) {
-      print("Exception lors de la recherche avec keyword='$keyword': $e");
+      print("Exception lors de la requête: $e");
       throw Exception('Erreur inattendue: $e');
     }
   }

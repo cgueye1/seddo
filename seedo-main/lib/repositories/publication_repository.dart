@@ -14,12 +14,12 @@ class PublicationRepository {
     int? subcategoryId,
   }) async {
     try {
-      // Utiliser le service au lieu de _dio directement
+      // Utiliser le service correctement avec les bons paramètres
       return await _publicationService.fetchNearbyPublications(
         latitude: latitude,
         longitude: longitude,
         categorieId:
-            categoryId, // Notez que le service utilise 'categorieId' et non 'categoryId'
+            categoryId, // Ce paramètre doit correspondre à ce qui est attendu par le service
         subcategoryId: subcategoryId,
       );
     } catch (e) {

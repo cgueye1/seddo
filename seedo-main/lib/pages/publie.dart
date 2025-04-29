@@ -511,13 +511,15 @@ class _PubliePageViewState extends State<PubliePageView> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),
+
+        // Dans la méthode _buildStep1Form, modifiez le code du TextField pour les disponibilités:
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(12),
           ),
           child: TextField(
-            controller: _availabilityController,
+            controller: _availabilityController, // Utilisez le même contrôleur
             decoration: InputDecoration(
               hintText: 'Entrez vos disponibilités',
               hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
@@ -553,11 +555,15 @@ class _PubliePageViewState extends State<PubliePageView> {
                       ).format(combinedDateTime);
 
                       setState(() {
-                        _dateTimeController.text = formattedDateTime;
+                        _availabilityController.text =
+                            formattedDateTime; // Mettez à jour le même contrôleur
                       });
 
                       context.read<PublicationBloc>().add(
-                        FormFieldUpdated('dateTime', formattedDateTime),
+                        FormFieldUpdated(
+                          'availability',
+                          formattedDateTime,
+                        ), // Utilisez 'availability' de manière cohérente
                       );
                     }
                   }

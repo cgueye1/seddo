@@ -78,23 +78,16 @@ class _SignalementViewState extends State<SignalementView> {
           appBar: AppBar(
             leadingWidth: 200,
             leading: Row(
-              mainAxisSize:
-                  MainAxisSize.min, // ← Important pour éviter l'espace inutile
+              mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: Transform.translate(
-                    offset: const Offset(
-                      12,
-                      0,
-                    ), // ← Déplace légèrement l'icône vers la droite
+                    offset: const Offset(12, 0),
                     child: const Icon(Icons.arrow_back_ios, size: 20),
-                  ), // ← Taille réduite si besoin
+                  ),
                   onPressed: () => Navigator.pop(context),
-                  padding:
-                      EdgeInsets
-                          .zero, // ← Supprime le padding interne du bouton
-                  constraints:
-                      const BoxConstraints(), // ← Désactive les contraintes par défaut
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
                 const Text(
                   'Retour',
@@ -107,7 +100,7 @@ class _SignalementViewState extends State<SignalementView> {
               ],
             ),
             backgroundColor: Colors.white,
-            titleSpacing: 0, // ← Supprime l'espace réservé au titre
+            titleSpacing: 0,
           ),
           body: SingleChildScrollView(
             child: Padding(
@@ -239,80 +232,10 @@ class _SignalementViewState extends State<SignalementView> {
                   const SizedBox(height: 30),
                   const Text(
                     'Audio (optionnel)',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                   ),
                   const SizedBox(height: 10),
-                  Container(
-                    height: 70,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        IconButton(
-                          icon: Icon(
-                            state.isRecording ? Icons.stop : Icons.mic,
-                            color:
-                                state.isRecording ? Colors.red : Colors.black,
-                          ),
-                          onPressed: () {
-                            if (state.isRecording) {
-                              // Ne pas fournir de chemin - le BLoC récupérera le vrai chemin
-                              context.read<SignalementBloc>().add(
-                                const StopRecording(null),
-                              );
-                            } else {
-                              context.read<SignalementBloc>().add(
-                                StartRecording(),
-                              );
-                            }
-                          },
-                        ),
-                        Expanded(
-                          child: Slider(
-                            value:
-                                0, // Devrait être remplacé par la position actuelle
-                            min: 0,
-                            max: 100,
-                            onChanged:
-                                state.audioPath == null
-                                    ? null
-                                    : (value) {
-                                      // Implémenter la logique de position audio
-                                    },
-                          ),
-                        ),
-                        Container(
-                          margin: const EdgeInsets.all(10),
-                          decoration: const BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                          child: IconButton(
-                            icon: Icon(
-                              state.isRecording ? Icons.stop : Icons.mic,
-                              color:
-                                  state.isRecording ? Colors.red : Colors.black,
-                            ),
-                            onPressed: () {
-                              if (state.isRecording) {
-                                // Pour simplifier, nous utilisons un chemin vide pour le StopRecording
-                                // Le vrai chemin sera fourni par le Record package
-                                context.read<SignalementBloc>().add(
-                                  StopRecording(''),
-                                );
-                              } else {
-                                context.read<SignalementBloc>().add(
-                                  StartRecording(),
-                                );
-                              }
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  _buildAudioRecordingSection(context, state),
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
@@ -353,6 +276,194 @@ class _SignalementViewState extends State<SignalementView> {
           ),
         );
       },
+    );
+  }
+
+  // 5. Mettez à jour le widget _buildAudioRecordingSection dans SignalementView
+
+  Widget _buildAudioRecordingSection(
+    BuildContext context,
+    SignalementState state,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[200],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        children: [
+          // Afficher le statut de l'enregistrement ou de la lecture
+          if (state.isRecording)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Enregistrement en cours...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.red,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          if (state.isPlaying)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Lecture en cours...',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.blue[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          // Afficher le message si un audio est enregistré
+          if (state.audioPath != null && !state.isRecording && !state.isPlaying)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: Text(
+                'Audio enregistré',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.green[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Bouton pour démarrer/arrêter l'enregistrement
+              GestureDetector(
+                onTap: () {
+                  if (state.isRecording) {
+                    context.read<SignalementBloc>().add(
+                      const StopRecording(null),
+                    );
+                  } else {
+                    context.read<SignalementBloc>().add(StartRecording());
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color:
+                        state.isRecording ? Colors.red : Colors.deepOrange[400],
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    state.isRecording ? Icons.stop : Icons.mic,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
+              ),
+
+              // Visualisation de l'audio
+              Expanded(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 12),
+                  height: 40,
+                  child:
+                      state.isRecording
+                          ? _buildAudioWaveForm()
+                          : (state.isPlaying
+                              ? _buildPlayingWaveForm()
+                              : (state.audioPath != null
+                                  ? _buildAudioFileIndicator()
+                                  : Center(
+                                    child: Text(
+                                      'Appuyez sur le microphone pour commencer l\'enregistrement',
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ))),
+                ),
+              ),
+
+              // Bouton pour réécouter l'audio (si disponible)
+              if (state.audioPath != null && !state.isRecording)
+                GestureDetector(
+                  onTap: () {
+                    // Déclencher la lecture/pause de l'audio
+                    context.read<SignalementBloc>().add(
+                      state.isPlaying ? const StopAudio() : const PlayAudio(),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: state.isPlaying ? Colors.red : Colors.blueAccent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      state.isPlaying ? Icons.stop : Icons.play_arrow,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAudioWaveForm() {
+    // Simuler une forme d'onde pour l'enregistrement audio
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: List.generate(
+        20,
+        (index) => Container(
+          width: 3,
+          height: 5 + (index % 3) * 10.0,
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Nouvelle méthode pour afficher une forme d'onde pendant la lecture
+  Widget _buildPlayingWaveForm() {
+    // Simuler une forme d'onde pour la lecture audio
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: List.generate(
+        20,
+        (index) => Container(
+          width: 3,
+          height: 5 + (index % 4) * 8.0,
+          decoration: BoxDecoration(
+            color: Colors.blue,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAudioFileIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.audiotrack, color: Colors.green[700], size: 18),
+        const SizedBox(width: 8),
+        Text(
+          'Audio enregistré',
+          style: TextStyle(fontSize: 14, color: Colors.green[700]),
+        ),
+      ],
     );
   }
 }
