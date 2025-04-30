@@ -38,8 +38,6 @@ class HomeState extends Equatable {
   final AppParamModel? appParam;
   final Position? currentPosition;
 
-
-
   const HomeState({
     this.selectedTabIndex = 0,
     this.currentNavigationIndex = 0,
@@ -67,7 +65,7 @@ class HomeState extends Equatable {
     this.selectedSubcategoryId,
     this.lastSearchKeyword,
     this.isSearching = false,
-    this.hasLoadedInitialPublications= false,
+    this.hasLoadedInitialPublications = false,
     this.appParam,
     this.currentPosition,
   });
@@ -99,9 +97,8 @@ class HomeState extends Equatable {
       currentPosition: null,
 
       hasLoadedInitialPublications: false,
-      adsList:  const [],
-       appParam:null,
-
+      adsList: const [],
+      appParam: null,
     );
   }
 
@@ -135,11 +132,10 @@ class HomeState extends Equatable {
     bool? hasLoadedInitialPublications,
     AppParamModel? appParam,
     Position? currentPosition,
-
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
-      appParam:  appParam?? this. appParam,
+      appParam: appParam ?? this.appParam,
       currentCategory: currentCategory ?? this.currentCategory,
       selectedTabIndex: selectedTabIndex ?? this.selectedTabIndex,
       currentNavigationIndex:
@@ -168,9 +164,9 @@ class HomeState extends Equatable {
       lastSearchKeyword: lastSearchKeyword ?? this.lastSearchKeyword,
       isSearching: isSearching ?? this.isSearching,
       adsList: adsList ?? this.adsList,
-      hasLoadedInitialPublications: hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
+      hasLoadedInitialPublications:
+          hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
       currentPosition: currentPosition ?? this.currentPosition,
-
     );
   }
 
@@ -203,6 +199,6 @@ class HomeState extends Equatable {
     isSearching,
     hasLoadedInitialPublications,
     appParam,
-    currentPosition
+    currentPosition,
   ];
 }

@@ -11,11 +11,11 @@ class Publication {
   final String link;
   final List<String> pictures;
   final int timestamp;
-  final List<dynamic> paticipants;
+  final List<dynamic> participants;
   final double latitude;
   final double longitude;
   final CategorieModel categorie;
-  final CategorieModel? categorieParent; // Nouveau champ ajouté
+  final CategorieModel? categorieParent;
   final bool available;
   final bool universel;
   final String createdDate;
@@ -38,7 +38,7 @@ class Publication {
     required this.link,
     required this.pictures,
     required this.timestamp,
-    required this.paticipants,
+    required this.participants,
     required this.latitude,
     required this.longitude,
     required this.categorie,
@@ -74,7 +74,7 @@ class Publication {
       link: json['link'] ?? '',
       pictures: List<String>.from(json['pictures'] ?? []),
       timestamp: json['timestamp'],
-      paticipants: json['paticipants'] ?? [],
+      participants: json['paticipants'] ?? [],
       latitude: json['latitude'],
       longitude: json['longitude'],
       price: json['price'] ?? 0,

@@ -296,111 +296,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     }
   }
 
-  Future<void> _onFilterPublicationsBySubcategory(
-    FilterPublicationsBySubcategory event,
-    Emitter<HomeState> emit,
-  ) async {
-    final currentCategory = state.selectedCategory;
-    final currentCategoryId = currentCategory!.id;
-
-    final int? newSubcategoryId =
-        (state.selectedSubcategoryId == event.subcategoryId)
-            ? null
-            : event.subcategoryId;
-
-    CategorieModel? selectedSubcategory;
-
-    // Vérification et mise à jour de la sous-catégorie
-    if (newSubcategoryId != null && currentCategoryId != null) {
-      final subcategories = state.subcategories[currentCategoryId] ?? [];
-
-      selectedSubcategory = subcategories.firstWhere(
-        (subcat) => subcat.id == newSubcategoryId,
-        // orElse: () => null, // Renvoie null si aucune correspondance
-      );
-
-      // Affichage dans la console
-      if (selectedSubcategory != null) {
-        print("Sous-catégorie sélectionnée: ${selectedSubcategory.id}");
-      } else {
-        print("Sous-catégorie non trouvée pour l'ID: $newSubcategoryId");
-      }
-    }
-
-    // Émettre le nouvel état avec la mise à jour
-    emit(
-      state.copyWith(
-        selectedCategory: currentCategory,
-        selectedCategoryId: currentCategoryId,
-        selectedSubcategory:
-            selectedSubcategory ??
-            state.selectedSubcategory, // Si null, utiliser l'ancienne valeur
-        selectedSubcategoryId: newSubcategoryId,
-        publications: [],
-        hasReachedMax: false,
-        isLoadingPublications: true,
-        hasLoadedInitialPublications: true,
-      ),
-    );
-
-    try {
-      if (state.currentLatitude != null && state.currentLongitude != null) {
-        final publications = await _publicationRepository.getNearbyPublications(
-          latitude: state.currentLatitude!,
-          longitude: state.currentLongitude!,
-          categoryId: currentCategoryId,
-          subcategoryId: newSubcategoryId,
-        );
-
-        emit(
-          state.copyWith(
-            publications: publications,
-            isLoadingPublications: false,
-            selectedSubcategoryId: newSubcategoryId,
-            selectedSubcategory:
-                selectedSubcategory ?? state.selectedSubcategory,
-            selectedCategory: currentCategory,
-            selectedCategoryId: currentCategoryId,
-            hasLoadedInitialPublications: true,
-          ),
-        );
-      }
-    } catch (e) {
-      print("Erreur: $e");
-      emit(
-        state.copyWith(
-          isLoadingPublications: false,
-          publicationsError: e.toString(),
-        ),
-      );
-    }
-  }
-
-  Future<void> _onFilterPublicationsByCategory(
-    FilterPublicationsByCategory event,
-    Emitter<HomeState> emit,
-  ) async {
-    emit(
-      state.copyWith(
-        selectedCategoryId: event.categoryId,
-        publications: [],
-        hasReachedMax: false,
-        selectedSubcategoryId: null,
-      ),
-    );
-
-    if (state.currentLatitude != null && state.currentLongitude != null) {
-      add(
-        LoadNearbyPublications(
-          latitude: state.currentLatitude!,
-          longitude: state.currentLongitude!,
-          categoryId: event.categoryId,
-          subcategoryId: null,
-        ),
-      );
-    }
-  }
-
   void _onChangeTab(TabChanged event, Emitter<HomeState> emit) {
     emit(state.copyWith(selectedTabIndex: event.tabIndex));
   }
@@ -726,6 +621,131 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
         iosLink:
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+      );
+    }
+  }
+
+  // Mettez à jour la méthode _onFilterPublicationsByCategory dans HomeBloc
+  Future<void> _onFilterPublicationsByCategory(
+    FilterPublicationsByCategory event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      // Trouver la catégorie sélectionnée dans la liste des catégories
+      final selectedCategory = state.categories.firstWhere(
+        (category) => category.id == event.categoryId,
+        // orElse: () => null,
+      );
+
+      emit(
+        state.copyWith(
+          selectedCategoryId: event.categoryId,
+          selectedCategory: selectedCategory,
+          publications: [], // Vide les publications actuelles
+          hasReachedMax: false,
+          selectedSubcategoryId: null, // Réinitialise la sous-catégorie
+          selectedSubcategory: null,
+          isLoadingPublications: true,
+        ),
+      );
+
+      if (state.currentLatitude != null && state.currentLongitude != null) {
+        final publications = await _publicationRepository.getNearbyPublications(
+          latitude: state.currentLatitude!,
+          longitude: state.currentLongitude!,
+          categoryId: event.categoryId,
+          subcategoryId: null,
+        );
+
+        emit(
+          state.copyWith(
+            publications: publications,
+            isLoadingPublications: false,
+            selectedCategoryId: event.categoryId,
+            selectedCategory: selectedCategory,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Erreur lors du filtrage par catégorie: $e");
+      emit(
+        state.copyWith(
+          isLoadingPublications: false,
+          publicationsError: e.toString(),
+        ),
+      );
+    }
+  }
+
+  // Mettez à jour la méthode _onFilterPublicationsBySubcategory dans HomeBloc
+  Future<void> _onFilterPublicationsBySubcategory(
+    FilterPublicationsBySubcategory event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      final currentCategory = state.selectedCategory;
+      final currentCategoryId = currentCategory?.id;
+
+      // Si on clique sur la même sous-catégorie, on la désélectionne
+      final int? newSubcategoryId =
+          (state.selectedSubcategoryId == event.subcategoryId)
+              ? null
+              : event.subcategoryId;
+
+      CategorieModel? selectedSubcategory;
+
+      // Vérification et mise à jour de la sous-catégorie
+      if (newSubcategoryId != null && currentCategoryId != null) {
+        final subcategories = state.subcategories[currentCategoryId] ?? [];
+
+        selectedSubcategory = subcategories.firstWhere(
+          (subcat) => subcat.id == newSubcategoryId,
+          // orElse: () => null,
+        );
+
+        print("Sous-catégorie sélectionnée: ${selectedSubcategory.id}");
+      }
+
+      // Émettre le nouvel état avec la mise à jour
+      emit(
+        state.copyWith(
+          selectedCategory: currentCategory,
+          selectedCategoryId: currentCategoryId,
+          selectedSubcategory: selectedSubcategory,
+          selectedSubcategoryId: newSubcategoryId,
+          publications: [], // Vide les publications actuelles
+          hasReachedMax: false,
+          isLoadingPublications: true,
+        ),
+      );
+
+      // Ne charger les publications que si des coordonnées sont disponibles
+      if (state.currentLatitude != null && state.currentLongitude != null) {
+        final publications = await _publicationRepository.getNearbyPublications(
+          latitude: state.currentLatitude!,
+          longitude: state.currentLongitude!,
+          categoryId: currentCategoryId,
+          subcategoryId: newSubcategoryId,
+        );
+
+        emit(
+          state.copyWith(
+            publications: publications,
+            isLoadingPublications: false,
+            selectedSubcategoryId: newSubcategoryId,
+            selectedSubcategory: selectedSubcategory,
+            selectedCategory: currentCategory,
+            selectedCategoryId: currentCategoryId,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Erreur lors du filtrage par sous-catégorie: $e");
+      emit(
+        state.copyWith(
+          isLoadingPublications: false,
+          publicationsError: e.toString(),
+        ),
       );
     }
   }

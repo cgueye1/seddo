@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
-import 'package:seddoapp/pages/categories/details.dart';
 import 'package:seddoapp/widgets/home/publication.dart';
 
 class PublicationsSection extends StatelessWidget {

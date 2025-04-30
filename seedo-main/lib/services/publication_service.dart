@@ -11,8 +11,8 @@ class PublicationService {
     required double latitude,
     required double longitude,
     double radius = 5000,
-    int? categorieId, // Gardez ce paramètre comme c'est
-    int? subcategoryId, // Gardez ce paramètre pour les sous-catégories
+    int? categorieId,
+    int? subcategoryId,
     String? keyword,
     int page = 0,
     int size = 30,
@@ -26,21 +26,9 @@ class PublicationService {
         'size': size,
       };
 
-      // Utilisez categorieId pour les catégories principales
-      if (categorieId != null) {
-        queryParams['categorieId'] = categorieId;
-      }
-
-      // Si une sous-catégorie est spécifiée, elle remplace la catégorie principale
-      if (subcategoryId != null) {
-        queryParams['categorieId'] = subcategoryId;
-      }
-
+      // Ajouter des paramètres optionnels uniquement s'ils sont fournis
       if (keyword != null && keyword.isNotEmpty) {
         queryParams['keyword'] = keyword;
-        print(
-          "Recherche avec mot-clé: '$keyword' (URL: meals/nearby avec params: $queryParams)",
-        );
       }
 
       // Construire l'URL correctement avec les paramètres
@@ -70,9 +58,7 @@ class PublicationService {
               return publication;
             }).toList();
 
-        print(
-          "Récupéré ${publications.length} publications avec filtres: categorieId=$categorieId, subcategoryId=$subcategoryId, keyword='$keyword'",
-        );
+        print("Récupéré ${publications.length} publications");
         return publications;
       } else {
         throw Exception('Erreur HTTP: ${response.statusCode}');

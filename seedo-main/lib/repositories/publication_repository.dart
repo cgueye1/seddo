@@ -7,6 +7,7 @@ class PublicationRepository {
   PublicationRepository({required PublicationService publicationService})
     : _publicationService = publicationService;
 
+  // Modified to properly handle category filtering
   Future<List<Publication>> getNearbyPublications({
     required double latitude,
     required double longitude,
@@ -14,21 +15,46 @@ class PublicationRepository {
     int? subcategoryId,
   }) async {
     try {
-      // Utiliser le service correctement avec les bons paramètres
-      return await _publicationService.fetchNearbyPublications(
+      // Retrieve all publications first
+      final publications = await _publicationService.fetchNearbyPublications(
         latitude: latitude,
         longitude: longitude,
-        categorieId:
-            categoryId, // Ce paramètre doit correspondre à ce qui est attendu par le service
-        subcategoryId: subcategoryId,
       );
+
+      // If no filters, return all publications
+      if (categoryId == null && subcategoryId == null) {
+        return publications;
+      }
+
+      // If only a subcategory is specified, filter by that subcategory
+      if (subcategoryId != null) {
+        return publications
+            .where((publication) => publication.categorie.id == subcategoryId)
+            .toList();
+      }
+
+      // If only a parent category is specified, filter by that parent category
+      if (categoryId != null) {
+        return publications.where((publication) {
+          // Check if the publication's parent category matches the selected category
+          if (publication.categorieParent != null) {
+            return publication.categorieParent!.id == categoryId;
+          }
+
+          // If the publication doesn't have a parent category, check if its direct
+          // category is the one we're filtering for (fallback for consistency)
+          return publication.categorie.id == categoryId;
+        }).toList();
+      }
+
+      return publications;
     } catch (e) {
-      print('Erreur lors de la récupération des publications: $e');
-      throw Exception('Erreur réseau lors du chargement des publications');
+      print('Error fetching publications: $e');
+      throw Exception('Network error while loading publications');
     }
   }
 
-  // Ajout d'une méthode de recherche dans PublicationRepository
+  // Search method remains the same, but with improved filtering logic
   Future<List<Publication>> searchPublications({
     required double latitude,
     required double longitude,
@@ -40,19 +66,35 @@ class PublicationRepository {
     int size = 30,
   }) async {
     try {
-      return await _publicationService.fetchNearbyPublications(
+      final publications = await _publicationService.fetchNearbyPublications(
         latitude: latitude,
         longitude: longitude,
-        categorieId: categoryId,
-        subcategoryId: subcategoryId,
         keyword: keyword,
         radius: radius,
         page: page,
         size: size,
       );
+
+      // Apply filtering logic similar to getNearbyPublications
+      if (subcategoryId != null) {
+        return publications
+            .where((publication) => publication.categorie.id == subcategoryId)
+            .toList();
+      }
+
+      if (categoryId != null) {
+        return publications.where((publication) {
+          if (publication.categorieParent != null) {
+            return publication.categorieParent!.id == categoryId;
+          }
+          return publication.categorie.id == categoryId;
+        }).toList();
+      }
+
+      return publications;
     } catch (e) {
-      print('Erreur lors de la recherche de publications: $e');
-      throw Exception('Erreur réseau lors de la recherche');
+      print('Error searching publications: $e');
+      throw Exception('Network error during search');
     }
   }
 }
