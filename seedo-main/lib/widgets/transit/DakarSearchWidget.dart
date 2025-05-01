@@ -8,12 +8,20 @@ import 'package:http/http.dart' as http;
 import 'package:loading_indicator/loading_indicator.dart';
 
 import '../../models/transit/PlaceModel.dart';
+
 class DakarSearchWidget extends StatefulWidget {
   final Function(PlaceModel) onLocationSelected;
   final String label;
   final Icon icon;
+  final PlaceModel? initPlace;
 
-  const DakarSearchWidget({Key? key, required this.onLocationSelected, required this.label, required this.icon}) : super(key: key);
+  const DakarSearchWidget({
+    Key? key,
+    required this.onLocationSelected,
+    required this.label,
+    required this.icon,
+    this.initPlace,
+  }) : super(key: key);
 
   @override
   _DakarSearchWidgetState createState() => _DakarSearchWidgetState();
@@ -23,14 +31,24 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   final TextEditingController _controller = TextEditingController();
   Timer? _debounceTimer;
   final Duration _debounceDelay = const Duration(milliseconds: 500);
-  bool positionLoader=false;
+  bool positionLoader = false;
 
   static const double dakarLat = 14.7167;
   static const double dakarLon = -17.4677;
+
+  @override
+  void initState() {
+    super.initState();
+    // If initPlace is not null, set the initial value of the text field
+    if (widget.initPlace != null) {
+      _controller.text = widget.initPlace!.name;
+    }
+  }
+
   Future<void> _useCurrentLocation() async {
     try {
       setState(() {
-        positionLoader=true;
+        positionLoader = true;
       });
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
@@ -57,18 +75,16 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse?format=json'
             '&lat=${position.latitude}&lon=${position.longitude}'
-            '&addressdetails=1',);
+            '&addressdetails=1',
+      );
 
       final response = await http.get(url, headers: {
         'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)',
       });
-      print("response.body");
-      print(response.body);
-
 
       if (response.statusCode == 200) {
         setState(() {
-          positionLoader=false;
+          positionLoader = false;
         });
         final data = json.decode(response.body);
 
@@ -76,27 +92,26 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
           latitude: position.latitude,
           longitude: position.longitude,
           name: getLocationName(data),
-          address:_formatAddress(data['address']),
+          address: _formatAddress(data['address']),
         );
 
         _controller.text = place.name;
         widget.onLocationSelected(place);
         FocusScope.of(context).unfocus();
-
-
       } else {
         setState(() {
-          positionLoader=false;
+          positionLoader = false;
         });
         print('Erreur reverse geocoding : ${response.statusCode}');
       }
     } catch (e) {
       setState(() {
-        positionLoader=false;
+        positionLoader = false;
       });
       print('Erreur GPS ou reverse geocoding : $e');
     }
   }
+
   String getLocationName(Map<String, dynamic> data) {
     final name = data['name']?.toString().trim();
     if (name != null && name.isNotEmpty) {
@@ -110,6 +125,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
     return 'Ma position actuelle';
   }
+
   static String _formatAddress(Map<String, dynamic>? address) {
     if (address == null) return '';
 
@@ -130,14 +146,15 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
     try {
       final url = Uri.parse(
-          'https://nominatim.openstreetmap.org/search'
-              '?format=json'
-              '&q=${Uri.encodeComponent(query)}'
-              '&addressdetails=1'
-              '&limit=5'
-              '&countrycodes=sn'
-              '&viewbox=${dakarLon - 0.3},${dakarLat + 0.3},${dakarLon + 0.3},${dakarLat - 0.3}'
-              '&bounded=1');
+        'https://nominatim.openstreetmap.org/search'
+            '?format=json'
+            '&q=${Uri.encodeComponent(query)}'
+            '&addressdetails=1'
+            '&limit=5'
+            '&countrycodes=sn'
+            '&viewbox=${dakarLon - 0.3},${dakarLat + 0.3},${dakarLon + 0.3},${dakarLat - 0.3}'
+            '&bounded=1',
+      );
 
       final response = await http.get(
         url,
@@ -169,7 +186,6 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
             return await _fetchSuggestions(pattern);
           },
           builder: (context, controller, focusNode) {
-
             // Synchronisation manuelle
             if (!focusNode.hasFocus && _controller.text != controller.text) {
               controller.text = _controller.text;
@@ -193,12 +209,11 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(100),
-                //  borderSide: BorderSide(color: Colors.blue),
                 ),
                 filled: true,
                 fillColor: Colors.grey[100],
                 contentPadding: EdgeInsets.symmetric(
-                  vertical: 12, // ↓ réduit la hauteur ici
+                  vertical: 12,
                   horizontal: 20,
                 ),
               ),
@@ -233,55 +248,39 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
           },
           emptyBuilder: (context) => Padding(
             padding: EdgeInsets.all(16),
-            child:Column(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
-
               children: [
                 Text(
                   'Aucun résultat trouvé',
                   style: TextStyle(color: Colors.grey),
                 ),
                 SizedBox(height: 10),
-                positionLoader?
-
-              Center(
-                child:   Container(
-                  width: 50,
-
-                  child: LoadingIndicator(
-
-                    indicatorType: Indicator. ballScaleRipple,
-                    colors: const [Colors.orangeAccent],
-                    strokeWidth: 2,
-
-                    backgroundColor: Colors.transparent,
-                    pathBackgroundColor: Colors.transparent,
+                positionLoader
+                    ? Center(
+                  child: Container(
+                    width: 50,
+                    child: LoadingIndicator(
+                      indicatorType: Indicator.ballScaleRipple,
+                      colors: const [Colors.orangeAccent],
+                      strokeWidth: 2,
+                      backgroundColor: Colors.transparent,
+                      pathBackgroundColor: Colors.transparent,
+                    ),
                   ),
                 )
-              )
-
-                    :
-
-
-                Center(
-                  child:  ElevatedButton.icon(
-                  onPressed: _useCurrentLocation,
-                  icon: Icon(Icons.my_location),
-                  label: Text("Utiliser ma position actuelle"),
-                )),
+                    : Center(
+                  child: ElevatedButton.icon(
+                    onPressed: _useCurrentLocation,
+                    icon: Icon(Icons.my_location),
+                    label: Text("Utiliser ma position actuelle"),
+                  ),
+                ),
               ],
             ),
           ),
           loadingBuilder: (context) => Center(child: CircularProgressIndicator()),
         ),
-      /*  if (_controller.text.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(top: 8.0),
-            child: Text(
-              'Recherche limitée à la région de Dakar',
-              style: TextStyle(color: Colors.grey, fontSize: 12),
-            ),
-          ),*/
       ],
     );
   }
@@ -293,4 +292,3 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
     super.dispose();
   }
 }
-

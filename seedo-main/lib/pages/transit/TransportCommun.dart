@@ -9,6 +9,7 @@ import 'package:seddoapp/utils/HexColor.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../services/AdMobService.dart';
 import '../../widgets/transit/DakarSearchWidget.dart';
+import '../../widgets/transit/FavoritePlacesWidget.dart';
 import 'RouteTimelinePage.dart';
 
 class TransportCommun extends StatefulWidget {
@@ -86,6 +87,8 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
 
                     children: [
                       DakarSearchWidget(
+                        key: ValueKey("${origine?.name}-1"),
+                        initPlace: origine,
                         icon: Icon(
                           Icons.trip_origin_outlined,
                           color: HexColor("#D9D9D9"),
@@ -95,7 +98,7 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                           setState(() {
                             loading = true;
                           });
-                          Future.delayed(Duration(seconds: 2), () {
+                          Future.delayed(Duration(seconds: 1), () {
                             setState(() {
                               loading = false;
                               origine = location;
@@ -105,17 +108,19 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                       ),
                       SizedBox(height: 15),
                       DakarSearchWidget(
+                        key: ValueKey(destination?.name),
                         icon: Icon(
                           Icons.location_on_sharp,
                           color: HexColor("#F52D56"),
                         ),
                         label: "Destination",
+                        initPlace: destination,
                         onLocationSelected: (PlaceModel location) {
                           setState(() {
                             loading = true;
                           });
 
-                          Future.delayed(Duration(seconds: 2), () {
+                          Future.delayed(Duration(seconds: 1), () {
                             setState(() {
                               loading = false;
                               destination = location;
@@ -174,7 +179,14 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                         stopTimeResponse: null,
                       ),
                     )
-                    : SizedBox(),
+                    : FavoritePlacesWidget(
+                        onFavoritePlaceSelected: (PlaceModel place) {
+                          setState(() {
+                            destination = place;
+                          });
+                        },
+
+                    ),
           ),
           Positioned(
             top: 0,

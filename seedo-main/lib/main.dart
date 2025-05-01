@@ -20,6 +20,8 @@ import 'package:seddoapp/pages/home.dart';
 // import 'package:seddoapp/pages/transit/TransportCommun.dart';
 // Repositories & Services
 import 'package:seddoapp/repositories/publication_repository.dart';
+import 'package:seddoapp/services/AdMobService.dart';
+import 'package:seddoapp/services/PushNotificationService.dart';
 // import 'package:seddoapp/services/AdMobService.dart';
 // import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
@@ -33,8 +35,8 @@ void main() async {
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // PushNotificationService().initialize();
-  // await AdService().initialize();
+  PushNotificationService().initialize();
+   await AdService().initialize();
 
   // Initialisation des formats de date
   try {
@@ -104,7 +106,7 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      home: HomePage(),
+      home:  MainScreen(),
     )
     //const PubliePage(),
     ;
