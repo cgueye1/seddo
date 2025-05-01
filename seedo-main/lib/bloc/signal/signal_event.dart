@@ -57,6 +57,23 @@ class StopAudio extends SignalementEvent {
   const StopAudio();
 }
 
-class SubmitSignalement extends SignalementEvent {}
 
 class ResetSignalement extends SignalementEvent {}
+
+
+
+
+class SubmitSignalement extends SignalementEvent {
+  final int authorId;
+
+
+  SubmitSignalement({
+    required this.authorId,
+
+  });
+}
+
+
+
+class LoadCurrentPosition extends SignalementEvent {}
+

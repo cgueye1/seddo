@@ -72,4 +72,85 @@ class PublicationService {
       throw Exception('Erreur inattendue: $e');
     }
   }
+
+
+  Future<Response?> postPublication({
+    required String titre,
+    required String description,
+    required int authorId,
+    required int categorieId,
+    required double latitude,
+    required double longitude,
+    required double price,
+    required String date,
+    required String audio,
+    required List<String> imagePaths,
+    bool available = true,
+    bool universel = false,
+    bool emergency = false,
+  }) async {
+    try {
+      FormData formData = FormData();
+
+      // Ajouter les images
+      for (var path in imagePaths) {
+        String fileName = path.split('/').last;
+        formData.files.add(MapEntry(
+          "pictures",
+          await MultipartFile.fromFile(path, filename: fileName),
+        ));
+      }
+
+      // Ajouter la première image en tant que "picture" principale
+      if (imagePaths.isNotEmpty) {
+        String fileName = imagePaths[0].split('/').last;
+        formData.files.add(MapEntry(
+          "picture",
+          await MultipartFile.fromFile(imagePaths[0], filename: fileName),
+        ));
+      }
+
+
+
+      if (audio.isNotEmpty) {
+        String fileName = audio.split('/').last;
+        formData.files.add(
+          MapEntry(
+            'audioFile',
+            await MultipartFile.fromFile(audio, filename: fileName),
+
+          ),
+        );
+      }
+
+
+
+      // Ajouter les champs
+      formData.fields.addAll([
+        MapEntry("titre", titre),
+        MapEntry("description", description),
+        MapEntry("authorId", authorId.toString()),
+        MapEntry("categorieId", categorieId.toString()),
+        MapEntry("available", available.toString()),
+        MapEntry("universel", universel.toString()),
+        MapEntry("latitude", latitude.toString()),
+        MapEntry("longitude", longitude.toString()),
+        MapEntry("price", price.toString()),
+        MapEntry("date", date.toString()),
+        MapEntry("emergency", emergency.toString()),
+
+      ]);
+
+      final response = await _dio.post("meals/add", data: formData);
+      return response;
+    } on DioException catch (e) {
+      print("Erreur Dio : ${e.message}");
+      print("Réponse : ${e.response?.data}");
+      rethrow;
+    } catch (e) {
+      print("Erreur inattendue : $e");
+      rethrow;
+    }
+  }
+
 }

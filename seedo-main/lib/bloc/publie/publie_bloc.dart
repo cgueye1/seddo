@@ -6,16 +6,21 @@ import 'package:seddoapp/bloc/publie/publie_event.dart';
 import 'package:seddoapp/bloc/publie/publie_state.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
-import 'package:permission_handler/permission_handler.dart'; // Ajoutez cette ligne
+import 'package:permission_handler/permission_handler.dart';
+
+import '../../repositories/publication_repository.dart'; // Ajoutez cette ligne
 
 class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
   final CategorieRepository categorieRepository;
   final List<dynamic> allCategories; // Store categories here
+  final PublicationRepository _publicationRepository;
 
   PublicationBloc({
     required this.categorieRepository,
     required List<dynamic>? categories,
-  }) : allCategories = categories ?? [],
+    required PublicationRepository publicationRepository,
+  }) : _publicationRepository = publicationRepository,
+       allCategories = categories ?? [],
        super(
          PublicationState(categoryTitles: _extractCategoryTitles(categories)),
        ) {
@@ -146,18 +151,82 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     PublicationSubmitted event,
     Emitter<PublicationState> emit,
   ) async {
-    emit(state.copyWith(isSubmitting: true));
+    emit(
+      state.copyWith(isSubmitting: true, isSuccess: false, errorMessage: null),
+    );
 
     try {
-      // Here you would typically call an API to submit the publication
-      // await publicationRepository.submitPublication(...);
+      final titre = state.titre;
+      final description = state.description;
+      final authorId = event.authorId;
+      final latitude = event.latitude;
+      final longitude = event.longitude;
+      final pictures = state.pictures;
+      final available = state.available ?? true;
+      final universel = state.universel ?? false;
+     final date=state.availability;
+      final price=state.price;
 
-      // For now, we'll just simulate a successful submission
-      await Future.delayed(const Duration(seconds: 1));
+      if (latitude==0 || longitude==0 && state.isSubmitting) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: "L'adresse est oblogatoire",
+          ),
+        );
+        return;
+      }
+
+
+      if (pictures.isEmpty) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: "Veuillez sélectionner au moins une image",
+          ),
+        );
+        return;
+      }
+
+      final selectedCategory =
+          state.selectedSubcategoryModel ?? state.categorie;
+      if (selectedCategory == null) {
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            errorMessage: "Veuillez sélectionner une catégorie.",
+          ),
+        );
+        return;
+      }
+
+      final response = await _publicationRepository.postPublication(
+        titre: titre,
+        description: description,
+        authorId: authorId,
+        categorieId: selectedCategory.id,
+        latitude: latitude,
+        longitude: longitude,
+        price: price,
+        date: date,
+        imagePaths: pictures,
+        available: available,
+        universel: universel,
+        audio: '',
+        emergency: false
+
+      );
+      print(response);
 
       emit(state.copyWith(isSubmitting: false, isSuccess: true));
     } catch (e) {
-      emit(state.copyWith(isSubmitting: false, errorMessage: e.toString()));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          isSuccess: false,
+          errorMessage: e.toString(),
+        ),
+      );
     }
   }
 

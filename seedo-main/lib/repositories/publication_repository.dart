@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/services/publication_service.dart';
 
@@ -95,6 +96,45 @@ class PublicationRepository {
     } catch (e) {
       print('Error searching publications: $e');
       throw Exception('Network error during search');
+    }
+  }
+
+  Future<Response?> postPublication({
+    required String titre,
+    required String description,
+    required int authorId,
+    required int categorieId,
+    required double latitude,
+    required double longitude,
+    required List<String> imagePaths,
+    required double price,
+    required String date,
+    required String audio,
+    required bool emergency,
+
+
+    bool available = true,
+    bool universel = false,
+  }) async {
+    try {
+      return await _publicationService.postPublication(
+        titre: titre,
+        description: description,
+        authorId: authorId,
+        categorieId: categorieId,
+        latitude: latitude,
+        longitude: longitude,
+        imagePaths: imagePaths,
+        available: available,
+        universel: universel,
+        emergency: emergency,
+        price: price,
+        date: date,
+        audio:audio
+      );
+    } catch (e) {
+      print('Erreur lors de la publication : $e');
+      rethrow;
     }
   }
 }

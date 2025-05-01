@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:keyboard_avoider/keyboard_avoider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:seddoapp/bloc/publie/publie_bloc.dart';
 import 'package:seddoapp/bloc/publie/publie_event.dart';
 import 'package:seddoapp/bloc/publie/publie_state.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
+import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/widgets/publieform2.dart';
+
+import '../services/api_service.dart';
+import '../services/publication_service.dart';
 
 class PubliePage extends StatelessWidget {
   final List<dynamic>? categories;
@@ -17,11 +22,18 @@ class PubliePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final apiService = ApiService();
+    final publicationService = PublicationService(apiService.dio);
+    final publicationRepository = PublicationRepository(
+      publicationService: publicationService,
+    );
     return BlocProvider(
       create:
           (context) => PublicationBloc(
             categorieRepository: CategorieRepository(),
+
             categories: categories,
+            publicationRepository: publicationRepository,
           ),
       child: const PubliePageView(),
     );
@@ -43,10 +55,12 @@ class _PubliePageViewState extends State<PubliePageView> {
   final TextEditingController _availabilityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _languagesController = TextEditingController();
+
   bool _validateStep1(PublicationState state) {
     return state.selectedCategory != null &&
         state.selectedSubcategoryModel != null &&
-        _titreController.text.isNotEmpty;
+        _titreController.text.isNotEmpty &&
+        _descriptionController.text.isNotEmpty;
   }
 
   @override
@@ -85,8 +99,17 @@ class _PubliePageViewState extends State<PubliePageView> {
             backgroundColor: Colors.white,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back, color: Colors.black),
-              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(
+                Icons.arrow_back_ios_outlined,
+                color: Colors.black,
+              ),
+              onPressed: () {
+                if (state.currentStep == 1) {
+                  Navigator.of(context).pop();
+                } else {
+                  context.read<PublicationBloc>().add(StepChanged(1));
+                }
+              },
             ),
             title: const Text(
               'Publications',
@@ -250,13 +273,14 @@ class _PubliePageViewState extends State<PubliePageView> {
               Expanded(
                 child:
                     state.activeTabIndex == 0
-                        ? SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child:
-                              state.currentStep == 1
-                                  ? _buildStep1Form(context, state)
-                                  : _buildStep2Form(context, state),
-                        )
+                        ?
+                                state.currentStep == 1
+                                    ? SingleChildScrollView(
+                                    padding: const EdgeInsets.all(16),
+                                    child:_buildStep1Form(context, state))
+                                    : _buildStep2Form(context, state)
+
+
                         : const Center(
                           child: Text('Historique des publications'),
                         ),
@@ -505,165 +529,6 @@ class _PubliePageViewState extends State<PubliePageView> {
         ),
         const SizedBox(height: 24),
 
-        // Availability Field
-        const Text(
-          'Disponibilités',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-
-        // Dans la méthode _buildStep1Form, modifiez le code du TextField pour les disponibilités:
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: _availabilityController, // Utilisez le même contrôleur
-            decoration: InputDecoration(
-              hintText: 'Entrez vos disponibilités',
-              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.calendar_today),
-                onPressed: () async {
-                  final DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime.now(),
-                    firstDate: DateTime.now(),
-                    lastDate: DateTime(2100),
-                  );
-                  if (pickedDate != null) {
-                    final TimeOfDay? pickedTime = await showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay.now(),
-                    );
-                    if (pickedTime != null) {
-                      final DateTime combinedDateTime = DateTime(
-                        pickedDate.year,
-                        pickedDate.month,
-                        pickedDate.day,
-                        pickedTime.hour,
-                        pickedTime.minute,
-                      );
-                      final formattedDateTime = DateFormat(
-                        'dd/MM/yyyy HH:mm',
-                      ).format(combinedDateTime);
-
-                      setState(() {
-                        _availabilityController.text =
-                            formattedDateTime; // Mettez à jour le même contrôleur
-                      });
-
-                      context.read<PublicationBloc>().add(
-                        FormFieldUpdated(
-                          'availability',
-                          formattedDateTime,
-                        ), // Utilisez 'availability' de manière cohérente
-                      );
-                    }
-                  }
-                },
-              ),
-            ),
-            onChanged: (value) {
-              context.read<PublicationBloc>().add(
-                FormFieldUpdated('availability', value),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Price Field with Currency
-        const Text(
-          'Prix / Tarification',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[300]!),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TextField(
-                  controller: _priceController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    hintText: 'Entrez le tarif',
-                    hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
-                    border: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                  onChanged: (value) {
-                    context.read<PublicationBloc>().add(
-                      FormFieldUpdated('price', value),
-                    );
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Container(
-              width: 100,
-              height: 56,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Center(
-                child: Text(
-                  'Fcfa',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 24),
-
-        // Languages Field
-        const Text(
-          'Langues parlées',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: TextField(
-            controller: _languagesController,
-            decoration: const InputDecoration(
-              hintText: 'Entrez la ou les langues parlée(s)',
-              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              suffixIcon: Icon(Icons.keyboard_arrow_down),
-            ),
-            onChanged: (value) {
-              context.read<PublicationBloc>().add(
-                FormFieldUpdated('languages', value),
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 24),
-
         // Next button
         Container(
           width: double.infinity,
@@ -703,11 +568,20 @@ class _PubliePageViewState extends State<PubliePageView> {
 
   Widget _buildStep2Form(BuildContext context, PublicationState state) {
     return Step2Form(
+      priceChanged: (value) {
+        context.read<PublicationBloc>().add(FormFieldUpdated('price', value));
+      },
       onBackPressed: () {
         context.read<PublicationBloc>().add(StepChanged(1));
       },
-      onPublishPressed: () {
-        context.read<PublicationBloc>().add(PublicationSubmitted());
+      onPublishPressed: (address) {
+        context.read<PublicationBloc>().add(
+          PublicationSubmitted(
+            authorId: 1,
+            latitude: address != null ? address.latitude : 0,
+            longitude: address != null ? address.longitude : 0,
+          ),
+        );
       },
       onAddImagesPressed: () async {
         try {
@@ -765,6 +639,14 @@ class _PubliePageViewState extends State<PubliePageView> {
       selectedImages: state.pictures,
       onRemoveImage: (index) {
         context.read<PublicationBloc>().add(ImageRemoved(index));
+      },
+      availabilityChanged: (value) {
+        context.read<PublicationBloc>().add(
+          FormFieldUpdated(
+            'availability',
+            value,
+          ), // Utilisez 'availability' de manière cohérente
+        );
       },
     );
   }

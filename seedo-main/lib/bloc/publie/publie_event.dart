@@ -71,4 +71,15 @@ class ImageRemoved extends PublicationEvent {
   List<Object?> get props => [index];
 }
 
-class PublicationSubmitted extends PublicationEvent {}
+class PublicationSubmitted extends PublicationEvent {
+  final int authorId;
+  final double latitude;
+  final double longitude;
+
+  PublicationSubmitted({
+    required this.authorId,
+    required this.latitude,
+    required this.longitude,
+  });
+}
+

@@ -4,14 +4,23 @@ import 'package:seddoapp/bloc/signal/signal_bloc.dart';
 import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
 
+import '../repositories/publication_repository.dart';
+import '../services/api_service.dart';
+import '../services/publication_service.dart';
+
 class SignalPage extends StatelessWidget {
   const SignalPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final apiService = ApiService();
+    final publicationService = PublicationService(apiService.dio);
+    final publicationRepository = PublicationRepository(
+      publicationService: publicationService,
+    );
     return BlocProvider(
-      create: (_) => SignalementBloc(),
-      child: const SignalementView(),
+      create: (_) => SignalementBloc(publicationRepository),
+      child: SignalementView(),
     );
   }
 }
@@ -252,7 +261,9 @@ class _SignalementViewState extends State<SignalementView> {
                               ? null
                               : () {
                                 context.read<SignalementBloc>().add(
-                                  SubmitSignalement(),
+                                  SubmitSignalement(
+                                    authorId: 1,
+                                  ),
                                 );
                               },
                       child:

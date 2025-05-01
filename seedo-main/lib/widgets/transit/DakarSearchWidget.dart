@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
+import 'package:keyboard_avoider/keyboard_avoider.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 import '../../models/transit/PlaceModel.dart';
@@ -14,13 +15,14 @@ class DakarSearchWidget extends StatefulWidget {
   final String label;
   final Icon icon;
   final PlaceModel? initPlace;
+  final FocusNode? focusNode;
 
   const DakarSearchWidget({
     Key? key,
     required this.onLocationSelected,
     required this.label,
     required this.icon,
-    this.initPlace,
+    this.initPlace, this.focusNode,
   }) : super(key: key);
 
   @override
@@ -32,12 +34,16 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   Timer? _debounceTimer;
   final Duration _debounceDelay = const Duration(milliseconds: 500);
   bool positionLoader = false;
+  FocusNode _focusNode = FocusNode();
 
   static const double dakarLat = 14.7167;
   static const double dakarLon = -17.4677;
 
   @override
   void initState() {
+    _focusNode.addListener(() {
+      setState(() {});
+    });
     super.initState();
     // If initPlace is not null, set the initial value of the text field
     if (widget.initPlace != null) {
@@ -178,6 +184,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
+
     return Column(
       children: [
         TypeAheadField<PlaceModel>(
@@ -186,6 +193,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
             return await _fetchSuggestions(pattern);
           },
           builder: (context, controller, focusNode) {
+
             // Synchronisation manuelle
             if (!focusNode.hasFocus && _controller.text != controller.text) {
               controller.text = _controller.text;
@@ -193,7 +201,12 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                 TextPosition(offset: controller.text.length),
               );
             }
-            return TextField(
+            bool isFocused = focusNode.hasFocus;
+
+
+            return  Container(
+                child:TextField(
+
               controller: controller,
               focusNode: focusNode,
               decoration: InputDecoration(
@@ -226,7 +239,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                   if (mounted) setState(() {});
                 });
               },
-            );
+            ));
           },
           itemBuilder: (context, suggestion) {
             return ListTile(
@@ -248,7 +261,8 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
           },
           emptyBuilder: (context) => Padding(
             padding: EdgeInsets.all(16),
-            child: Column(
+            child: SingleChildScrollView(
+    child:Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
@@ -278,7 +292,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                 ),
               ],
             ),
-          ),
+          ),),
           loadingBuilder: (context) => Center(child: CircularProgressIndicator()),
         ),
       ],
@@ -289,6 +303,8 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   void dispose() {
     _debounceTimer?.cancel();
     _controller.dispose();
+    _focusNode.dispose();
+
     super.dispose();
   }
 }

@@ -18,13 +18,20 @@ import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
 import 'package:seddoapp/services/api_service.dart';
 
+import '../../repositories/publication_repository.dart';
+import '../../services/LocationService.dart';
+
 class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   final _imagePicker = ImagePicker();
   final _audioRecorder = AudioRecorder();
   final _audioPlayer = AudioPlayer();
   final ApiService _apiService = ApiService();
+  final PublicationRepository _publicationRepository;
+  final LocationService locationService = LocationService();
 
-  SignalementBloc() : super(const SignalementState()) {
+
+  SignalementBloc(this._publicationRepository)
+    : super(const SignalementState()) {
     on<TypeSelected>(_onTypeSelected);
     on<PhotoCaptured>(_onPhotoCaptured);
     on<DescriptionChanged>(_onDescriptionChanged);
@@ -34,7 +41,21 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     on<StopAudio>(_onStopAudio);
     on<SubmitSignalement>(_onSubmitSignalement);
     on<ResetSignalement>(_onResetSignalement);
+    on<LoadCurrentPosition>(_onLoadCurrentPosition);
+
   }
+  Future<void> _onLoadCurrentPosition(
+      LoadCurrentPosition event,
+      Emitter<SignalementState> emit,
+      ) async {
+    try {
+      final position = await locationService.getCurrentLocation();
+      emit(state.copyWith(currentPosition: position));
+    } catch (e) {
+      emit(state.copyWith(error: 'Erreur lors de la récupération de la position: $e'));
+    }
+  }
+
 
   Future<void> capturePhoto() async {
     try {
@@ -180,93 +201,76 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   }
 
   Future<void> _onSubmitSignalement(
-    SubmitSignalement event,
-    Emitter<SignalementState> emit,
-  ) async {
-    if (state.selectedType == null || state.description.isEmpty) {
-      emit(
-        state.copyWith(
-          error: 'Veuillez sélectionner un type et ajouter une description',
-        ),
-      );
-      return;
-    }
-
-    emit(state.copyWith(isSubmitting: true, error: null));
+      SubmitSignalement event,
+      Emitter<SignalementState> emit,
+      ) async {
+    emit(state.copyWith(isSubmitting: true, isSuccess: false, error: null));
 
     try {
-      // Préparation de FormData pour l'envoi multipart
-      FormData formData = FormData.fromMap({
-        'type': state.selectedType,
-        'description': state.description,
-      });
-
-      // Ajouter la photo si disponible
-      if (state.photo != null) {
-        formData.files.add(
-          MapEntry(
-            'photo',
-            await MultipartFile.fromFile(
-              state.photo!.path,
-              filename: 'photo_${DateTime.now().millisecondsSinceEpoch}.jpg',
-            ),
-          ),
-        );
-      }
-
-      // Ajouter l'audio si disponible
-      if (state.audioPath != null) {
-        formData.files.add(
-          MapEntry(
-            'audio',
-            await MultipartFile.fromFile(
-              state.audioPath!,
-              filename: 'audio_${DateTime.now().millisecondsSinceEpoch}.m4a',
-            ),
-          ),
-        );
-      }
-
-      // Envoyer la requête
-      final response = await _apiService.dio.post(
-        '/v1/signalements',
-        data: formData,
-        options: Options(contentType: 'multipart/form-data'),
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        emit(state.copyWith(isSubmitting: false, isSuccess: true));
-      } else {
-        emit(
-          state.copyWith(
+      // 1. Charger la position si elle est nulle
+      var currentPosition = state.currentPosition;
+      if (currentPosition == null) {
+        try {
+          currentPosition = await locationService.getCurrentLocation();
+          emit(state.copyWith(currentPosition: currentPosition));
+        } catch (e) {
+          emit(state.copyWith(
             isSubmitting: false,
-            error:
-                'Échec de l\'envoi du signalement: ${response.statusMessage}',
-          ),
-        );
-      }
-    } on DioException catch (e) {
-      String errorMessage = 'Erreur réseau';
-      if (e.response != null) {
-        errorMessage =
-            e.response?.data['message'] ??
-            'Erreur serveur: ${e.response?.statusCode}';
-      } else if (e.type == DioExceptionType.connectionTimeout) {
-        errorMessage = 'Délai de connexion dépassé';
-      } else if (e.type == DioExceptionType.receiveTimeout) {
-        errorMessage = 'Délai de réception dépassé';
+            error: "Impossible d'obtenir la position actuelle : $e",
+          ));
+          return;
+        }
       }
 
-      emit(state.copyWith(isSubmitting: false, error: errorMessage));
-    } catch (e) {
-      emit(
-        state.copyWith(
+      final latitude = currentPosition!.latitude;
+      final longitude = currentPosition!.longitude;
+
+      // Vérifie si les coordonnées sont valides
+      if (latitude == 0 || longitude == 0) {
+        emit(state.copyWith(
           isSubmitting: false,
-          error: 'Erreur lors de l\'envoi: $e',
-        ),
+          error: "La position actuelle est invalide",
+        ));
+        return;
+      }
+
+      final titre = "";
+      final description = state.description;
+      final authorId = event.authorId;
+      List<String> pictures = state.photo != null ? [state.photo!.path] : [];
+      final available = true;
+      final universel = false;
+      final date = "";
+      final price = 0.0;
+      final audio = state.audioPath;
+
+      final response = await _publicationRepository.postPublication(
+        titre: titre,
+        description: description,
+        authorId: authorId,
+        categorieId: 1,
+        latitude: latitude,
+        longitude: longitude,
+        price: price,
+        date: date,
+        imagePaths: pictures,
+        available: available,
+        universel: universel,
+        audio: audio ?? '',
+        emergency: true,
       );
+
+      print(response);
+      emit(state.copyWith(isSubmitting: false, isSuccess: true));
+    } catch (e) {
+      emit(state.copyWith(
+        isSubmitting: false,
+        isSuccess: false,
+        error: "Erreur lors de l'envoi du signalement : $e",
+      ));
     }
   }
+
 
   void _onResetSignalement(
     ResetSignalement event,

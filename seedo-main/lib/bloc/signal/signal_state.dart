@@ -2,6 +2,7 @@
 
 import 'dart:io';
 import 'package:equatable/equatable.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SignalementState extends Equatable {
   final String? selectedType;
@@ -13,6 +14,7 @@ class SignalementState extends Equatable {
   final bool isSubmitting;
   final bool isSuccess;
   final String? error;
+  final Position? currentPosition;
 
   const SignalementState({
     this.selectedType,
@@ -24,6 +26,7 @@ class SignalementState extends Equatable {
     this.isSubmitting = false,
     this.isSuccess = false,
     this.error,
+    this.currentPosition
   });
 
   SignalementState copyWith({
@@ -36,6 +39,8 @@ class SignalementState extends Equatable {
     bool? isSubmitting,
     bool? isSuccess,
     String? error,
+    Position? currentPosition,
+
   }) {
     return SignalementState(
       selectedType: selectedType ?? this.selectedType,
@@ -47,6 +52,7 @@ class SignalementState extends Equatable {
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
       error: error,
+      currentPosition: currentPosition ?? this.currentPosition,
     );
   }
 
@@ -61,5 +67,6 @@ class SignalementState extends Equatable {
     isSubmitting,
     isSuccess,
     error,
+    currentPosition,
   ];
 }
