@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element_parameter
 
 import 'package:flutter/material.dart';
+import 'package:marquee/marquee.dart';
 import 'package:seddoapp/widgets/transit/WalkingDurationWidget.dart';
 
 import '../../models/transit/TransitResponseModel.dart';
@@ -14,7 +15,6 @@ class TimelinePoint extends StatelessWidget {
   final double lat;
   final double lon;
   final bool? isDestination;
-
   final TransitResponseModel? transit;
 
   TimelinePoint({
@@ -35,14 +35,12 @@ class TimelinePoint extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Column(
-          mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (!isStart)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Trait en pointillés (Dash line)
                   Container(
                     width: 2,
                     height: 55,
@@ -51,16 +49,13 @@ class TimelinePoint extends StatelessWidget {
                       painter: isWalking ? _DashPainter() : null,
                     ),
                   ),
-
                   if (isWalking && !isEnd)
                     Padding(
                       padding: const EdgeInsets.only(left: 20),
-                      // Ajustez l'espace ici pour le positionnement
                       child: Row(
                         children: [
                           Icon(Icons.directions_walk, color: Colors.grey),
                           SizedBox(width: 4),
-                          // Espace entre l'icône et le texte
                           WalkingDurationWidget(
                             startLat: transit!.stopEnd!.stopLat,
                             startLon: transit!.stopEnd!.stopLon,
@@ -72,8 +67,9 @@ class TimelinePoint extends StatelessWidget {
                     ),
                 ],
               ),
+
             SizedBox(
-              width: MediaQuery.of(context).size.width - 100,
+              width: MediaQuery.of(context).size.width-50,
               child: Row(
                 children: [
                   if (isDestination == null || !isDestination!)
@@ -81,52 +77,56 @@ class TimelinePoint extends StatelessWidget {
                       isStart
                           ? Icons.trip_origin_sharp
                           : (isEnd
-                              ? Icons.location_on
-                              : Icons.trip_origin_sharp),
-                      color:
-                          isStart
-                              ? Color(0xFFE65100)
-                              : (isEnd ? Colors.red : Colors.grey),
+                          ? Icons.location_on
+                          : Icons.trip_origin_sharp),
+                      color: isStart
+                          ? Color(0xFFE65100)
+                          : (isEnd ? Colors.red : Colors.grey),
                       size: 20,
                     ),
                   SizedBox(width: 8),
                   if (isDestination == null || !isDestination!)
                     Expanded(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          overflow: TextOverflow.visible,
+                      child: SizedBox(
+                        height: 20,
+                        child: Marquee(
+                          text: label,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black,
+                          ),
+                          scrollAxis: Axis.horizontal,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          blankSpace: 20.0,
+                          velocity: 30.0,
+                          pauseAfterRound: Duration(seconds: 1),
+                          startPadding: 10.0,
+                          accelerationDuration: Duration(seconds: 1),
+                          accelerationCurve: Curves.linear,
+                          decelerationDuration: Duration(milliseconds: 500),
+                          decelerationCurve: Curves.easeOut,
                         ),
-
-                        softWrap: true, // Enable text wrapping
                       ),
                     ),
                 ],
               ),
             ),
+
             if (!isEnd)
               Row(
                 children: [
-                  // Trait en pointillés (Dash line)
                   Container(
                     width: 2,
                     height: 55,
                     margin: EdgeInsets.only(left: 10),
                     child: CustomPaint(
-                      painter:
-                          isWalking
-                              ? _DashPainter()
-                              : null, // Affichage du trait en pointillé si c'est une marche
+                      painter: isWalking ? _DashPainter() : null,
                     ),
                   ),
-
-                  // Conteneur pour l'icône de marche et le temps (sur la même ligne)
-                  if (isWalking) // Show walking icon and duration if isWalking is true
+                  if (isWalking)
                     Padding(
                       padding: const EdgeInsets.only(left: 20),
-                      // Ajustez l'espace ici pour le positionnement
                       child: Row(
                         children: [
                           Icon(Icons.directions_walk, color: Colors.grey),
@@ -148,6 +148,7 @@ class TimelinePoint extends StatelessWidget {
     );
   }
 }
+
 
 class _DashPainter extends CustomPainter {
   final double dashWidth;
