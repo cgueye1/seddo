@@ -35,15 +35,6 @@ class SignalementView extends StatefulWidget {
 class _SignalementViewState extends State<SignalementView> {
   final TextEditingController _descriptionController = TextEditingController();
 
-  final List<String> _typeOptions = [
-    'Problème de voirie',
-    'Déchet/Dépôt sauvage',
-    'Graffiti',
-    'Éclairage défectueux',
-    'Mobilier urbain endommagé',
-    'Autre',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -120,53 +111,6 @@ class _SignalementViewState extends State<SignalementView> {
                   const Text(
                     'Une situation à signaler ?',
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Type de signalement',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 10),
-                  Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        isExpanded: true,
-                        hint: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16.0),
-                          child: Text('Selectionnez un type'),
-                        ),
-                        value: state.selectedType,
-                        icon: const Icon(Icons.arrow_drop_down),
-                        iconSize: 24,
-                        elevation: 16,
-                        style: const TextStyle(color: Colors.black),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            context.read<SignalementBloc>().add(
-                              TypeSelected(newValue),
-                            );
-                          }
-                        },
-                        items:
-                            _typeOptions.map<DropdownMenuItem<String>>((
-                              String value,
-                            ) {
-                              return DropdownMenuItem<String>(
-                                value: value,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                  child: Text(value),
-                                ),
-                              );
-                            }).toList(),
-                      ),
-                    ),
                   ),
                   const SizedBox(height: 30),
                   const Text(
@@ -261,9 +205,7 @@ class _SignalementViewState extends State<SignalementView> {
                               ? null
                               : () {
                                 context.read<SignalementBloc>().add(
-                                  SubmitSignalement(
-                                    authorId: 1,
-                                  ),
+                                  SubmitSignalement(authorId: 1),
                                 );
                               },
                       child:

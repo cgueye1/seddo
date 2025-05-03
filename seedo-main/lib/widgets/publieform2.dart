@@ -116,7 +116,8 @@ class _Step2FormState extends State<Step2Form> {
           Container(
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(30),
+              color: const Color.fromARGB(255, 247, 247, 246),
             ),
             child: TextField(
               controller: _availabilityController,
@@ -155,20 +156,17 @@ class _Step2FormState extends State<Step2Form> {
               // Utilisez le même contrôleur
               decoration: InputDecoration(
                 hintText: 'Entrez vos disponibilités',
-                hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
+                hintStyle: TextStyle(
+                  fontSize: 16,
+                  color: const Color.fromARGB(255, 78, 73, 73),
+                ),
                 border: InputBorder.none,
                 contentPadding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 12,
                 ),
                 prefixIcon: Icon(Icons.calendar_today),
-
               ),
-              /*   onChanged: (value) {
-              context.read<PublicationBloc>().add(
-                FormFieldUpdated('availability', value),
-              );
-            },*/
             ),
           ),
           const SizedBox(height: 24),
@@ -185,14 +183,18 @@ class _Step2FormState extends State<Step2Form> {
                 child: Container(
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.grey[300]!),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(30),
+                    color: const Color.fromARGB(255, 247, 247, 246),
                   ),
                   child: TextField(
                     controller: _priceController,
                     keyboardType: TextInputType.number,
                     decoration: const InputDecoration(
                       hintText: 'Entrez le tarif',
-                      hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
+                      hintStyle: TextStyle(
+                        fontSize: 15,
+                        color: Color.fromARGB(255, 78, 73, 73),
+                      ),
                       border: InputBorder.none,
                       contentPadding: EdgeInsets.symmetric(
                         horizontal: 16,

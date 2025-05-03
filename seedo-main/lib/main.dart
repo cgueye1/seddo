@@ -6,7 +6,7 @@ import 'package:intl/date_symbol_data_local.dart';
 // Blocs
 import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
-import 'package:seddoapp/pages/home.dart';
+// import 'package:seddoapp/pages/home.dart';
 // import 'package:seddoapp/pages/publie.dart';
 // import 'package:seddoapp/pages/setting.dart';
 // import 'package:seddoapp/pages/auth/login.dart';
@@ -36,7 +36,7 @@ void main() async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   PushNotificationService().initialize();
-   await AdService().initialize();
+  await AdService().initialize();
 
   // Initialisation des formats de date
   try {
@@ -106,7 +106,7 @@ class MyApp extends StatelessWidget {
           labelSmall: TextStyle(fontFamily: 'Poppins'),
         ),
       ),
-      home:  MainScreen(),
+      home: MainScreen(),
     )
     //const PubliePage(),
     ;

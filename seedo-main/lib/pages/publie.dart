@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:keyboard_avoider/keyboard_avoider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:seddoapp/bloc/publie/publie_bloc.dart';
 import 'package:seddoapp/bloc/publie/publie_event.dart';
@@ -273,14 +271,12 @@ class _PubliePageViewState extends State<PubliePageView> {
               Expanded(
                 child:
                     state.activeTabIndex == 0
-                        ?
-                                state.currentStep == 1
-                                    ? SingleChildScrollView(
-                                    padding: const EdgeInsets.all(16),
-                                    child:_buildStep1Form(context, state))
-                                    : _buildStep2Form(context, state)
-
-
+                        ? state.currentStep == 1
+                            ? SingleChildScrollView(
+                              padding: const EdgeInsets.all(16),
+                              child: _buildStep1Form(context, state),
+                            )
+                            : _buildStep2Form(context, state)
                         : const Center(
                           child: Text('Historique des publications'),
                         ),
@@ -319,14 +315,21 @@ class _PubliePageViewState extends State<PubliePageView> {
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromARGB(255, 247, 247, 246),
           ),
           child: DropdownButtonFormField<String>(
             value: state.selectedCategory,
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: const TextStyle(
+              fontSize: 15,
+              color: Color.fromARGB(255, 78, 73, 73),
+            ),
             decoration: InputDecoration(
               hintText: 'Sélectionnez la catégorie',
-              hintStyle: const TextStyle(fontSize: 11, color: Colors.grey),
+              hintStyle: const TextStyle(
+                fontSize: 15,
+                color: Color.fromARGB(255, 78, 73, 73),
+              ),
               border: InputBorder.none,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -342,8 +345,8 @@ class _PubliePageViewState extends State<PubliePageView> {
                         child: Text(
                           value,
                           style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black,
+                            fontSize: 15,
+                            color: Color.fromARGB(255, 78, 73, 73),
                           ),
                         ),
                       ),
@@ -384,9 +387,9 @@ class _PubliePageViewState extends State<PubliePageView> {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
             border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromARGB(255, 247, 247, 246),
           ),
           child: DropdownButtonFormField<CategorieModel>(
             // Only set a value if it's actually in the current list
@@ -399,13 +402,16 @@ class _PubliePageViewState extends State<PubliePageView> {
                     ? state.selectedSubcategoryModel
                     : null,
             style: const TextStyle(
-              fontSize: 11,
-              color: Colors.grey,
+              fontSize: 15,
+              color: Color.fromARGB(255, 78, 73, 73),
               fontWeight: FontWeight.normal,
             ),
             decoration: const InputDecoration(
               hintText: 'Sélectionnez la sous-catégorie',
-              hintStyle: TextStyle(fontSize: 11, color: Colors.grey),
+              hintStyle: TextStyle(
+                fontSize: 15,
+                color: Color.fromARGB(255, 78, 73, 73),
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
@@ -416,7 +422,7 @@ class _PubliePageViewState extends State<PubliePageView> {
             icon: const Icon(
               Icons.keyboard_arrow_down,
               size: 20,
-              color: Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 78, 73, 73),
             ),
             items:
                 state.currentSubcategories.map((subCategory) {
@@ -425,8 +431,8 @@ class _PubliePageViewState extends State<PubliePageView> {
                     child: Text(
                       subCategory.titre,
                       style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.black87,
+                        fontSize: 15,
+                        color: Color.fromARGB(255, 78, 73, 73),
                       ),
                     ),
                   );
@@ -472,13 +478,17 @@ class _PubliePageViewState extends State<PubliePageView> {
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromARGB(255, 247, 247, 246),
           ),
           child: TextField(
             controller: _titreController,
             decoration: const InputDecoration(
               hintText: 'Entrez le titre de la publication',
-              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
+              hintStyle: TextStyle(
+                fontSize: 15,
+                color: Color.fromARGB(255, 78, 73, 73),
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
@@ -503,17 +513,22 @@ class _PubliePageViewState extends State<PubliePageView> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
+
         Container(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromARGB(255, 247, 247, 246),
           ),
           child: TextField(
             controller: _descriptionController,
-            maxLines: 6,
+            maxLines: 10,
             decoration: const InputDecoration(
               hintText: 'Ecrivez quelque chose...',
-              hintStyle: TextStyle(fontSize: 10, color: Colors.grey),
+              hintStyle: TextStyle(
+                fontSize: 15,
+                color: Color.fromARGB(255, 78, 73, 73),
+              ),
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(
                 horizontal: 16,
@@ -535,7 +550,7 @@ class _PubliePageViewState extends State<PubliePageView> {
           height: 56,
           decoration: BoxDecoration(
             color: Colors.deepOrange,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(30),
           ),
           child: TextButton(
             onPressed: () {
