@@ -24,3 +24,15 @@ ios/Runner/Assets/Audio/ringtone.caf        # Pour iOS (converti en .caf)
 https://www.zapsplat.com/?s=ambulance
 
 https://romannurik.github.io/AndroidAssetStudio/icons-launcher.html#foreground.type=clipart&foreground.clipart=warning&foreground.space.trim=1&foreground.space.pad=0.25&foreColor=rgb(255%2C%2018%2C%200)&backColor=rgb(255%2C%20255%2C%20255)&crop=0&backgroundShape=circle&effects=none&name=ic_launcher
+git stash
+git pull
+git stash pop
+
+Explication :
+
+git stash sauvegarde temporairement tes modifications non commit.
+
+git pull récupère les dernières modifications du dépôt distant.
+
+git stash pop remet tes modifications par-dessus les nouvelles.
+

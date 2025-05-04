@@ -208,7 +208,7 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                     child: Row(
                       children: [
                         Text(
-                          "Où alons-nous ?",
+                          "Où allons-nous ?",
                           style: TextStyle(
                             fontSize: 24,
 

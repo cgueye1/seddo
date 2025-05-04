@@ -69,7 +69,7 @@ class TimelinePoint extends StatelessWidget {
               ),
 
             SizedBox(
-              width: MediaQuery.of(context).size.width-50,
+              width: MediaQuery.of(context).size.width - 50,
               child: Row(
                 children: [
                   if (isDestination == null || !isDestination!)
@@ -77,11 +77,12 @@ class TimelinePoint extends StatelessWidget {
                       isStart
                           ? Icons.trip_origin_sharp
                           : (isEnd
-                          ? Icons.location_on
-                          : Icons.trip_origin_sharp),
-                      color: isStart
-                          ? Color(0xFFE65100)
-                          : (isEnd ? Colors.red : Colors.grey),
+                              ? Icons.location_on
+                              : Icons.trip_origin_sharp),
+                      color:
+                          isStart
+                              ? Color(0xFFE65100)
+                              : (isEnd ? Colors.red : Colors.grey),
                       size: 20,
                     ),
                   SizedBox(width: 8),
@@ -89,23 +90,14 @@ class TimelinePoint extends StatelessWidget {
                     Expanded(
                       child: SizedBox(
                         height: 20,
-                        child: Marquee(
-                          text: label,
+                        child: Text(
+                          overflow: TextOverflow.ellipsis,
+                          label,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
                             color: Colors.black,
                           ),
-                          scrollAxis: Axis.horizontal,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          blankSpace: 20.0,
-                          velocity: 30.0,
-                          pauseAfterRound: Duration(seconds: 1),
-                          startPadding: 10.0,
-                          accelerationDuration: Duration(seconds: 1),
-                          accelerationCurve: Curves.linear,
-                          decelerationDuration: Duration(milliseconds: 500),
-                          decelerationCurve: Curves.easeOut,
                         ),
                       ),
                     ),
@@ -148,7 +140,6 @@ class TimelinePoint extends StatelessWidget {
     );
   }
 }
-
 
 class _DashPainter extends CustomPainter {
   final double dashWidth;

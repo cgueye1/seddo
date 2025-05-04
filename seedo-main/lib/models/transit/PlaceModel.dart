@@ -3,12 +3,14 @@ class PlaceModel {
   final double longitude;
   final String name;
   final String address;
+  final String?  placeId;
 
   PlaceModel({
     required this.latitude,
     required this.longitude,
     required this.name,
     required this.address,
+    this.placeId
   });
 
   factory PlaceModel.fromJson(Map<String, dynamic> item) {
@@ -30,6 +32,7 @@ class PlaceModel {
 
     // Extraction du nom
     final name = item['name'] ?? '';
+    final placeId= item['placeId'] ?? '';
 
     // Extraction et gestion de l'adresse
     final address = item['address'] is String
@@ -41,6 +44,7 @@ class PlaceModel {
       longitude: longitude,
       name: name,
       address: address,
+      placeId: placeId
     );
   }
 
@@ -50,6 +54,7 @@ class PlaceModel {
       'longitude': longitude,
       'name': name,
       'address': address,
+      "placeId":placeId
     };
   }
 

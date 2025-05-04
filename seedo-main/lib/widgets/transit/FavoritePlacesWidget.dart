@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../services/transit/FavoritePlaceService.dart';
 import 'DakarSearchWidget.dart';
@@ -31,17 +32,17 @@ class _FavoritePlacesWidgetState extends State<FavoritePlacesWidget> {
     favoris['work'] = await _service.getFavorite('work');
     favoris['school'] = await _service.getFavorite('school');
     setState(() {});
-
   }
 
   Widget _buildFavoriteTile({
     required String label,
-    required IconData icon,
+    required String icon,
     required String key,
   }) {
     final place = favoris[key];
     return ListTile(
-      leading: Icon(icon, color: Colors.grey),
+
+      leading: SvgPicture.asset(icon),
       title: Text(label, style: TextStyle(fontWeight: FontWeight.w500)),
       subtitle: Text(
         place?.name ?? 'Ajouter une adresse',
@@ -49,11 +50,11 @@ class _FavoritePlacesWidgetState extends State<FavoritePlacesWidget> {
       ),
       trailing:
           place != null
-              ? IconButton(
-                onPressed: () => _handleFavoriteTap(null, key),
-                icon: Icon(Icons.edit, color: Colors.grey),
+              ? InkWell(
+                child: SvgPicture.asset('assets/transit/icons/edit.svg'),
+                onTap: () => _handleFavoriteTap(null, key),
               )
-              : Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 20),
+              : SvgPicture.asset('assets/transit/icons/add.svg'),
       onTap: () => _handleFavoriteTap(place, key),
     );
   }
@@ -103,29 +104,48 @@ class _FavoritePlacesWidgetState extends State<FavoritePlacesWidget> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-
-    padding: EdgeInsets.only(left: 16, right: 16,bottom: 16),
-    child:Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(height: 20,),
-       Row(
+      padding: EdgeInsets.only(left: 16, right: 16, bottom: 16),
+      child: SingleChildScrollView(child:Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(height: 20),
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Favoris", style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18,color: Colors.grey)),
+              Text(
+                "Favoris",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.black,
+                ),
+              ),
               Text(""),
             ],
           ),
+          SizedBox(height: 15),
 
-        _buildFavoriteTile(label: 'Maison', icon: Icons.home, key: 'home'),
-   Divider(height: .1),
-        _buildFavoriteTile(label: 'Bureau', icon: Icons.work, key: 'work'),
+          _buildFavoriteTile(
+            label: 'Dpmicile',
+            icon: 'assets/transit/icons/home.svg',
+            key: 'home',
+          ),
+          Divider(color: Colors.grey.shade200, height: .1),
+          _buildFavoriteTile(
+            label: 'Bureau',
+            icon: 'assets/transit/icons/office.svg',
+            key: 'work',
+          ),
 
-          Divider(),
+          Divider(color: Colors.grey.shade200, height: .1),
 
-        _buildFavoriteTile(label: 'École', icon: Icons.school, key: 'school'),
-      ],
-    )
-    );
+          _buildFavoriteTile(
+            label: 'École',
+            icon: 'assets/transit/icons/school.svg',
+            key: 'school',
+          ),
+        ],
+      ),
+    ));
   }
 }

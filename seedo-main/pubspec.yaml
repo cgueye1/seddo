@@ -139,6 +139,7 @@ flutter:
     #icons
     - assets/icons/actions/
     - assets/icons/
+    - assets/transit/icons/
     - assets/icons/home.svg
     - assets/icons/groceries.png
     - assets/icons/juice.png

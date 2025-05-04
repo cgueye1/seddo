@@ -444,7 +444,7 @@ class TimelineTile extends StatelessWidget {
                             : transit.stop.transitType == "BRT"
                             ? Image.asset(
                               "assets/transit/brt.png",
-                              width: 60,
+                              width: 90,
                             )
                             : transit.stop.transitType == "DDD"
                             ? Image.asset(
@@ -484,7 +484,7 @@ class TimelineTile extends StatelessWidget {
                                 ],
                               ),
                               SizedBox(height: 10),
-                              Row(
+                             /* Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 mainAxisSize: MainAxisSize.max,
@@ -505,7 +505,7 @@ class TimelineTile extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              SizedBox(height: 10),
+                              SizedBox(height: 10),*/
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
@@ -551,13 +551,13 @@ class TimelineTile extends StatelessWidget {
                                   );
                                 },
                                 child: Container(
-                                  height: 40,
+                                  height: 35,
                                   decoration: BoxDecoration(
                                     border: Border.all(
                                       color: Color(0xFFE65100),
                                       width: .2,
                                     ),
-                                    color: Colors.white,
+                                    color: Color(0xFFE65100),
                                     borderRadius: BorderRadius.circular(
                                       100,
                                     ),
@@ -566,7 +566,7 @@ class TimelineTile extends StatelessWidget {
                                     child: Text(
                                       "Itinéraire vers l'arrêt",
                                       style: TextStyle(
-                                        color: Color(0xFFE65100),
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
