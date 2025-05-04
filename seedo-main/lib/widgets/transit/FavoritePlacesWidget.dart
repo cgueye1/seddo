@@ -126,7 +126,7 @@ class _FavoritePlacesWidgetState extends State<FavoritePlacesWidget> {
           SizedBox(height: 15),
 
           _buildFavoriteTile(
-            label: 'Dpmicile',
+            label: 'Domicile',
             icon: 'assets/transit/icons/home.svg',
             key: 'home',
           ),
