@@ -8,6 +8,8 @@ import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../models/PaiementRequestModel.dart';
+import '../../pages/webview/payWebView.dart';
 import '../../repositories/publication_repository.dart'; // Ajoutez cette ligne
 
 class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
@@ -32,6 +34,12 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     on<ImagesAdded>(_onImagesAdded);
     on<PublicationSubmitted>(_onPublicationSubmitted);
     on<ImageRemoved>(_onImageRemoved); // Ajoutez cette ligne
+    on<LoadInitialPricing>(_onLoadInitialPricing);
+    on<PricingSelected>((event, emit) {
+      emit(state.copyWith(selectedPricing: event.selectedPricing));
+    });
+    // Déclenche l'événement pour charger les prix dès le démarrage
+    add(LoadInitialPricing());
   }
 
   static List<String> _extractCategoryTitles(List<dynamic>? categories) {
@@ -164,19 +172,19 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       final pictures = state.pictures;
       final available = state.available ?? true;
       final universel = state.universel ?? false;
-     final date=state.availability;
-      final price=state.price;
+      final date = state.availability;
+      final price = state.price;
+      final pricing = state.selectedPricing;
 
-      if (latitude==0 || longitude==0 && state.isSubmitting) {
+      if (latitude == 0 || longitude == 0 && state.isSubmitting) {
         emit(
           state.copyWith(
             isSubmitting: false,
-            errorMessage: "L'adresse est oblogatoire",
+            errorMessage: "L'adresse est obligatoire",
           ),
         );
         return;
       }
-
 
       if (pictures.isEmpty) {
         emit(
@@ -213,12 +221,34 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         available: available,
         universel: universel,
         audio: '',
-        emergency: false
-
+        emergency: false,
+        days: pricing!.days,
       );
-      print(response);
+      print("pricing.price");
+      print(pricing.price);
+      print( response?.data["id"]);
 
-      emit(state.copyWith(isSubmitting: false, isSuccess: true));
+      if (pricing.price != 0.0 && response!=null) {
+        final paiementRequest = PaiementRequestModel(
+          ref: '${titre}-${response?.data["id"]}',
+          price: pricing.price.toString(),
+          itemName: titre,
+          commandeName: titre,
+          id: response?.data["id"],
+        );
+
+        final paymentResponse = await _publicationRepository.payMeal(
+          paiementRequest,
+        );
+
+
+
+
+        emit(state.copyWith(isSubmitting: false, isSuccess: true, redirectUrl: paymentResponse.redirectUrl));
+
+      } else {
+        emit(state.copyWith(isSubmitting: false, isSuccess: true));
+      }
     } catch (e) {
       emit(
         state.copyWith(
@@ -337,5 +367,27 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     final newImages = List<String>.from(state.pictures);
     newImages.removeAt(event.index);
     emit(state.copyWith(pictures: newImages));
+  }
+
+  Future<void> _onLoadInitialPricing(
+    LoadInitialPricing event,
+    Emitter<PublicationState> emit,
+  ) async {
+    try {
+      final pricings = await _publicationRepository.fetchPricings();
+
+      final selected = pricings.firstWhere(
+        (p) => p.price == 0,
+        orElse:
+            () =>
+                pricings.isNotEmpty
+                    ? pricings.first
+                    : throw Exception('Aucun pricing'),
+      );
+
+      emit(state.copyWith(pricings: pricings, selectedPricing: selected));
+    } catch (e) {
+      emit(state.copyWith(errorMessage: "Erreur chargement des tarifs"));
+    }
   }
 }

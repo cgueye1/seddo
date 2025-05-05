@@ -2,6 +2,10 @@ import 'package:dio/dio.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/services/publication_service.dart';
 
+import '../models/PaiementRequestModel.dart';
+import '../models/PaymentResponseModel.dart';
+import '../models/PricingModel.dart';
+
 class PublicationRepository {
   final PublicationService _publicationService;
 
@@ -111,7 +115,7 @@ class PublicationRepository {
     required String date,
     required String audio,
     required bool emergency,
-
+    required int days,
 
     bool available = true,
     bool universel = false,
@@ -130,10 +134,31 @@ class PublicationRepository {
         emergency: emergency,
         price: price,
         date: date,
-        audio:audio
+        audio: audio,
+        days: days,
       );
     } catch (e) {
       print('Erreur lors de la publication : $e');
+      rethrow;
+    }
+  }
+
+  Future<List<PricingModel>> fetchPricings() async {
+    try {
+      return await _publicationService.getPricings();
+    } catch (e) {
+      print('Erreur dans le repository: $e');
+      rethrow;
+    }
+  }
+
+  Future<PaymentResponseModel> payMeal(
+    PaiementRequestModel paiementRequest,
+  ) async {
+    try {
+      return await _publicationService.payMeal(paiementRequest);
+    } catch (e) {
+      print('Erreur lors du paiement dans le repository : $e');
       rethrow;
     }
   }

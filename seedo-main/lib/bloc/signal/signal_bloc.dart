@@ -258,6 +258,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
         universel: universel,
         audio: audio ?? '',
         emergency: true,
+        days: 1
       );
 
       print(response);

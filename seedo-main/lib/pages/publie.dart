@@ -6,6 +6,7 @@ import 'package:seddoapp/bloc/publie/publie_bloc.dart';
 import 'package:seddoapp/bloc/publie/publie_event.dart';
 import 'package:seddoapp/bloc/publie/publie_state.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
+import 'package:seddoapp/pages/webview/payWebView.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/widgets/publieform2.dart';
@@ -77,11 +78,34 @@ class _PubliePageViewState extends State<PubliePageView> {
   Widget build(BuildContext context) {
     return BlocConsumer<PublicationBloc, PublicationState>(
       listener: (context, state) {
-        if (state.isSuccess) {
+        if (state.isSuccess && state.redirectUrl == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Publication soumise avec succès!')),
           );
           Navigator.pop(context);
+        }
+        if (state.isSuccess && state.redirectUrl != null) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => PayWebView(url: state.redirectUrl!),
+            ),
+          ).then((value) {
+            if (value == true) {
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Publication soumise avec succès!')),
+              );
+              Navigator.pop(context);
+            } else {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Paiement annulé')),
+              );
+              Navigator.pop(context);
+
+            }
+          });
+
         }
 
         if (state.errorMessage != null) {
@@ -583,6 +607,11 @@ class _PubliePageViewState extends State<PubliePageView> {
 
   Widget _buildStep2Form(BuildContext context, PublicationState state) {
     return Step2Form(
+      pricingList: state.pricings,
+      selectedPricing: state.selectedPricing,
+      onPricingChanged: (pricing){
+        context.read<PublicationBloc>().add(PricingSelected(pricing!));
+      },
       priceChanged: (value) {
         context.read<PublicationBloc>().add(FormFieldUpdated('price', value));
       },
@@ -595,6 +624,7 @@ class _PubliePageViewState extends State<PubliePageView> {
             authorId: 1,
             latitude: address != null ? address.latitude : 0,
             longitude: address != null ? address.longitude : 0,
+            context: context,
           ),
         );
       },

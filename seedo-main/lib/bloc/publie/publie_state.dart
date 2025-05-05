@@ -3,6 +3,8 @@ import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/user_model.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 
+import '../../models/PricingModel.dart';
+
 class PublicationState extends Equatable {
   // Attributs correspondant à ceux de la classe Publication
   final int currentStep;
@@ -43,6 +45,10 @@ class PublicationState extends Equatable {
   final String? errorMessage;
   final bool isFavorite;
   final double? distance;
+  final List<PricingModel> pricings;
+  final PricingModel? selectedPricing;
+  final String? redirectUrl;
+
 
   const PublicationState({
     this.currentStep = 1,
@@ -81,6 +87,9 @@ class PublicationState extends Equatable {
     this.errorMessage,
     this.isFavorite = false,
     this.distance,
+    this.pricings = const [],
+    this.selectedPricing,
+    this.redirectUrl,
   });
 
   PublicationState copyWith({
@@ -120,6 +129,9 @@ class PublicationState extends Equatable {
     String? errorMessage,
     bool? isFavorite,
     double? distance,
+    List<PricingModel>? pricings,
+    PricingModel? selectedPricing,
+    String? redirectUrl,
   }) {
     return PublicationState(
       currentStep: currentStep ?? this.currentStep,
@@ -159,6 +171,10 @@ class PublicationState extends Equatable {
       errorMessage: errorMessage,
       isFavorite: isFavorite ?? this.isFavorite,
       distance: distance ?? this.distance,
+      pricings: pricings ?? this.pricings,
+      selectedPricing: selectedPricing ?? this.selectedPricing,
+      redirectUrl: redirectUrl ?? this.redirectUrl,
+
     );
   }
 
@@ -200,5 +216,8 @@ class PublicationState extends Equatable {
     errorMessage,
     isFavorite,
     distance,
+    pricings,
+    selectedPricing,
+    redirectUrl,
   ];
 }

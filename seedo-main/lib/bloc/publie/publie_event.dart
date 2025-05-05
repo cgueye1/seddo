@@ -1,6 +1,9 @@
 // publication_event.dart
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
+
+import '../../models/PricingModel.dart';
 
 abstract class PublicationEvent extends Equatable {
   @override
@@ -75,11 +78,23 @@ class PublicationSubmitted extends PublicationEvent {
   final int authorId;
   final double latitude;
   final double longitude;
+  final BuildContext context;
 
   PublicationSubmitted({
     required this.authorId,
     required this.latitude,
     required this.longitude,
+    required this.context,
   });
 }
 
+class LoadInitialPricing extends PublicationEvent {}
+
+class PricingSelected extends PublicationEvent {
+  final PricingModel selectedPricing;
+
+  PricingSelected(this.selectedPricing);
+
+  @override
+  List<Object?> get props => [selectedPricing];
+}

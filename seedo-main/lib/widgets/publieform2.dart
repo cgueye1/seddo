@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:seddoapp/models/PricingModel.dart';
 import 'package:seddoapp/widgets/transit/DakarSearchWidget.dart';
 
 import '../models/transit/PlaceModel.dart';
@@ -15,8 +16,10 @@ class Step2Form extends StatefulWidget {
   final Function(int) onRemoveImage;
   final Function(String) priceChanged;
   final Function(String) availabilityChanged;
-
   final Function(PlaceModel?) onPublishPressed;
+  final List<PricingModel> pricingList;
+  final PricingModel? selectedPricing;
+  final Function(PricingModel?) onPricingChanged;
 
   const Step2Form({
     Key? key,
@@ -28,6 +31,9 @@ class Step2Form extends StatefulWidget {
     required this.onRemoveImage,
     required this.priceChanged,
     required this.availabilityChanged,
+    required this.pricingList,
+    this.selectedPricing,
+    required this.onPricingChanged,
   }) : super(key: key);
 
   @override
@@ -406,6 +412,53 @@ class _Step2FormState extends State<Step2Form> {
               ),
             ],
           ),
+
+
+          // Sélection de la tarification
+          // Message explicatif
+          const SizedBox(height: 24),
+          const Text(
+            'Sélectionnez une durée de visibilité. La publication sera supprimée après cette période.',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: widget.pricingList.map((pricing) {
+              final bool isSelected = widget.selectedPricing?.id == pricing.id;
+              return GestureDetector(
+                onTap: () => widget.onPricingChanged(pricing),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected ? Color(0xFFE65100).withOpacity(.2) : const Color.fromARGB(255, 247, 247, 246),
+                    border: Border.all(
+                      color: isSelected ?  Color(0xFFE65100) : Colors.grey.shade300,
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        pricing.libelle ?? 'Tarif',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        (pricing.price ?? 0) == 0 ? 'Gratuit' : '${pricing.price} F',
+                        style: const TextStyle(color: Colors.grey),
+                      ),
+
+                    ],
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+
           const SizedBox(height: 48),
 
           // Publish button
