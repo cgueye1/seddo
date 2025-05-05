@@ -10,7 +10,7 @@ class AdService {
   AdService._internal();
 
   InterstitialAd? _interstitialAd;
-  // RewardedAd? _rewardedAd;
+  RewardedAd? _rewardedAd;
   BannerAd? _bannerAd;
   VoidCallback? _currentRewardCallback;
 
@@ -22,7 +22,7 @@ class AdService {
 
   Future<void> _loadAds() async {
     await _loadInterstitialAd();
-    //  await _loadRewardedAd();
+     await _loadRewardedAd();
   }
 
   Future<void> _loadInterstitialAd() async {
@@ -52,7 +52,7 @@ class AdService {
     );
   }
 
-  /* Future<void> _loadRewardedAd() async {
+   Future<void> _loadRewardedAd() async {
     await RewardedAd.load(
       adUnitId: _getRewardBasedVideoAdUnitId()!,
       request: const AdRequest(),
@@ -76,7 +76,7 @@ class AdService {
         },
       ),
     );
-  }*/
+  }
 
   Widget getBannerAd({AdSize? size}) {
     if (_bannerAd != null) {
@@ -115,7 +115,7 @@ class AdService {
     return false;
   }
 
-  /* Future<bool> showRewardedAd({required VoidCallback onRewarded}) async {
+   Future<bool> showRewardedAd({required VoidCallback onRewarded}) async {
     if (_rewardedAd != null) {
       _currentRewardCallback = onRewarded;
       _rewardedAd?.show(
@@ -128,7 +128,7 @@ class AdService {
     }
     debugPrint('RewardedAd not ready');
     return false;
-  }*/
+  }
   // IDs des pubs
   String? _getBannerAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2934735716';
@@ -141,29 +141,16 @@ class AdService {
     if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/1033173712';
     return null;
   }
-
-  // IDs des pubs
-  /* String? _getBannerAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1687789051';
-    if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/4890716632';
-    return null;
-  }
-
-  String? _getInterstitialAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1249779129';
-    if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/6892014276';
-    return null;
-  }*/
-
-  /* String? _getRewardBasedVideoAdUnitId() {
+  String? _getRewardBasedVideoAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-3940256099942544/1712485313';
     if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/5224354917';
     return null;
-  }*/
+  }
+
 
   void dispose() {
     _interstitialAd?.dispose();
-    // _rewardedAd?.dispose();
+     _rewardedAd?.dispose();
 
     _currentRewardCallback = null;
   }

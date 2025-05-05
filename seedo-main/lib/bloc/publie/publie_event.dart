@@ -98,3 +98,4 @@ class PricingSelected extends PublicationEvent {
   @override
   List<Object?> get props => [selectedPricing];
 }
+class LoadAppParam extends PublicationEvent {}

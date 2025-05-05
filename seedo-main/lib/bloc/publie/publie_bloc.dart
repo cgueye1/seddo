@@ -8,14 +8,19 @@ import 'package:seddoapp/models/CategorieModel.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../../models/AppParamModel.dart';
 import '../../models/PaiementRequestModel.dart';
 import '../../pages/webview/payWebView.dart';
-import '../../repositories/publication_repository.dart'; // Ajoutez cette ligne
+import '../../repositories/defaultRepository.dart';
+import '../../repositories/publication_repository.dart';
+import '../../services/AdMobService.dart'; // Ajoutez cette ligne
 
 class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
   final CategorieRepository categorieRepository;
   final List<dynamic> allCategories; // Store categories here
   final PublicationRepository _publicationRepository;
+  final AdService adService = AdService();
+  final DefaultRepository repository = DefaultRepository();
 
   PublicationBloc({
     required this.categorieRepository,
@@ -35,11 +40,15 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     on<PublicationSubmitted>(_onPublicationSubmitted);
     on<ImageRemoved>(_onImageRemoved); // Ajoutez cette ligne
     on<LoadInitialPricing>(_onLoadInitialPricing);
+    on<LoadAppParam>(_onLoadAppParam);
     on<PricingSelected>((event, emit) {
       emit(state.copyWith(selectedPricing: event.selectedPricing));
     });
     // Déclenche l'événement pour charger les prix dès le démarrage
     add(LoadInitialPricing());
+    add(LoadAppParam());
+
+
   }
 
   static List<String> _extractCategoryTitles(List<dynamic>? categories) {
@@ -164,6 +173,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     );
 
     try {
+
       final titre = state.titre;
       final description = state.description;
       final authorId = event.authorId;
@@ -176,7 +186,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       final price = state.price;
       final pricing = state.selectedPricing;
 
-      if (latitude == 0 || longitude == 0 && state.isSubmitting) {
+      if (latitude == 0 || longitude == 0) {
         emit(
           state.copyWith(
             isSubmitting: false,
@@ -208,6 +218,23 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         return;
       }
 
+      if (pricing!.price == 0.0 && !state.appParam!.hideAds) {
+        final rewardedWatched = await adService.showRewardedAd(
+          onRewarded: () {},
+        );
+
+        if (!rewardedWatched) {
+          emit(
+            state.copyWith(
+              isSubmitting: false,
+              errorMessage:
+                  "Vous devez regarder la vidéo pour valider la publication.",
+            ),
+          );
+          return;
+        }
+      }
+
       final response = await _publicationRepository.postPublication(
         titre: titre,
         description: description,
@@ -223,19 +250,16 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         audio: '',
         emergency: false,
         days: pricing!.days,
-        pricingId: pricing!.id,
+        pricingId: pricing.id,
       );
-      print("pricing.price");
-      print(pricing.price);
-      print(response?.data["id"]);
 
       if (pricing.price != 0.0 && response != null) {
         final paiementRequest = PaiementRequestModel(
-          ref: '${titre}-${response?.data["id"]}',
+          ref: '${titre}-${response.data["id"]}',
           price: pricing.price.toString(),
           itemName: titre,
           commandeName: titre,
-          id: response?.data["id"],
+          id: response.data["id"],
         );
 
         final paymentResponse = await _publicationRepository.payMeal(
@@ -391,6 +415,45 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       emit(state.copyWith(pricings: pricings, selectedPricing: selected));
     } catch (e) {
       emit(state.copyWith(errorMessage: "Erreur chargement des tarifs"));
+    }
+  }
+  Future<void> _onLoadAppParam(
+      LoadAppParam event,
+      Emitter<PublicationState> emit,
+      ) async {
+    final appParam = await _getAppParam();
+    emit(state.copyWith(appParam: appParam));
+  }
+
+
+  Future<AppParamModel> _getAppParam() async {
+    try {
+      final response = await repository.getData("/appparam");
+
+      if (response.data != null) {
+        return AppParamModel.fromJson(response.data);
+      } else {
+        return AppParamModel(
+          id: 0,
+          hideAds: false,
+          hideTransit: false,
+          appVersion: "",
+          androidLink:
+          "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+          iosLink:
+          "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+        );
+      }
+    } catch (e) {
+      return AppParamModel(
+        id: 0,
+        hideAds: false,
+        hideTransit: false,
+        appVersion: "",
+        androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+        iosLink:
+        "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+      );
     }
   }
 }

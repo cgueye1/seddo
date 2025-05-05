@@ -3,6 +3,7 @@ import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/user_model.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 
+import '../../models/AppParamModel.dart';
 import '../../models/PricingModel.dart';
 
 class PublicationState extends Equatable {
@@ -48,6 +49,7 @@ class PublicationState extends Equatable {
   final List<PricingModel> pricings;
   final PricingModel? selectedPricing;
   final String? redirectUrl;
+  final AppParamModel? appParam;
 
 
   const PublicationState({
@@ -90,6 +92,7 @@ class PublicationState extends Equatable {
     this.pricings = const [],
     this.selectedPricing,
     this.redirectUrl,
+    this.appParam
   });
 
   PublicationState copyWith({
@@ -132,6 +135,7 @@ class PublicationState extends Equatable {
     List<PricingModel>? pricings,
     PricingModel? selectedPricing,
     String? redirectUrl,
+    AppParamModel? appParam
   }) {
     return PublicationState(
       currentStep: currentStep ?? this.currentStep,
@@ -174,6 +178,7 @@ class PublicationState extends Equatable {
       pricings: pricings ?? this.pricings,
       selectedPricing: selectedPricing ?? this.selectedPricing,
       redirectUrl: redirectUrl ?? this.redirectUrl,
+      appParam:  appParam?? this. appParam,
 
     );
   }
@@ -219,5 +224,6 @@ class PublicationState extends Equatable {
     pricings,
     selectedPricing,
     redirectUrl,
+    appParam
   ];
 }
