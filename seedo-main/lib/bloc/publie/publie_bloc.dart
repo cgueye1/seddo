@@ -223,12 +223,13 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         audio: '',
         emergency: false,
         days: pricing!.days,
+        pricingId: pricing!.id,
       );
       print("pricing.price");
       print(pricing.price);
-      print( response?.data["id"]);
+      print(response?.data["id"]);
 
-      if (pricing.price != 0.0 && response!=null) {
+      if (pricing.price != 0.0 && response != null) {
         final paiementRequest = PaiementRequestModel(
           ref: '${titre}-${response?.data["id"]}',
           price: pricing.price.toString(),
@@ -241,11 +242,13 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
           paiementRequest,
         );
 
-
-
-
-        emit(state.copyWith(isSubmitting: false, isSuccess: true, redirectUrl: paymentResponse.redirectUrl));
-
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            isSuccess: true,
+            redirectUrl: paymentResponse.redirectUrl,
+          ),
+        );
       } else {
         emit(state.copyWith(isSubmitting: false, isSuccess: true));
       }

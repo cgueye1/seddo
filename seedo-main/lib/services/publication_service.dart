@@ -92,6 +92,7 @@ class PublicationService {
     bool universel = false,
     bool emergency = false,
     required int days,
+    required int pricingId,
 
   }) async {
     try {
@@ -143,6 +144,7 @@ class PublicationService {
         MapEntry("date", date.toString()),
         MapEntry("emergency", emergency.toString()),
         MapEntry("days", days.toString()),
+        MapEntry("pricingId", pricingId.toString()),
       ]);
 
       final response = await _dio.post("meals/add", data: formData);
@@ -194,8 +196,7 @@ class PublicationService {
         throw Exception('Erreur HTTP: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      print("Erreur Dio : ${e.message}");
-      print("Réponse : ${e.response?.data}");
+
       throw Exception('Erreur de paiement : ${e.message}');
     } catch (e) {
       print("Erreur inattendue : $e");

@@ -29,7 +29,6 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   final PublicationRepository _publicationRepository;
   final LocationService locationService = LocationService();
 
-
   SignalementBloc(this._publicationRepository)
     : super(const SignalementState()) {
     on<TypeSelected>(_onTypeSelected);
@@ -42,20 +41,23 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     on<SubmitSignalement>(_onSubmitSignalement);
     on<ResetSignalement>(_onResetSignalement);
     on<LoadCurrentPosition>(_onLoadCurrentPosition);
-
   }
+
   Future<void> _onLoadCurrentPosition(
-      LoadCurrentPosition event,
-      Emitter<SignalementState> emit,
-      ) async {
+    LoadCurrentPosition event,
+    Emitter<SignalementState> emit,
+  ) async {
     try {
       final position = await locationService.getCurrentLocation();
       emit(state.copyWith(currentPosition: position));
     } catch (e) {
-      emit(state.copyWith(error: 'Erreur lors de la récupération de la position: $e'));
+      emit(
+        state.copyWith(
+          error: 'Erreur lors de la récupération de la position: $e',
+        ),
+      );
     }
   }
-
 
   Future<void> capturePhoto() async {
     try {
@@ -201,9 +203,9 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   }
 
   Future<void> _onSubmitSignalement(
-      SubmitSignalement event,
-      Emitter<SignalementState> emit,
-      ) async {
+    SubmitSignalement event,
+    Emitter<SignalementState> emit,
+  ) async {
     emit(state.copyWith(isSubmitting: true, isSuccess: false, error: null));
 
     try {
@@ -214,10 +216,12 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
           currentPosition = await locationService.getCurrentLocation();
           emit(state.copyWith(currentPosition: currentPosition));
         } catch (e) {
-          emit(state.copyWith(
-            isSubmitting: false,
-            error: "Impossible d'obtenir la position actuelle : $e",
-          ));
+          emit(
+            state.copyWith(
+              isSubmitting: false,
+              error: "Impossible d'obtenir la position actuelle : $e",
+            ),
+          );
           return;
         }
       }
@@ -227,10 +231,12 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
 
       // Vérifie si les coordonnées sont valides
       if (latitude == 0 || longitude == 0) {
-        emit(state.copyWith(
-          isSubmitting: false,
-          error: "La position actuelle est invalide",
-        ));
+        emit(
+          state.copyWith(
+            isSubmitting: false,
+            error: "La position actuelle est invalide",
+          ),
+        );
         return;
       }
 
@@ -258,20 +264,22 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
         universel: universel,
         audio: audio ?? '',
         emergency: true,
-        days: 1
+        days: 1,
+        pricingId: 1,
       );
 
       print(response);
       emit(state.copyWith(isSubmitting: false, isSuccess: true));
     } catch (e) {
-      emit(state.copyWith(
-        isSubmitting: false,
-        isSuccess: false,
-        error: "Erreur lors de l'envoi du signalement : $e",
-      ));
+      emit(
+        state.copyWith(
+          isSubmitting: false,
+          isSuccess: false,
+          error: "Erreur lors de l'envoi du signalement : $e",
+        ),
+      );
     }
   }
-
 
   void _onResetSignalement(
     ResetSignalement event,
