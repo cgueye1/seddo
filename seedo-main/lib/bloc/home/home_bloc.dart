@@ -610,6 +610,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
           iosLink:
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+            apiKey: "",
+            useGoogleSearch: false
         );
       }
     } catch (e) {
@@ -621,6 +623,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
         iosLink:
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+          apiKey: "",
+          useGoogleSearch: false
       );
     }
   }

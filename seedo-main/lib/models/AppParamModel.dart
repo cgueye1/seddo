@@ -7,6 +7,8 @@ class AppParamModel {
   String appVersion;
   String androidLink;
   String iosLink;
+  String apiKey;
+  bool useGoogleSearch;
 
   AppParamModel({
     required this.id,
@@ -15,6 +17,8 @@ class AppParamModel {
     required this.appVersion,
     required this.androidLink,
     required this.iosLink,
+    required this.apiKey,
+    required this.useGoogleSearch,
   });
 
   factory AppParamModel.fromJson(Map<String, dynamic> map) {
@@ -25,6 +29,8 @@ class AppParamModel {
       appVersion: map['appVersion'] ?? '',
       androidLink: map['androidLink'] ?? '',
       iosLink: map['iosLink'] ?? '',
+      useGoogleSearch: map['useGoogleSearch'] ?? false,
+      apiKey: map['apiKey'] ?? '',
     );
   }
 
@@ -36,6 +42,8 @@ class AppParamModel {
       'appVersion': appVersion,
       'androidLink': androidLink,
       'iosLink': iosLink,
+      'apiKey': apiKey,
+      'useGoogleSearch': useGoogleSearch,
     };
   }
 }

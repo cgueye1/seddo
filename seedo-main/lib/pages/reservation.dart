@@ -252,10 +252,11 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ),
                   ),
                 ),
-
+                if(!widget.publication.categorie.ads)
                 const SizedBox(height: 16),
 
                 // Catégorie
+                if(!widget.publication.categorie.ads)
                 Row(
                   children: [
                     Padding(
@@ -344,10 +345,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+              //  const SizedBox(height: 24),
 
                 // Disponibilité
-                Padding(
+              /*  Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: RichText(
                     text: const TextSpan(
@@ -364,7 +365,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ],
                     ),
                   ),
-                ),
+                ),*/
 
                 const SizedBox(height: 24),
 
@@ -422,7 +423,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                       const SizedBox(width: 10),
                       // Right column: Location timeline with dashed line
-                      Expanded(
+                    /*  Expanded(
                         flex: 4,
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,6 +464,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
                             ),
                             const SizedBox(width: 10),
                             // Location details
+
+
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -503,10 +506,15 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   ),
                                 ],
                               ),
+
+
+
                             ),
                           ],
                         ),
-                      ),
+
+
+                      ),*/
                     ],
                   ),
                 ),
@@ -518,7 +526,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Description du repas',
+                        'Description',
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

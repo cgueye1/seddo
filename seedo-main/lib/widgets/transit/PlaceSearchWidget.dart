@@ -15,6 +15,7 @@ class PlaceSearchWidget extends StatefulWidget {
   final Icon icon;
   final PlaceModel? initPlace;
   final FocusNode? focusNode;
+  final String apiKey;
 
 
   const PlaceSearchWidget ({
@@ -24,6 +25,7 @@ class PlaceSearchWidget extends StatefulWidget {
     required this.icon,
     this.initPlace,
     this.focusNode,
+    required this.apiKey
   }) : super(key: key);
 
   @override
@@ -36,7 +38,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
   final Duration _debounceDelay = const Duration(milliseconds: 500);
   bool positionLoader = false;
   late FocusNode _focusNode;
-  String googleApiKey="";
+
 
   @override
   void initState() {
@@ -80,7 +82,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json'
             '?latlng=${position.latitude},${position.longitude}'
-            '&key=${googleApiKey}'
+            '&key=${widget.apiKey}'
             '&language=fr',
       );
 
@@ -125,7 +127,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
             '?input=${Uri.encodeQueryComponent(query)}'
-            '&key=${googleApiKey}'
+            '&key=${widget.apiKey}'
             '&language=fr'
             '&components=country:sn'
             '&location=14.7167,-17.4677' // Dakar coordinates
@@ -163,7 +165,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/details/json'
           '?place_id=$placeId'
-          '&key=${googleApiKey}'
+          '&key=${widget.apiKey}'
           '&language=fr',
     );
 

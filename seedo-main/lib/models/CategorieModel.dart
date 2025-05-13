@@ -11,6 +11,7 @@ class CategorieModel {
   double price;
   int days;
   CategorieModel? parentCategorie;
+  bool ads;
 
   CategorieModel({
     required this.id,
@@ -20,6 +21,8 @@ class CategorieModel {
     required this.action,
     required this.price,
     required this.days,
+    required this.ads,
+
     this.parentCategorie,
   });
 
@@ -28,6 +31,7 @@ class CategorieModel {
       id: map['id'],
       titre: map['titre'] ?? "",
       isFree: map['isFree'] ?? false,
+      ads: map['ads'] ?? false,
       icon: map['icon'] ?? "",
       action: map['action'],
       price: (map['price'] ?? 0).toDouble(),
@@ -44,6 +48,7 @@ class CategorieModel {
       'id': id,
       'titre': titre,
       'isFree': isFree,
+      'ads': ads,
       'icon': icon,
       'action': action,
       'price': price,

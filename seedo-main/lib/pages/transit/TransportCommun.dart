@@ -10,6 +10,7 @@ import '../../models/transit/PlaceModel.dart';
 import '../../services/AdMobService.dart';
 import '../../widgets/transit/DakarSearchWidget.dart';
 import '../../widgets/transit/FavoritePlacesWidget.dart';
+import '../../widgets/transit/PlaceSearchWidget.dart';
 import 'RouteTimelinePage.dart';
 
 class TransportCommun extends StatefulWidget {
@@ -86,27 +87,72 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                     mainAxisSize: MainAxisSize.min,
 
                     children: [
-                      DakarSearchWidget(
-                        key: ValueKey("${origine?.name}-1"),
-                        initPlace: origine,
+                      widget.appParam!.useGoogleSearch
+                          ?  PlaceSearchWidget(
+                            key: ValueKey("${origine?.name}-1"),
+                            apiKey:widget.appParam!.apiKey ,
+                            initPlace: origine,
+                            icon: Icon(
+                              Icons.trip_origin_outlined,
+                              color: HexColor("#D9D9D9"),
+                            ),
+                            label: "Origine",
+                            onLocationSelected: (PlaceModel location) {
+                              setState(() {
+                                loading = true;
+                              });
+                              Future.delayed(Duration(seconds: 1), () {
+                                setState(() {
+                                  loading = false;
+                                  origine = location;
+                                });
+                              });
+                            },
+                          )
+                          : DakarSearchWidget(
+                            key: ValueKey("${origine?.name}-1"),
+                            initPlace: origine,
+                            icon: Icon(
+                              Icons.trip_origin_outlined,
+                              color: HexColor("#D9D9D9"),
+                            ),
+                            label: "Origine",
+                            onLocationSelected: (PlaceModel location) {
+                              setState(() {
+                                loading = true;
+                              });
+                              Future.delayed(Duration(seconds: 1), () {
+                                setState(() {
+                                  loading = false;
+                                  origine = location;
+                                });
+                              });
+                            },
+                          ),
+                      SizedBox(height: 15),
+                      widget.appParam!.useGoogleSearch
+                          ? PlaceSearchWidget(
+                        apiKey:widget.appParam!.apiKey ,
+                        key: ValueKey(destination?.name),
                         icon: Icon(
-                          Icons.trip_origin_outlined,
-                          color: HexColor("#D9D9D9"),
+                          Icons.location_on_sharp,
+                          color: HexColor("#F52D56"),
                         ),
-                        label: "Origine",
+                        label: "Destination",
+                        initPlace: destination,
                         onLocationSelected: (PlaceModel location) {
                           setState(() {
                             loading = true;
                           });
+
                           Future.delayed(Duration(seconds: 1), () {
                             setState(() {
                               loading = false;
-                              origine = location;
+                              destination = location;
                             });
                           });
                         },
-                      ),
-                      SizedBox(height: 15),
+                      ):
                       DakarSearchWidget(
                         key: ValueKey(destination?.name),
                         icon: Icon(
@@ -180,12 +226,11 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                       ),
                     )
                     : FavoritePlacesWidget(
-                        onFavoritePlaceSelected: (PlaceModel place) {
-                          setState(() {
-                            destination = place;
-                          });
-                        },
-
+                      onFavoritePlaceSelected: (PlaceModel place) {
+                        setState(() {
+                          destination = place;
+                        });
+                      },
                     ),
           ),
           Positioned(

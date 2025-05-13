@@ -46,7 +46,7 @@ class PublicationCard extends StatelessWidget {
         );
       },
       child: Container(
-        width: width,
+       // width: width,
         // Remove fixed height constraint to let content determine it naturally
         // Use constraints to ensure minimum height, but allow for expansion
         constraints: BoxConstraints(minHeight: height),
@@ -175,7 +175,7 @@ class PublicationCard extends StatelessWidget {
                           children: [
                             Text(
                               publication.author != null
-                                  ? '${publication.author!.firstName} ${publication.author!.lastName} - Lieu'
+                                  ? '${publication.author!.firstName} ${publication.author!.lastName} '
                                   : 'Partageur - Lieu',
                               style: const TextStyle(
                                 fontSize: 9,
@@ -192,19 +192,21 @@ class PublicationCard extends StatelessWidget {
                             const SizedBox(height: 6),
                             // Dans la section où vous affichez "Vous - Nord Foire"
                             Text(
-                              'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
+                              'Vous',
                               style: TextStyle(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              'Maison',
+                             Text(
+                              ' ${context.watch<HomeBloc>().state.currentLocation}',
                               style: TextStyle(
                                 fontSize: 7,
                                 color: Color.fromARGB(255, 119, 119, 119),
                               ),
+                               overflow: TextOverflow.ellipsis,
+                               maxLines: 1,
                             ),
                           ],
                         ),

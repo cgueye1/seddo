@@ -442,6 +442,8 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
           "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
           iosLink:
           "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+            apiKey: "",
+            useGoogleSearch: false
         );
       }
     } catch (e) {
@@ -453,6 +455,8 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
         iosLink:
         "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+          apiKey: "",
+          useGoogleSearch: false
       );
     }
   }

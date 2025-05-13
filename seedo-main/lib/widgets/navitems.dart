@@ -52,7 +52,7 @@ class MainScreen extends StatelessWidget {
 
     final pages = [
       HomePage(),
-      SmsPage(),
+     SmsPage(),
       if (!hideTransit) TransportCommun(appParam: state.appParam),
       SettingPage(),
     ];
@@ -74,7 +74,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     final navItems = [
       _buildNavItem(context, 0, 'assets/icons/home.svg', 'Accueil'),
-      _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
+   //   _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
       if (!hideTransit)
         _buildNavItem(context, 2, 'assets/icons/bus.svg', 'Transport'),
       _buildNavItem(

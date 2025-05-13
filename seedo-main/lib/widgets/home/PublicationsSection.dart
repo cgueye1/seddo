@@ -100,7 +100,7 @@ class PublicationsSection extends StatelessWidget {
     // Grille avec deux publications par ligne qui fait défiler verticalement
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: 5,
+        horizontal: 16,
       ), // Changed from 10 to 5
       child: GridView.builder(
         shrinkWrap: true,
