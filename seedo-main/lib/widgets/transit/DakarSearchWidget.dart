@@ -22,7 +22,8 @@ class DakarSearchWidget extends StatefulWidget {
     required this.onLocationSelected,
     required this.label,
     required this.icon,
-    this.initPlace, this.focusNode,
+    this.initPlace,
+    this.focusNode,
   }) : super(key: key);
 
   @override
@@ -80,13 +81,14 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse?format=json'
-            '&lat=${position.latitude}&lon=${position.longitude}'
-            '&addressdetails=1',
+        '&lat=${position.latitude}&lon=${position.longitude}'
+        '&addressdetails=1',
       );
 
-      final response = await http.get(url, headers: {
-        'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)',
-      });
+      final response = await http.get(
+        url,
+        headers: {'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)'},
+      );
 
       if (response.statusCode == 200) {
         setState(() {
@@ -135,14 +137,15 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   static String _formatAddress(Map<String, dynamic>? address) {
     if (address == null) return '';
 
-    final parts = [
-      address['road'],
-      address['neighbourhood'],
-      address['suburb'],
-      address['city_district'],
-      address['city'],
-      address['country'],
-    ].where((part) => part != null).toList();
+    final parts =
+        [
+          address['road'],
+          address['neighbourhood'],
+          address['suburb'],
+          address['city_district'],
+          address['city'],
+          address['country'],
+        ].where((part) => part != null).toList();
 
     return parts.join(', ');
   }
@@ -153,20 +156,18 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
     try {
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search'
-            '?format=json'
-            '&q=${Uri.encodeComponent(query)}'
-            '&addressdetails=1'
-            '&limit=5'
-            '&countrycodes=sn'
-            '&viewbox=${dakarLon - 0.3},${dakarLat + 0.3},${dakarLon + 0.3},${dakarLat - 0.3}'
-            '&bounded=1',
+        '?format=json'
+        '&q=${Uri.encodeComponent(query)}'
+        '&addressdetails=1'
+        '&limit=5'
+        '&countrycodes=sn'
+        '&viewbox=${dakarLon - 0.3},${dakarLat + 0.3},${dakarLon + 0.3},${dakarLat - 0.3}'
+        '&bounded=1',
       );
 
       final response = await http.get(
         url,
-        headers: {
-          'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)',
-        },
+        headers: {'User-Agent': 'solimus/1.0 (contactwakana@gmail.com)'},
       );
 
       if (response.statusCode == 200) {
@@ -184,7 +185,6 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
 
   @override
   Widget build(BuildContext context) {
-
     return Column(
       children: [
         TypeAheadField<PlaceModel>(
@@ -193,7 +193,6 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
             return await _fetchSuggestions(pattern);
           },
           builder: (context, controller, focusNode) {
-
             // Synchronisation manuelle
             if (!focusNode.hasFocus && _controller.text != controller.text) {
               controller.text = _controller.text;
@@ -203,43 +202,42 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
             }
             bool isFocused = focusNode.hasFocus;
 
-
-            return  Container(
-                child:TextField(
-
-              controller: controller,
-              focusNode: focusNode,
-              decoration: InputDecoration(
-                labelText: widget.label,
-                hintText: 'Ex: Plateau, Almadies, Sacré Coeur...',
-                prefixIcon: widget.icon,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(100),
+            return Container(
+              child: TextField(
+                controller: controller,
+                focusNode: focusNode,
+                decoration: InputDecoration(
+                  labelText: widget.label,
+                  hintText: 'Ex: Plateau, Almadies, Sacré Coeur...',
+                  prefixIcon: widget.icon,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(100),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  contentPadding: EdgeInsets.symmetric(
+                    vertical: 12,
+                    horizontal: 20,
+                  ),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(100),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(100),
-                ),
-                filled: true,
-                fillColor: Colors.grey[100],
-                contentPadding: EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 20,
-                ),
+                style: TextStyle(fontSize: 14),
+                onChanged: (text) {
+                  if (_debounceTimer?.isActive ?? false) {
+                    _debounceTimer?.cancel();
+                  }
+                  _debounceTimer = Timer(_debounceDelay, () {
+                    if (mounted) setState(() {});
+                  });
+                },
               ),
-              style: TextStyle(fontSize: 14),
-              onChanged: (text) {
-                if (_debounceTimer?.isActive ?? false) {
-                  _debounceTimer?.cancel();
-                }
-                _debounceTimer = Timer(_debounceDelay, () {
-                  if (mounted) setState(() {});
-                });
-              },
-            ));
+            );
           },
           itemBuilder: (context, suggestion) {
             return ListTile(
@@ -259,41 +257,44 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
             widget.onLocationSelected(suggestion);
             FocusScope.of(context).unfocus();
           },
-          emptyBuilder: (context) => Padding(
-            padding: EdgeInsets.all(16),
-            child: SingleChildScrollView(
-    child:Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'Aucun résultat trouvé',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                SizedBox(height: 10),
-                positionLoader
-                    ? Center(
-                  child: Container(
-                    width: 50,
-                    child: LoadingIndicator(
-                      indicatorType: Indicator.ballScaleRipple,
-                      colors: const [Colors.orangeAccent],
-                      strokeWidth: 2,
-                      backgroundColor: Colors.transparent,
-                      pathBackgroundColor: Colors.transparent,
-                    ),
+          emptyBuilder:
+              (context) => Padding(
+                padding: EdgeInsets.all(16),
+                child: SingleChildScrollView(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Aucun résultat trouvé',
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                      SizedBox(height: 10),
+                      positionLoader
+                          ? Center(
+                            child: Container(
+                              width: 50,
+                              child: LoadingIndicator(
+                                indicatorType: Indicator.ballScaleRipple,
+                                colors: const [Colors.orangeAccent],
+                                strokeWidth: 2,
+                                backgroundColor: Colors.transparent,
+                                pathBackgroundColor: Colors.transparent,
+                              ),
+                            ),
+                          )
+                          : Center(
+                            child: ElevatedButton.icon(
+                              onPressed: _useCurrentLocation,
+                              icon: Icon(Icons.my_location),
+                              label: Text("Utiliser ma position actuelle"),
+                            ),
+                          ),
+                    ],
                   ),
-                )
-                    : Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _useCurrentLocation,
-                    icon: Icon(Icons.my_location),
-                    label: Text("Utiliser ma position actuelle"),
-                  ),
                 ),
-              ],
-            ),
-          ),),
-          loadingBuilder: (context) => Center(child: CircularProgressIndicator()),
+              ),
+          loadingBuilder:
+              (context) => Center(child: CircularProgressIndicator()),
         ),
       ],
     );

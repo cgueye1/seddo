@@ -3,36 +3,40 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/signal/signal_bloc.dart';
 import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
+import 'package:seddoapp/utils/HexColor.dart';
 
 import '../repositories/publication_repository.dart';
 import '../services/api_service.dart';
 import '../services/publication_service.dart';
 
-class SignalPage extends StatelessWidget {
-  const SignalPage({Key? key}) : super(key: key);
+// Fonction pour afficher la modal de signalement
+Future<void> showSignalModal(BuildContext context) {
+  final apiService = ApiService();
+  final publicationService = PublicationService(apiService.dio);
+  final publicationRepository = PublicationRepository(
+    publicationService: publicationService,
+  );
 
-  @override
-  Widget build(BuildContext context) {
-    final apiService = ApiService();
-    final publicationService = PublicationService(apiService.dio);
-    final publicationRepository = PublicationRepository(
-      publicationService: publicationService,
-    );
-    return BlocProvider(
-      create: (_) => SignalementBloc(publicationRepository),
-      child: SignalementView(),
-    );
-  }
+  return showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder:
+        (context) => BlocProvider(
+          create: (_) => SignalementBloc(publicationRepository),
+          child: SignalModalContent(),
+        ),
+  );
 }
 
-class SignalementView extends StatefulWidget {
-  const SignalementView({Key? key}) : super(key: key);
+class SignalModalContent extends StatefulWidget {
+  const SignalModalContent({Key? key}) : super(key: key);
 
   @override
-  _SignalementViewState createState() => _SignalementViewState();
+  _SignalModalContentState createState() => _SignalModalContentState();
 }
 
-class _SignalementViewState extends State<SignalementView> {
+class _SignalModalContentState extends State<SignalModalContent> {
   final TextEditingController _descriptionController = TextEditingController();
 
   @override
@@ -73,350 +77,313 @@ class _SignalementViewState extends State<SignalementView> {
         }
       },
       builder: (context, state) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: AppBar(
-            leadingWidth: 200,
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: Transform.translate(
-                    offset: const Offset(12, 0),
-                    child: const Icon(Icons.arrow_back_ios, size: 20),
-                  ),
-                  onPressed: () => Navigator.pop(context),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-                const Text(
-                  'Retour',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.85,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(30),
+              topRight: Radius.circular(30),
             ),
-            backgroundColor: Colors.white,
-            titleSpacing: 0,
           ),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Barre de drag en haut
+              Container(
+                width: 50,
+                height: 5,
+                margin: const EdgeInsets.only(top: 15, bottom: 15),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(5),
+                ),
+              ),
+              // Zone de fermeture
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const Text(
-                    'Une situation à signaler ?',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Description',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 10),
-                  TextField(
-                    controller: _descriptionController,
-                    maxLines: 5,
-                    decoration: InputDecoration(
-                      hintText: 'Écrivez quelques chose....',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Photo (optionnel)',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 10),
-                  GestureDetector(
-                    onTap: () {
-                      context.read<SignalementBloc>().capturePhoto();
-                    },
-                    child: Container(
-                      height: 200,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child:
-                          state.photo != null
-                              ? ClipRRect(
-                                borderRadius: BorderRadius.circular(12),
-                                child: Image.file(
-                                  state.photo!,
-                                  fit: BoxFit.cover,
-                                ),
-                              )
-                              : Container(
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.grey[300]!),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.camera_alt,
-                                      size: 50,
-                                      color: Colors.deepOrange[400],
-                                    ),
-                                    const SizedBox(height: 10),
-                                    const Text(
-                                      'Prendre une photo',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  const Text(
-                    'Audio (optionnel)',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 10),
-                  _buildAudioRecordingSection(context, state),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepOrange[400],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      onPressed:
-                          state.isSubmitting
-                              ? null
-                              : () {
-                                context.read<SignalementBloc>().add(
-                                  SubmitSignalement(authorId: 1),
-                                );
-                              },
-                      child:
-                          state.isSubmitting
-                              ? const CircularProgressIndicator(
-                                color: Colors.white,
-                              )
-                              : const Text(
-                                'Envoyer',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 16),
+                    child: IconButton(
+                      icon: const Icon(Icons.close, size: 30),
+                      onPressed: () => Navigator.of(context).pop(),
                     ),
                   ),
                 ],
               ),
-            ),
+              // Contenu
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Une situation à signaler ?',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          'Description',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          controller: _descriptionController,
+                          maxLines: 5,
+                          decoration: InputDecoration(
+                            hintText: 'Décrivez la situation en détail...',
+                            hintStyle: TextStyle(color: Colors.grey[400]),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 30),
+                        const Text(
+                          'Médias (optionnel)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                        // Options de médias
+                        Row(
+                          children: [
+                            // Option Photo/Video
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  context
+                                      .read<SignalementBloc>()
+                                      .capturePhoto();
+                                },
+                                child: Container(
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.camera_alt,
+                                        size: 36,
+                                        color: Colors.deepOrange[400],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        'Photo/Video',
+                                        style: TextStyle(fontSize: 16),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            // Option Audio
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  if (state.isRecording) {
+                                    context.read<SignalementBloc>().add(
+                                      const StopRecording(null),
+                                    );
+                                  } else {
+                                    context.read<SignalementBloc>().add(
+                                      StartRecording(),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  height: 140,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey[300]!,
+                                    ),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.mic,
+                                        size: 36,
+                                        color: Colors.deepOrange[400],
+                                      ),
+                                      const SizedBox(height: 10),
+                                      const Text(
+                                        'Enregistrement audio',
+                                        style: TextStyle(fontSize: 16),
+                                        textAlign: TextAlign.center,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Afficher les photos sélectionnées
+                        if (state.photo != null)
+                          Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            child: Stack(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Image.file(
+                                    state.photo!,
+                                    height: 150,
+                                    width: 150,
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 5,
+                                  top: 5,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      // Ajouter une méthode pour supprimer la photo
+                                      context.read<SignalementBloc>().add(
+                                        const RemovePhoto(),
+                                      );
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 18,
+                                        color: Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        // Indicateur d'audio enregistré
+                        if (state.audioPath != null)
+                          Container(
+                            margin: const EdgeInsets.only(top: 20),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: 10,
+                              horizontal: 15,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.mic, color: Colors.deepOrange[400]),
+                                const SizedBox(width: 10),
+                                const Text("Enregistrement audio"),
+                                const Spacer(),
+                                IconButton(
+                                  icon: Icon(
+                                    state.isPlaying
+                                        ? Icons.pause
+                                        : Icons.play_arrow,
+                                    color: Colors.blue,
+                                  ),
+                                  onPressed: () {
+                                    context.read<SignalementBloc>().add(
+                                      state.isPlaying
+                                          ? const StopAudio()
+                                          : const PlayAudio(),
+                                    );
+                                  },
+                                ),
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () {
+                                    // Ajouter une méthode pour supprimer l'audio
+                                    context.read<SignalementBloc>().add(
+                                      const RemoveAudio(),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+
+                        const SizedBox(height: 30),
+                        Container(
+                          width: double.infinity,
+                          height: 50,
+                          margin: const EdgeInsets.only(bottom: 30),
+                          decoration: BoxDecoration(
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.red.withOpacity(0.3),
+                                spreadRadius: 2,
+                                blurRadius: 10,
+                                offset: const Offset(0, 5),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: HexColor('#D95C18'),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            onPressed:
+                                state.isSubmitting
+                                    ? null
+                                    : () {
+                                      context.read<SignalementBloc>().add(
+                                        SubmitSignalement(authorId: 1),
+                                      );
+                                    },
+                            child:
+                                state.isSubmitting
+                                    ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                    )
+                                    : const Text(
+                                      'Envoyer le signalement',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
-    );
-  }
-
-  // 5. Mettez à jour le widget _buildAudioRecordingSection dans SignalementView
-
-  Widget _buildAudioRecordingSection(
-    BuildContext context,
-    SignalementState state,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Column(
-        children: [
-          // Afficher le statut de l'enregistrement ou de la lecture
-          if (state.isRecording)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Enregistrement en cours...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.red,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          if (state.isPlaying)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Lecture en cours...',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.blue[700],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          // Afficher le message si un audio est enregistré
-          if (state.audioPath != null && !state.isRecording && !state.isPlaying)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 8.0),
-              child: Text(
-                'Audio enregistré',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.green[700],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              // Bouton pour démarrer/arrêter l'enregistrement
-              GestureDetector(
-                onTap: () {
-                  if (state.isRecording) {
-                    context.read<SignalementBloc>().add(
-                      const StopRecording(null),
-                    );
-                  } else {
-                    context.read<SignalementBloc>().add(StartRecording());
-                  }
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color:
-                        state.isRecording ? Colors.red : Colors.deepOrange[400],
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    state.isRecording ? Icons.stop : Icons.mic,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-              ),
-
-              // Visualisation de l'audio
-              Expanded(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12),
-                  height: 40,
-                  child:
-                      state.isRecording
-                          ? _buildAudioWaveForm()
-                          : (state.isPlaying
-                              ? _buildPlayingWaveForm()
-                              : (state.audioPath != null
-                                  ? _buildAudioFileIndicator()
-                                  : Center(
-                                    child: Text(
-                                      'Appuyez sur le microphone pour commencer l\'enregistrement',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ))),
-                ),
-              ),
-
-              // Bouton pour réécouter l'audio (si disponible)
-              if (state.audioPath != null && !state.isRecording)
-                GestureDetector(
-                  onTap: () {
-                    // Déclencher la lecture/pause de l'audio
-                    context.read<SignalementBloc>().add(
-                      state.isPlaying ? const StopAudio() : const PlayAudio(),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: state.isPlaying ? Colors.red : Colors.blueAccent,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      state.isPlaying ? Icons.stop : Icons.play_arrow,
-                      color: Colors.white,
-                      size: 24,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAudioWaveForm() {
-    // Simuler une forme d'onde pour l'enregistrement audio
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(
-        20,
-        (index) => Container(
-          width: 3,
-          height: 5 + (index % 3) * 10.0,
-          decoration: BoxDecoration(
-            color: Colors.red,
-            borderRadius: BorderRadius.circular(5),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Nouvelle méthode pour afficher une forme d'onde pendant la lecture
-  Widget _buildPlayingWaveForm() {
-    // Simuler une forme d'onde pour la lecture audio
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(
-        20,
-        (index) => Container(
-          width: 3,
-          height: 5 + (index % 4) * 8.0,
-          decoration: BoxDecoration(
-            color: Colors.blue,
-            borderRadius: BorderRadius.circular(5),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAudioFileIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.audiotrack, color: Colors.green[700], size: 18),
-        const SizedBox(width: 8),
-        Text(
-          'Audio enregistré',
-          style: TextStyle(fontSize: 14, color: Colors.green[700]),
-        ),
-      ],
     );
   }
 }

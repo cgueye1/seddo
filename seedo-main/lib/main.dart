@@ -26,9 +26,11 @@ import 'package:seddoapp/services/PushNotificationService.dart';
 // import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
+import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/widgets/navitems.dart';
 
 import 'firebase_options.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -82,11 +84,11 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       title: 'SEDDO APP',
       theme: ThemeData(
-        primaryColor: Color(
-          0xFFE65100,
+        primaryColor: HexColor(
+          '#D95C18',
         ), // orange foncé (teinte custom, style deep orange 900)
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Color(0xFFE65100),
+          seedColor: HexColor('#D95C18'),
           brightness: Brightness.light,
         ),
         fontFamily: 'Poppins',

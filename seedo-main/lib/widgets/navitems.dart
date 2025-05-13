@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
@@ -72,14 +73,14 @@ class CustomBottomNavigationBar extends StatelessWidget {
     final hideTransit = state.appParam!.hideTransit;
 
     final navItems = [
-      _buildNavItem(context, 0, 'assets/icons/hom.png', 'Accueil'),
-      _buildNavItem(context, 1, 'assets/icons/Sms.png', 'SMS'),
+      _buildNavItem(context, 0, 'assets/icons/home.svg', 'Accueil'),
+      _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
       if (!hideTransit)
-        _buildNavItem(context, 2, 'assets/icons/Bus.png', 'Transport'),
+        _buildNavItem(context, 2, 'assets/icons/bus.svg', 'Transport'),
       _buildNavItem(
         context,
-        hideTransit ? 1 : 3,
-        'assets/icons/param.png',
+        hideTransit ? 2 : 3,
+        'assets/icons/setting.svg',
         'Paramètres',
       ),
     ];
@@ -112,17 +113,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget _buildNavItem(
     BuildContext context,
     int index,
-    String imagePath,
+    String svgPath,
     String label,
   ) {
     final isSelected = index == state.currentNavigationIndex;
     final iconSize = 28.0;
-    final displayImagePath =
-        isSelected
-            ? imagePath.replaceFirst('.png', '_selected.png')
-            : imagePath;
     final Color iconColor =
-        isSelected ? HexColor("#D95C18") : const Color.fromARGB(255, 0, 0, 0);
+        isSelected
+            ? HexColor("#D95C18")
+            : const Color.fromARGB(255, 113, 113, 113);
 
     return InkWell(
       onTap: () {
@@ -138,25 +137,17 @@ class CustomBottomNavigationBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            SizedBox(
+            SvgPicture.asset(
+              svgPath,
               width: iconSize,
               height: iconSize,
-              child: Image.asset(
-                displayImagePath,
-                width: iconSize,
-                height: iconSize,
-                color: iconColor,
-                fit: BoxFit.contain,
-              ),
+              colorFilter: ColorFilter.mode(iconColor, BlendMode.srcIn),
             ),
             Text(
               label,
               style: TextStyle(
                 fontSize: 10,
-                color:
-                    isSelected
-                        ? HexColor("#D95C18")
-                        : const Color.fromARGB(255, 113, 113, 113),
+                color: iconColor,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               ),
             ),

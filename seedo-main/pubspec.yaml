@@ -135,6 +135,9 @@ flutter:
     - assets/images/jus-fruits.jpg
     - assets/images/salades.jpg
     - assets/images/yassa.jpg
+    - assets/images/empty1.png
+    - assets/images/empty2.png
+
 
     #icons
     - assets/icons/actions/
@@ -176,6 +179,10 @@ flutter:
     - assets/icons/call.png
     - assets/icons/whatsapp.png
     - assets/transit/
+    - assets/icons/home.svg
+    - assets/icons/news.svg
+    - assets/icons/bus.svg
+    - assets/icons/setting.svg
 
     #Date for JSON
     - assets/data/events.json

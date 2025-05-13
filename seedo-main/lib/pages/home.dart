@@ -71,24 +71,19 @@ class _HomePageContentState extends State<_HomePageContent> {
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
-         // Ajout du bouton flottant avec navigation vers la page de signalement
+          // Ajout du bouton flottant avec navigation vers la page de signalement
           floatingActionButton: CustomFloatingButton(
             imagePath:
                 'assets/icons/siren.png', // Chemin vers votre image d'alerte
             onPressed: () {
-              // Navigation vers la page de signalement
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder:
-                      (context) =>
-                          SignalPage(), // Remplacez par le nom réel de votre page
-                ),
-              );
+              // Ouverture de la modale de signalement
+              showSignalModal(context);
             },
-            label: 'Signaler',
+            label: '',
             backgroundColor: Colors.white,
             elevation: 4.0,
           ),
+
           // Placement du bouton en bas à droite
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           body:
