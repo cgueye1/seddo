@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-import 'package:keyboard_avoider/keyboard_avoider.dart';
 import 'package:loading_indicator/loading_indicator.dart';
 
 import '../../models/transit/PlaceModel.dart';
@@ -200,7 +199,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                 TextPosition(offset: controller.text.length),
               );
             }
-            bool isFocused = focusNode.hasFocus;
+            bool _ = focusNode.hasFocus;
 
             return Container(
               child: TextField(

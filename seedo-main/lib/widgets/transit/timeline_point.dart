@@ -1,7 +1,6 @@
 // ignore_for_file: unused_element_parameter
 
 import 'package:flutter/material.dart';
-import 'package:marquee/marquee.dart';
 import 'package:seddoapp/widgets/transit/WalkingDurationWidget.dart';
 
 import '../../models/transit/TransitResponseModel.dart';

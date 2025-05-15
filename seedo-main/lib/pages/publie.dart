@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:seddoapp/bloc/publie/publie_bloc.dart';
 import 'package:seddoapp/bloc/publie/publie_event.dart';
 import 'package:seddoapp/bloc/publie/publie_state.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
+import 'package:seddoapp/models/transit/PlaceModel.dart';
 import 'package:seddoapp/pages/webview/payWebView.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
+import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/widgets/publieform2.dart';
+import 'package:seddoapp/widgets/transit/DakarSearchWidget.dart';
 
 import '../services/api_service.dart';
 import '../services/publication_service.dart';
@@ -30,7 +34,6 @@ class PubliePage extends StatelessWidget {
       create:
           (context) => PublicationBloc(
             categorieRepository: CategorieRepository(),
-
             categories: categories,
             publicationRepository: publicationRepository,
           ),
@@ -54,12 +57,35 @@ class _PubliePageViewState extends State<PubliePageView> {
   final TextEditingController _availabilityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
   final TextEditingController _languagesController = TextEditingController();
+  PlaceModel? address;
+  final ScrollController _scrollController = ScrollController();
+
+  final FocusNode _focusNode = FocusNode();
 
   bool _validateStep1(PublicationState state) {
     return state.selectedCategory != null &&
         state.selectedSubcategoryModel != null &&
         _titreController.text.isNotEmpty &&
         _descriptionController.text.isNotEmpty;
+  }
+
+  void _scrollToFocusedField(FocusNode node) {
+    if (node.hasFocus) {
+      Future.delayed(Duration(milliseconds: 300), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
+  }
+
+  void initState() {
+    super.initState();
+
+    // Ajouter les listeners de focus
+    _focusNode.addListener(() => _scrollToFocusedField(_focusNode));
   }
 
   @override
@@ -71,6 +97,7 @@ class _PubliePageViewState extends State<PubliePageView> {
     _availabilityController.dispose();
     _priceController.dispose();
     _languagesController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -92,20 +119,19 @@ class _PubliePageViewState extends State<PubliePageView> {
             ),
           ).then((value) {
             if (value == true) {
-
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Publication soumise avec succès!')),
+                const SnackBar(
+                  content: Text('Publication soumise avec succès!'),
+                ),
               );
               Navigator.pop(context);
             } else {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Paiement annulé')),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('Paiement annulé')));
               Navigator.pop(context);
-
             }
           });
-
         }
 
         if (state.errorMessage != null) {
@@ -120,192 +146,68 @@ class _PubliePageViewState extends State<PubliePageView> {
           appBar: AppBar(
             backgroundColor: Colors.white,
             elevation: 0,
-            leading: IconButton(
-              icon: const Icon(
-                Icons.arrow_back_ios_outlined,
-                color: Colors.black,
-              ),
-              onPressed: () {
-                if (state.currentStep == 1) {
-                  Navigator.of(context).pop();
-                } else {
-                  context.read<PublicationBloc>().add(StepChanged(1));
-                }
-              },
+            automaticallyImplyLeading: false,
+            titleSpacing: 0,
+            title: Row(
+              children: [
+                // Back button
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios_outlined,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    if (state.currentStep == 1) {
+                      Navigator.of(context).pop();
+                    } else {
+                      context.read<PublicationBloc>().add(StepChanged(1));
+                    }
+                  },
+                ),
+                // Title
+                const Text(
+                  'Nouvelle Publication',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const Spacer(),
+                // Step indicator in top right
+                Padding(
+                  padding: const EdgeInsets.only(right: 16.0),
+                  child: Text(
+                    '${state.currentStep} - 2',
+                    style: TextStyle(
+                      color: HexColor("#D95C18"),
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            title: const Text(
-              'Publications',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(4.0),
+              child: LinearProgressIndicator(
+                value: state.currentStep / 2,
+                backgroundColor: Colors.grey[200],
+                valueColor: AlwaysStoppedAnimation<Color>(HexColor("#D95C18")),
+                minHeight: 4,
               ),
             ),
           ),
-          body: Column(
-            children: [
-              // Tabs
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 14),
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          context.read<PublicationBloc>().add(TabChanged(0));
-                        },
-                        child: Container(
-                          margin: EdgeInsets.all(8.0),
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color:
-                                state.activeTabIndex == 0
-                                    ? Colors.black
-                                    : Colors.transparent,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Publier',
-                              style: TextStyle(
-                                color:
-                                    state.activeTabIndex == 0
-                                        ? Colors.white
-                                        : Colors.black,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          context.read<PublicationBloc>().add(TabChanged(1));
-                        },
-                        child: Container(
-                          margin: EdgeInsets.all(8.0),
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            color:
-                                state.activeTabIndex == 1
-                                    ? Colors.black
-                                    : const Color.fromARGB(251, 255, 255, 255),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              'Historique',
-                              style: TextStyle(
-                                color:
-                                    state.activeTabIndex == 1
-                                        ? Colors.white
-                                        : Colors.black,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Step indicator - Only 2 steps
-              Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 60,
-                  vertical: 16,
-                ),
-                child: Row(
-                  children: [
-                    // Step 1 circle
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color:
-                            state.currentStep >= 1
-                                ? Colors.green
-                                : Colors.grey[300],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '1',
-                          style: TextStyle(
-                            color:
-                                state.currentStep >= 1
-                                    ? Colors.white
-                                    : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // Line
-                    Expanded(
-                      child: Container(
-                        margin: EdgeInsets.all(5.0),
-                        height: 2,
-                        color:
-                            state.currentStep >= 2
-                                ? Colors.green
-                                : Colors.grey[300],
-                      ),
-                    ),
-                    // Step 2 circle
-                    Container(
-                      width: 30,
-                      height: 30,
-                      decoration: BoxDecoration(
-                        color:
-                            state.currentStep >= 2
-                                ? Colors.green
-                                : Colors.grey[300],
-                        shape: BoxShape.circle,
-                      ),
-                      child: Center(
-                        child: Text(
-                          '2',
-                          style: TextStyle(
-                            color:
-                                state.currentStep >= 2
-                                    ? Colors.white
-                                    : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Form content - changes based on current step
-              Expanded(
-                child:
-                    state.activeTabIndex == 0
-                        ? state.currentStep == 1
-                            ? SingleChildScrollView(
-                              padding: const EdgeInsets.all(16),
-                              child: _buildStep1Form(context, state),
-                            )
-                            : _buildStep2Form(context, state)
-                        : const Center(
-                          child: Text('Historique des publications'),
-                        ),
-              ),
-            ],
+          body: Expanded(
+            child:
+                state.activeTabIndex == 0
+                    ? state.currentStep == 1
+                        ? SingleChildScrollView(
+                          padding: const EdgeInsets.all(16),
+                          child: _buildStep1Form(context, state),
+                        )
+                        : _buildStep2Form(context, state)
+                    : const Center(child: Text('Historique des publications')),
           ),
         );
       },
@@ -539,6 +441,7 @@ class _PubliePageViewState extends State<PubliePageView> {
         const SizedBox(height: 8),
 
         Container(
+          height: 100, // 🔸 Hauteur fixe
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!),
             borderRadius: BorderRadius.circular(30),
@@ -546,7 +449,9 @@ class _PubliePageViewState extends State<PubliePageView> {
           ),
           child: TextField(
             controller: _descriptionController,
-            maxLines: 10,
+            expands: true, // 🔸 Permet au TextField de remplir le conteneur
+            maxLines: null, // 🔸 Permet un nombre de lignes illimité (scroll)
+            minLines: null,
             decoration: const InputDecoration(
               hintText: 'Ecrivez quelque chose...',
               hintStyle: TextStyle(
@@ -564,8 +469,92 @@ class _PubliePageViewState extends State<PubliePageView> {
                 FormFieldUpdated('description', value),
               );
             },
+            keyboardType: TextInputType.multiline,
+            textInputAction: TextInputAction.newline,
           ),
         ),
+        const SizedBox(height: 8),
+        const Text(
+          'Adresse',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+        DakarSearchWidget(
+          icon: Icon(Icons.location_on_sharp, color: HexColor("#F52D56")),
+          focusNode: _focusNode,
+          label: "Adresse de récupération",
+          initPlace: null,
+          onLocationSelected: (PlaceModel location) {
+            setState(() {
+              address = location;
+            });
+          },
+        ),
+        const SizedBox(height: 24),
+        const Text(
+          'Disponibilités',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+        ),
+        const SizedBox(height: 8),
+
+        // Dans la méthode _buildStep1Form, modifiez le code du TextField pour les disponibilités:
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(30),
+            color: const Color.fromARGB(255, 247, 247, 246),
+          ),
+          child: TextField(
+            controller: _availabilityController,
+            onTap: () async {
+              final DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: DateTime(2100),
+              );
+              if (pickedDate != null) {
+                final TimeOfDay? pickedTime = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay.now(),
+                );
+                if (pickedTime != null) {
+                  final DateTime combinedDateTime = DateTime(
+                    pickedDate.year,
+                    pickedDate.month,
+                    pickedDate.day,
+                    pickedTime.hour,
+                    pickedTime.minute,
+                  );
+                  final formattedDateTime = DateFormat(
+                    'dd-MM-yyyy HH:mm',
+                  ).format(combinedDateTime);
+
+                  setState(() {
+                    _availabilityController.text =
+                        formattedDateTime; // Mettez à jour le même contrôleur
+                  });
+                  // widget.availabilityChanged(formattedDateTime);
+                }
+              }
+            },
+            // Utilisez le même contrôleur
+            decoration: InputDecoration(
+              hintText: 'Entrez vos disponibilités',
+              hintStyle: TextStyle(
+                fontSize: 16,
+                color: const Color.fromARGB(255, 78, 73, 73),
+              ),
+              border: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
+              prefixIcon: Icon(Icons.calendar_today),
+            ),
+          ),
+        ),
+        const SizedBox(height: 24),
         const SizedBox(height: 24),
 
         // Next button
@@ -573,7 +562,7 @@ class _PubliePageViewState extends State<PubliePageView> {
           width: double.infinity,
           height: 56,
           decoration: BoxDecoration(
-            color: Colors.deepOrange,
+            color: HexColor("#D95C18"),
             borderRadius: BorderRadius.circular(30),
           ),
           child: TextButton(
@@ -609,7 +598,7 @@ class _PubliePageViewState extends State<PubliePageView> {
     return Step2Form(
       pricingList: state.pricings,
       selectedPricing: state.selectedPricing,
-      onPricingChanged: (pricing){
+      onPricingChanged: (pricing) {
         context.read<PublicationBloc>().add(PricingSelected(pricing!));
       },
       priceChanged: (value) {

@@ -1,5 +1,3 @@
-// 4. Mettez à jour le fichier signal_state.dart pour ajouter l'état de lecture audio
-
 import 'dart:io';
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
@@ -9,8 +7,10 @@ class SignalementState extends Equatable {
   final File? photo;
   final String description;
   final String? audioPath;
+  final List<String>?
+  audioFiles; // Liste pour stocker plusieurs enregistrements audio
   final bool isRecording;
-  final bool isPlaying; // Nouvel état pour la lecture audio
+  final bool isPlaying;
   final bool isSubmitting;
   final bool isSuccess;
   final String? error;
@@ -21,12 +21,13 @@ class SignalementState extends Equatable {
     this.photo,
     this.description = '',
     this.audioPath,
+    this.audioFiles, // Nouvelle propriété
     this.isRecording = false,
-    this.isPlaying = false, // Initialisation du nouvel état
+    this.isPlaying = false,
     this.isSubmitting = false,
     this.isSuccess = false,
     this.error,
-    this.currentPosition
+    this.currentPosition,
   });
 
   SignalementState copyWith({
@@ -34,21 +35,22 @@ class SignalementState extends Equatable {
     File? photo,
     String? description,
     String? audioPath,
+    List<String>? audioFiles, // Nouvelle propriété
     bool? isRecording,
-    bool? isPlaying, // Ajout du paramètre
+    bool? isPlaying,
     bool? isSubmitting,
     bool? isSuccess,
     String? error,
     Position? currentPosition,
-
   }) {
     return SignalementState(
       selectedType: selectedType ?? this.selectedType,
       photo: photo ?? this.photo,
       description: description ?? this.description,
       audioPath: audioPath ?? this.audioPath,
+      audioFiles: audioFiles ?? this.audioFiles, // Mise à jour
       isRecording: isRecording ?? this.isRecording,
-      isPlaying: isPlaying ?? this.isPlaying, // Mise à jour de l'état
+      isPlaying: isPlaying ?? this.isPlaying,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isSuccess: isSuccess ?? this.isSuccess,
       error: error,
@@ -62,8 +64,9 @@ class SignalementState extends Equatable {
     photo,
     description,
     audioPath,
+    audioFiles, // Ajout à la liste des propriétés
     isRecording,
-    isPlaying, // Ajout à la liste des propriétés
+    isPlaying,
     isSubmitting,
     isSuccess,
     error,

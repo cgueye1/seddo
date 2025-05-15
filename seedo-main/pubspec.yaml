@@ -40,16 +40,13 @@ dependencies:
   firebase_messaging: ^15.2.4
   flutter_local_notifications: ^19.1.0
   vibration: ^3.1.3
-
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
+  flutter_svg: ^2.0.7  
   cupertino_icons: ^1.0.8
   flutter_bloc: ^9.1.0
   equatable: ^2.0.7
   dio: ^5.8.0+1
   shared_preferences:
   http: ^1.3.0
-  flutter_svg: ^2.0.17
   intl: ^0.20.2
   timeago: ^3.2.2
   url_launcher: ^6.3.1
@@ -137,7 +134,7 @@ flutter:
     - assets/images/yassa.jpg
     - assets/images/empty1.png
     - assets/images/empty2.png
-
+    - assets/images/plus.svg
 
     #icons
     - assets/icons/actions/

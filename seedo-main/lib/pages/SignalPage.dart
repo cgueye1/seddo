@@ -212,7 +212,11 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                   height: 140,
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: Colors.grey[300]!,
+                                      color:
+                                          state.isRecording
+                                              ? Colors.red
+                                              : Colors.grey[300]!,
+                                      width: state.isRecording ? 2.0 : 1.0,
                                     ),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -220,16 +224,36 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
                                       Icon(
-                                        Icons.mic,
+                                        state.isRecording
+                                            ? Icons.stop_circle
+                                            : Icons.mic,
                                         size: 36,
-                                        color: Colors.deepOrange[400],
+                                        color:
+                                            state.isRecording
+                                                ? Colors.red
+                                                : Colors.deepOrange[400],
                                       ),
                                       const SizedBox(height: 10),
-                                      const Text(
-                                        'Enregistrement audio',
-                                        style: TextStyle(fontSize: 16),
+                                      Text(
+                                        state.isRecording
+                                            ? 'Arrêter l\'enregistrement'
+                                            : 'Enregistrement audio',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color:
+                                              state.isRecording
+                                                  ? Colors.red
+                                                  : null,
+                                        ),
                                         textAlign: TextAlign.center,
                                       ),
+                                      if (state.isRecording)
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 8,
+                                          ),
+                                          child: _buildRecordingIndicator(),
+                                        ),
                                     ],
                                   ),
                                 ),
@@ -384,6 +408,28 @@ class _SignalModalContentState extends State<SignalModalContent> {
           ),
         );
       },
+    );
+  }
+
+  // Indicateur d'enregistrement animé
+  Widget _buildRecordingIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            color: Colors.red,
+            borderRadius: BorderRadius.circular(5),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(
+          'Enregistrement en cours...',
+          style: TextStyle(fontSize: 12, color: Colors.red),
+        ),
+      ],
     );
   }
 }

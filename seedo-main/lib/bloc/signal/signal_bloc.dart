@@ -1,22 +1,14 @@
-// 1. Ajoutez d'abord le package just_audio à votre pubspec.yaml:
-// dependencies:
-//   just_audio: ^0.9.34
-
-// 2. Modifiez votre signal_bloc.dart pour ajouter les fonctionnalités de lecture:
-
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dio/dio.dart';
 import 'package:record/record.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
-import 'package:seddoapp/services/api_service.dart';
 
 import '../../repositories/publication_repository.dart';
 import '../../services/LocationService.dart';
@@ -25,7 +17,6 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   final _imagePicker = ImagePicker();
   final _audioRecorder = AudioRecorder();
   final _audioPlayer = AudioPlayer();
-  final ApiService _apiService = ApiService();
   final PublicationRepository _publicationRepository;
   final LocationService locationService = LocationService();
 
@@ -41,6 +32,47 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     on<SubmitSignalement>(_onSubmitSignalement);
     on<ResetSignalement>(_onResetSignalement);
     on<LoadCurrentPosition>(_onLoadCurrentPosition);
+    on<RemovePhoto>(_onRemovePhoto);
+    on<RemoveAudio>(_onRemoveAudio);
+  }
+
+  void _onRemovePhoto(RemovePhoto event, Emitter<SignalementState> emit) {
+    // Simplement mettre la photo à null
+    emit(state.copyWith(photo: null));
+  }
+
+  void _onRemoveAudio(RemoveAudio event, Emitter<SignalementState> emit) {
+    try {
+      // Arrêter la lecture si elle est en cours
+      _audioPlayer.stop();
+
+      // Si nous avons une liste d'audios, nous devons la mettre à jour
+      List<String>? updatedAudioFiles = null;
+      if (state.audioFiles != null && state.audioFiles!.isNotEmpty) {
+        // Créer une nouvelle liste sans l'audio actuel
+        updatedAudioFiles = List<String>.from(state.audioFiles!)
+          ..removeWhere((path) => path == state.audioPath);
+
+        // Si la liste n'est pas vide, définir le dernier enregistrement comme actif
+        String? newActivePath =
+            updatedAudioFiles.isNotEmpty ? updatedAudioFiles.last : null;
+
+        emit(
+          state.copyWith(
+            audioPath: newActivePath,
+            audioFiles: updatedAudioFiles,
+            isPlaying: false,
+          ),
+        );
+      } else {
+        // Si nous n'avons pas de liste ou elle est vide, réinitialiser complètement
+        emit(state.copyWith(audioPath: null, audioFiles: [], isPlaying: false));
+      }
+    } catch (e) {
+      emit(
+        state.copyWith(error: 'Erreur lors de la suppression de l\'audio: $e'),
+      );
+    }
   }
 
   Future<void> _onLoadCurrentPosition(
@@ -137,7 +169,20 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
     try {
       final path = await _audioRecorder.stop();
       if (path != null) {
-        emit(state.copyWith(audioPath: path, isRecording: false));
+        // Si on a déjà un chemin d'audio, on l'ajoute à la liste
+        List<String> audioFiles = [];
+        if (state.audioFiles != null) {
+          audioFiles = List.from(state.audioFiles!);
+        }
+        audioFiles.add(path);
+
+        emit(
+          state.copyWith(
+            audioPath: path, // Garde le dernier enregistrement comme actif
+            audioFiles: audioFiles, // Tous les enregistrements
+            isRecording: false,
+          ),
+        );
       } else {
         emit(
           state.copyWith(
@@ -181,7 +226,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
         // À la fin de la lecture, mettre à jour l'état
         _audioPlayer.playerStateStream.listen((playerState) {
           if (playerState.processingState == ProcessingState.completed) {
-            add(StopAudio());
+            add(const StopAudio());
           }
         });
       }
@@ -227,7 +272,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
       }
 
       final latitude = currentPosition!.latitude;
-      final longitude = currentPosition!.longitude;
+      final longitude = currentPosition.longitude;
 
       // Vérifie si les coordonnées sont valides
       if (latitude == 0 || longitude == 0) {
@@ -248,7 +293,9 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
       final universel = false;
       final date = "";
       final price = 0.0;
-      final audio = state.audioPath;
+
+      // Utiliser la liste des audio ou juste le dernier si la liste est vide
+      final audio = state.audioPath ?? '';
 
       final response = await _publicationRepository.postPublication(
         titre: titre,
@@ -262,7 +309,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
         imagePaths: pictures,
         available: available,
         universel: universel,
-        audio: audio ?? '',
+        audio: audio,
         emergency: true,
         days: 1,
         pricingId: 1,

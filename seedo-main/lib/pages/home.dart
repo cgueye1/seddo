@@ -126,7 +126,7 @@ class _HomePageContentState extends State<_HomePageContent> {
               Row(
                 children: [
                   const Text(
-                    'Hello, ',
+                    'Hello ',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
@@ -212,7 +212,7 @@ class _HomePageContentState extends State<_HomePageContent> {
             if (state.publications.isEmpty &&
                 !state.isLoadingPublications &&
                 state.publicationsError == null) {
-              //  _loadNearbyPublications(context, state);
+              _loadNearbyPublications(context, state);
             }
 
             // Afficher la section des publications

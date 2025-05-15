@@ -5,8 +5,8 @@ import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/pages/home.dart';
+import 'package:seddoapp/pages/publicationslist.dart';
 import 'package:seddoapp/pages/setting.dart';
-import 'package:seddoapp/pages/sms.dart';
 import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/widgets/update_required_screen.dart';
@@ -52,7 +52,7 @@ class MainScreen extends StatelessWidget {
 
     final pages = [
       HomePage(),
-     SmsPage(),
+      Publicationslist(),
       if (!hideTransit) TransportCommun(appParam: state.appParam),
       SettingPage(),
     ];
@@ -74,7 +74,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     final navItems = [
       _buildNavItem(context, 0, 'assets/icons/home.svg', 'Accueil'),
-   //   _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
+      _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
       if (!hideTransit)
         _buildNavItem(context, 2, 'assets/icons/bus.svg', 'Transport'),
       _buildNavItem(

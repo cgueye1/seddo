@@ -1,9 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:seddoapp/models/PricingModel.dart';
-import 'package:seddoapp/widgets/transit/DakarSearchWidget.dart';
 
 import '../models/transit/PlaceModel.dart';
 import '../utils/HexColor.dart';
@@ -42,37 +40,13 @@ class Step2Form extends StatefulWidget {
 
 class _Step2FormState extends State<Step2Form> {
   int _selectedImageIndex = 0;
-  final TextEditingController _availabilityController = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
 
   PlaceModel? address;
   final ScrollController _scrollController = ScrollController();
 
-  final FocusNode _focusNode = FocusNode();
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Ajouter les listeners de focus
-    _focusNode.addListener(() => _scrollToFocusedField(_focusNode));
-  }
-
-  void _scrollToFocusedField(FocusNode node) {
-    if (node.hasFocus) {
-      Future.delayed(Duration(milliseconds: 300), () {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      });
-    }
-  }
-
   @override
   void dispose() {
-    _focusNode.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -93,89 +67,7 @@ class _Step2FormState extends State<Step2Form> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Adresse',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-          DakarSearchWidget(
-            icon: Icon(Icons.location_on_sharp, color: HexColor("#F52D56")),
-            focusNode: _focusNode,
-            label: "Adresse de récupération",
-            initPlace: null,
-            onLocationSelected: (PlaceModel location) {
-              setState(() {
-                address = location;
-              });
-            },
-          ),
-          const SizedBox(height: 24),
-
           // Availability Field
-          const Text(
-            'Disponibilités',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-          ),
-          const SizedBox(height: 8),
-
-          // Dans la méthode _buildStep1Form, modifiez le code du TextField pour les disponibilités:
-          Container(
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(30),
-              color: const Color.fromARGB(255, 247, 247, 246),
-            ),
-            child: TextField(
-              controller: _availabilityController,
-              onTap: () async {
-                final DateTime? pickedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime(2100),
-                );
-                if (pickedDate != null) {
-                  final TimeOfDay? pickedTime = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.now(),
-                  );
-                  if (pickedTime != null) {
-                    final DateTime combinedDateTime = DateTime(
-                      pickedDate.year,
-                      pickedDate.month,
-                      pickedDate.day,
-                      pickedTime.hour,
-                      pickedTime.minute,
-                    );
-                    final formattedDateTime = DateFormat(
-                      'dd-MM-yyyy HH:mm',
-                    ).format(combinedDateTime);
-
-                    setState(() {
-                      _availabilityController.text =
-                          formattedDateTime; // Mettez à jour le même contrôleur
-                    });
-                    widget.availabilityChanged(formattedDateTime);
-                  }
-                }
-              },
-              // Utilisez le même contrôleur
-              decoration: InputDecoration(
-                hintText: 'Entrez vos disponibilités',
-                hintStyle: TextStyle(
-                  fontSize: 16,
-                  color: const Color.fromARGB(255, 78, 73, 73),
-                ),
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                prefixIcon: Icon(Icons.calendar_today),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
 
           // Price Field with Currency
           const Text(
@@ -217,85 +109,83 @@ class _Step2FormState extends State<Step2Form> {
             ],
           ),
           const SizedBox(height: 24),
-
-          if (widget.selectedImages.isNotEmpty)
-            Container(
-              width: double.infinity,
-              height: 200,
-              decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey[300]!),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child:
-                  widget.selectedImages.isNotEmpty
-                      ? Stack(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: Image.file(
-                              File(widget.selectedImages[_selectedImageIndex]),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                            ),
+          Container(
+            width: double.infinity,
+            height: 200,
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child:
+                widget.selectedImages.isNotEmpty
+                    ? Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.file(
+                            File(widget.selectedImages[_selectedImageIndex]),
+                            fit: BoxFit.cover,
+                            width: double.infinity,
+                            height: double.infinity,
                           ),
-                          Positioned(
-                            top: 8,
-                            right: 8,
-                            child: GestureDetector(
-                              onTap: () {
-                                widget.onRemoveImage(_selectedImageIndex);
-                                setState(() {
-                                  // Ajuster l'index si on supprime l'image actuellement affichée
-                                  if (widget.selectedImages.length > 1) {
-                                    _selectedImageIndex =
-                                        _selectedImageIndex >=
-                                                widget.selectedImages.length - 1
-                                            ? widget.selectedImages.length - 2
-                                            : _selectedImageIndex;
-                                  }
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: Colors.black.withOpacity(0.5),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  Icons.close,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: GestureDetector(
+                            onTap: () {
+                              widget.onRemoveImage(_selectedImageIndex);
+                              setState(() {
+                                // Ajuster l'index si on supprime l'image actuellement affichée
+                                if (widget.selectedImages.length > 1) {
+                                  _selectedImageIndex =
+                                      _selectedImageIndex >=
+                                              widget.selectedImages.length - 1
+                                          ? widget.selectedImages.length - 2
+                                          : _selectedImageIndex;
+                                }
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.5),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
                               ),
                             ),
                           ),
-                        ],
-                      )
-                      : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.upload, size: 40),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Télécharger une image',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
+                        ),
+                      ],
+                    )
+                    : Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.upload, size: 40),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Télécharger une image',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            '(vous pouvez télécharger plus d\'images en',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                          ),
-                          const Text(
-                            'appuyant sur l\'icone plus)',
-                            style: TextStyle(fontSize: 14, color: Colors.grey),
-                          ),
-                        ],
-                      ),
-            ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          '(vous pouvez télécharger plus d\'images en',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                        const Text(
+                          'appuyant sur l\'icone plus)',
+                          style: TextStyle(fontSize: 14, color: Colors.grey),
+                        ),
+                      ],
+                    ),
+          ),
           const SizedBox(height: 24),
 
           // Image grid - Affiche toutes les images en miniature
@@ -413,50 +303,65 @@ class _Step2FormState extends State<Step2Form> {
             ],
           ),
 
-
           // Sélection de la tarification
           // Message explicatif
           const SizedBox(height: 24),
           const Text(
             'Sélectionnez une durée de visibilité. La publication sera supprimée après cette période.',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500,color: Colors.grey),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: widget.pricingList.map((pricing) {
-              final bool isSelected = widget.selectedPricing?.id == pricing.id;
-              return GestureDetector(
-                onTap: () => widget.onPricingChanged(pricing),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: isSelected ? Color(0xFFE65100).withOpacity(.2) : const Color.fromARGB(255, 247, 247, 246),
-                    border: Border.all(
-                      color: isSelected ?  Color(0xFFE65100) : Colors.grey.shade300,
-                      width: 1.5,
+            children:
+                widget.pricingList.map((pricing) {
+                  final bool isSelected =
+                      widget.selectedPricing?.id == pricing.id;
+                  return GestureDetector(
+                    onTap: () => widget.onPricingChanged(pricing),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color:
+                            isSelected
+                                ? Color(0xFFE65100).withOpacity(.2)
+                                : const Color.fromARGB(255, 247, 247, 246),
+                        border: Border.all(
+                          color:
+                              isSelected
+                                  ? Color(0xFFE65100)
+                                  : Colors.grey.shade300,
+                          width: 1.5,
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            pricing.libelle,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            (pricing.price) == 0
+                                ? 'Gratuit'
+                                : '${pricing.price} F',
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
                     ),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        pricing.libelle ?? 'Tarif',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        (pricing.price ?? 0) == 0 ? 'Gratuit' : '${pricing.price} F',
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-
-                    ],
-                  ),
-                ),
-              );
-            }).toList(),
+                  );
+                }).toList(),
           ),
 
           const SizedBox(height: 48),
@@ -466,8 +371,8 @@ class _Step2FormState extends State<Step2Form> {
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              color: Colors.deepOrange,
-              borderRadius: BorderRadius.circular(12),
+              color: HexColor("#D95C18"),
+              borderRadius: BorderRadius.circular(30),
             ),
             child: TextButton(
               onPressed: () {
@@ -477,6 +382,28 @@ class _Step2FormState extends State<Step2Form> {
                 'Publier',
                 style: TextStyle(
                   color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: HexColor("#F1F2F6"),
+              borderRadius: BorderRadius.circular(30),
+            ),
+            child: TextButton(
+              onPressed: () {
+                widget.onPublishPressed(address);
+              },
+              child: const Text(
+                'Précédent',
+                style: TextStyle(
+                  color: Color.fromARGB(255, 0, 0, 0),
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),

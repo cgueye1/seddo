@@ -51,7 +51,6 @@ class PublicationState extends Equatable {
   final String? redirectUrl;
   final AppParamModel? appParam;
 
-
   const PublicationState({
     this.currentStep = 1,
     this.activeTabIndex = 0,
@@ -92,7 +91,7 @@ class PublicationState extends Equatable {
     this.pricings = const [],
     this.selectedPricing,
     this.redirectUrl,
-    this.appParam
+    this.appParam,
   });
 
   PublicationState copyWith({
@@ -135,7 +134,7 @@ class PublicationState extends Equatable {
     List<PricingModel>? pricings,
     PricingModel? selectedPricing,
     String? redirectUrl,
-    AppParamModel? appParam
+    AppParamModel? appParam,
   }) {
     return PublicationState(
       currentStep: currentStep ?? this.currentStep,
@@ -178,8 +177,7 @@ class PublicationState extends Equatable {
       pricings: pricings ?? this.pricings,
       selectedPricing: selectedPricing ?? this.selectedPricing,
       redirectUrl: redirectUrl ?? this.redirectUrl,
-      appParam:  appParam?? this. appParam,
-
+      appParam: appParam ?? this.appParam,
     );
   }
 
@@ -224,6 +222,6 @@ class PublicationState extends Equatable {
     pricings,
     selectedPricing,
     redirectUrl,
-    appParam
+    appParam,
   ];
 }

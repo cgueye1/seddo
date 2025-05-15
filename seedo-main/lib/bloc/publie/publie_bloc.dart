@@ -10,7 +10,6 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../../models/AppParamModel.dart';
 import '../../models/PaiementRequestModel.dart';
-import '../../pages/webview/payWebView.dart';
 import '../../repositories/defaultRepository.dart';
 import '../../repositories/publication_repository.dart';
 import '../../services/AdMobService.dart'; // Ajoutez cette ligne
@@ -47,8 +46,6 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     // Déclenche l'événement pour charger les prix dès le démarrage
     add(LoadInitialPricing());
     add(LoadAppParam());
-
-
   }
 
   static List<String> _extractCategoryTitles(List<dynamic>? categories) {
@@ -173,15 +170,14 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     );
 
     try {
-
       final titre = state.titre;
       final description = state.description;
       final authorId = event.authorId;
       final latitude = event.latitude;
       final longitude = event.longitude;
       final pictures = state.pictures;
-      final available = state.available ?? true;
-      final universel = state.universel ?? false;
+      final available = state.available;
+      final universel = state.universel;
       final date = state.availability;
       final price = state.price;
       final pricing = state.selectedPricing;
@@ -249,7 +245,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         universel: universel,
         audio: '',
         emergency: false,
-        days: pricing!.days,
+        days: pricing.days,
         pricingId: pricing.id,
       );
 
@@ -417,14 +413,14 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       emit(state.copyWith(errorMessage: "Erreur chargement des tarifs"));
     }
   }
+
   Future<void> _onLoadAppParam(
-      LoadAppParam event,
-      Emitter<PublicationState> emit,
-      ) async {
+    LoadAppParam event,
+    Emitter<PublicationState> emit,
+  ) async {
     final appParam = await _getAppParam();
     emit(state.copyWith(appParam: appParam));
   }
-
 
   Future<AppParamModel> _getAppParam() async {
     try {
@@ -439,11 +435,11 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
           hideTransit: false,
           appVersion: "",
           androidLink:
-          "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
+              "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
           iosLink:
-          "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
-            apiKey: "",
-            useGoogleSearch: false
+              "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+          apiKey: "",
+          useGoogleSearch: false,
         );
       }
     } catch (e) {
@@ -454,9 +450,9 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         appVersion: "",
         androidLink: "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
         iosLink:
-        "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
-          apiKey: "",
-          useGoogleSearch: false
+            "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
+        apiKey: "",
+        useGoogleSearch: false,
       );
     }
   }

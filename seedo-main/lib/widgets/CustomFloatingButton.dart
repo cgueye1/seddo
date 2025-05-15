@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class CustomFloatingButton extends StatelessWidget {
-  // Paramètres obligatoires
-  final String imagePath; // Chemin vers l'image PNG
+  final String imagePath;
   final VoidCallback onPressed;
-
-  // Paramètres optionnels
   final Color backgroundColor;
   final double size;
   final double elevation;
   final String? label;
   final Color labelColor;
   final double imageSize;
+  final Color? iconColor; // 🔸 nouvelle propriété
 
   const CustomFloatingButton({
     Key? key,
@@ -23,21 +22,41 @@ class CustomFloatingButton extends StatelessWidget {
     this.label,
     this.labelColor = Colors.black54,
     this.imageSize = 30.0,
+    this.iconColor, // 🔸 ajout au constructeur
   }) : super(key: key);
+
+  Widget _buildImage() {
+    String extension = imagePath.toLowerCase();
+
+    if (extension.endsWith('.svg')) {
+      return SvgPicture.asset(
+        imagePath,
+        width: imageSize,
+        height: imageSize,
+        fit: BoxFit.contain,
+        color: iconColor, // 🔸 couleur du SVG
+      );
+    } else {
+      return Image.asset(
+        imagePath,
+        width: imageSize,
+        height: imageSize,
+        fit: BoxFit.contain,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Si pas de label, on retourne juste le bouton
     if (label == null) {
       return FloatingActionButton(
         onPressed: onPressed,
         elevation: elevation,
         backgroundColor: backgroundColor,
-        child: Image.asset(imagePath, width: imageSize, height: imageSize),
+        child: _buildImage(),
       );
     }
 
-    // Si un label est présent, on crée une colonne avec le bouton et le label en dessous
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -48,11 +67,11 @@ class CustomFloatingButton extends StatelessWidget {
             onPressed: onPressed,
             elevation: elevation,
             backgroundColor: backgroundColor,
-            shape: CircleBorder(),
-            child: Image.asset(imagePath, width: imageSize, height: imageSize),
+            shape: const CircleBorder(),
+            child: _buildImage(),
           ),
         ),
-        const SizedBox(height: 5), // Espace entre le bouton et le label
+        const SizedBox(height: 5),
         Text(
           label!,
           style: TextStyle(
