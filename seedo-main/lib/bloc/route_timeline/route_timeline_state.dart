@@ -4,7 +4,7 @@ enum RouteTimelineStatus { initial, loading, success, failure }
 
 class RouteTimelineState extends Equatable {
   final RouteTimelineStatus status;
-  final List<TransitResponseModel> departureTransit;
+  final List<TransitFullResponseModel> departureTransit;
   //final Filter? selectedFilter;
   final double startLat;
   final double startLon;
@@ -38,7 +38,7 @@ class RouteTimelineState extends Equatable {
 
   RouteTimelineState copyWith({
     RouteTimelineStatus? status,
-    List<TransitResponseModel>? departureTransit,
+    List<TransitFullResponseModel>? departureTransit,
   //  Filter? selectedFilter,
     double? startLat,
     double? startLon,

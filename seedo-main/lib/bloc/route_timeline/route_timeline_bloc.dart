@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 
 import '../../models/AppParamModel.dart';
 import '../../models/transit/PlaceModel.dart';
@@ -62,7 +63,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           startLon: startLon,
           endLat: endLat,
           endLon: endLon,
-          currentPosition: currentPosition
+          currentPosition: currentPosition,
         ),
       );
 
@@ -106,13 +107,20 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
   Future<void> _onDepartureDataRequested(
     RouteTimelineDepartureDataRequested event,
     Emitter<RouteTimelineState> emit,
+
   ) async {
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
+    final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
+
     await getDepartureData(
       startLat: event.startLat,
       startLon: event.startLon,
       endLat: event.endLat,
       endLon: event.endLon,
       emit: emit,
+      formattedDate: formattedDate,
+      formattedTime: formattedTime
     );
   }
 
@@ -130,7 +138,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     await positionStreamSubscription?.cancel();
   }
 
-  Future<TransitResponseModel?> _findTrips(
+  Future<TransitFullResponseModel?> _findTrips(
     double dlat,
     double dlon,
     double alat,
@@ -138,25 +146,36 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     bool orderByFrom,
     int maxDistanceFrom,
     int maxDistanceTo,
+    String formattedDate,
+    String formattedTime,
   ) async {
+    final now = DateTime.now();
+
     final body = {
+      "date": formattedDate,
+      "time": formattedTime,
+      "stopId": "string",
+      "start_stop_code": "string",
+      "end_stop_code": "string",
+      "arrivalStopId": "string",
       "departureLat": dlat,
       "departureLon": dlon,
       "destinationLat": alat,
       "destinationLon": alon,
       "maxDistanceFrom": maxDistanceFrom,
       "maxDistanceTo": maxDistanceTo,
-      "type": "",
+      "type": "string",
       "orderByFrom": orderByFrom,
     };
-
     final response = await repository.saveBodyFree(
       body,
-      "transit/stops/findTrips",
+      "transit/stops/findBus",
     );
+    print("response.data is Map<String, dynamic>");
+    print(response.data != null && response.data is Map<String, dynamic>);
 
     if (response.data != null && response.data is Map<String, dynamic>) {
-      return TransitResponseModel.fromJson(response.data);
+      return TransitFullResponseModel.fromJson(response.data);
     }
     return null;
   }
@@ -171,12 +190,17 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     var maxDistanceFrom = state.maxDistanceFrom;
     var maxDistanceTo = state.maxDistanceTo;
     emit(state.copyWith(adShown: false));
+    final now = DateTime.now();
+    final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
+    final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
     await getDepartureData(
       startLat: startLat,
       startLon: startLon,
       endLat: endLat,
       endLon: endLon,
       emit: emit,
+        formattedDate:formattedDate,
+        formattedTime:formattedTime
     );
 
     while (state.departureTransit.isEmpty) {
@@ -204,12 +228,18 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         ),
       );
 
+      final now = DateTime.now();
+      final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
+      final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
+
       await getDepartureData(
         startLat: startLat,
         startLon: startLon,
         endLat: endLat,
         endLon: endLon,
         emit: emit,
+          formattedDate:formattedDate,
+          formattedTime:formattedTime
       );
 
       if (state.departureTransit.isNotEmpty) {
@@ -219,6 +249,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           await _showInterstitialAd();
           emit(state.copyWith(adShown: true));
         }
+
         break;
       }
     }
@@ -230,6 +261,8 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     required double endLat,
     required double endLon,
     required Emitter<RouteTimelineState> emit,
+    required formattedDate,
+    required formattedTime,
   }) async {
     var maxDistanceFrom = state.maxDistanceFrom;
     var maxDistanceTo = state.maxDistanceTo;
@@ -237,7 +270,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
 
     emit(state.copyWith(departureLoader: true));
 
-    TransitResponseModel? data = await _findTrips(
+    TransitFullResponseModel? data = await _findTrips(
       startLat,
       startLon,
       endLat,
@@ -245,35 +278,52 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       false,
       maxDistanceFrom,
       maxDistanceTo,
+      formattedDate,
+      formattedTime,
     );
 
-    print('sddsdsd');
+
+    print("state.departureTransit.length");
+    print(data);
 
     if (data != null) {
-      double firstDistanceDepartureToStop = data.distanceToDestination!;
-      double distanceDepartureToStop = data.distanceDepartureToStop!;
+      double firstDistanceDepartureToStop =
+          data.mainTripInfo!.distanceToDestination!;
+      double distanceDepartureToStop =
+          data.mainTripInfo!.distanceDepartureToStop!;
       departureTransit.add(data);
 
       emit(state.copyWith(departureTransit: departureTransit));
+      print("state.departureTransit.length");
+      print(state.departureTransit.length);
 
       if (distanceDepartureToStop > 1000) {
         maxDistanceTo = 1000;
         maxDistanceFrom = 1000;
-
-        TransitResponseModel? stepData = await _findTrips(
+        final now = DateTime.now();
+        final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
+        final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
+        TransitFullResponseModel? stepData = await _findTrips(
           startLat,
           startLon,
-          data.stopStart!.stopLat,
-          data.stopStart!.stopLon,
+          data.mainTripInfo!.stopStart!.stopLat,
+          data.mainTripInfo!.stopStart!.stopLon,
           true,
           maxDistanceFrom,
           maxDistanceTo,
+            formattedDate,
+            data.mainTripInfo!.destinationStopTime!.arrivalTime
+
         );
 
+
+
         if (stepData != null &&
-            stepData.distanceToDestination! <= 1000 &&
-            firstDistanceDepartureToStop > stepData.distanceDepartureToStop! &&
-            stepData.distanceToDestination! < data.distanceToDestination!) {
+            stepData.mainTripInfo!.distanceToDestination! <= 1000 &&
+            firstDistanceDepartureToStop >
+                stepData.mainTripInfo!.distanceDepartureToStop! &&
+            stepData.mainTripInfo!.distanceToDestination! <
+                data.mainTripInfo!.distanceToDestination!) {
           // Uncomment if stepData should be added
           // departureTransit.insert(0, stepData);
         }
@@ -283,40 +333,54 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       maxDistanceTo = 500;
       maxDistanceFrom = 500;
 
-      while (data!.distanceToDestination! > 1000 && iterationCount < 20) {
+      while (data!.mainTripInfo!.distanceToDestination! > 1000 &&
+          iterationCount < 20) {
         maxDistanceTo += 100;
         maxDistanceFrom += 100;
         iterationCount++;
 
-        TransitResponseModel? stepDataEnd = await _findTrips(
-          data.stopEnd!.stopLat,
-          data.stopEnd!.stopLon,
+        TransitFullResponseModel? stepDataEnd = await _findTrips(
+          data.mainTripInfo!.stopEnd!.stopLat,
+          data.mainTripInfo!.stopEnd!.stopLon,
           endLat,
           endLon,
           false,
           maxDistanceFrom,
           maxDistanceTo,
+            formattedDate,
+
+            data.mainTripInfo!.destinationStopTime!.arrivalTime
+
         );
 
+        print("OKLLLLL");
+
         if (stepDataEnd != null &&
-            _checkForDuplicateStopId(departureTransit, stepDataEnd) &&
-            stepDataEnd.distanceToDestination! <=
-                data.distanceToDestination! / 2 &&
-            (stepDataEnd.distanceDepartureToStop! +
-                    stepDataEnd.distanceToDestination!) <
-                data.distanceToDestination!) {
-          if (stepDataEnd.trip!.tripId.trim() == data.trip!.tripId.trim() ||
-              stepDataEnd.stopEnd!.stopId == data.stopEnd!.stopId) {
+            _checkForDuplicateStopId(
+              departureTransit,
+              stepDataEnd.mainTripInfo!,
+            ) &&
+            stepDataEnd.mainTripInfo!.distanceToDestination! <=
+                data.mainTripInfo!.distanceToDestination! / 2 &&
+            (stepDataEnd.mainTripInfo!.distanceDepartureToStop! +
+                    stepDataEnd.mainTripInfo!.distanceToDestination!) <
+                data.mainTripInfo!.distanceToDestination!) {
+          if (stepDataEnd.mainTripInfo!.trip!.tripId.trim() ==
+                  data.mainTripInfo!.trip!.tripId.trim() ||
+              stepDataEnd.mainTripInfo!.stopEnd!.stopId ==
+                  data.mainTripInfo!.stopEnd!.stopId) {
             if (departureTransit.isNotEmpty &&
-                departureTransit.last.stopEnd != stepDataEnd.stopEnd) {
+                departureTransit.last.mainTripInfo!.stopEnd !=
+                    stepDataEnd.mainTripInfo!.stopEnd) {
               departureTransit[departureTransit.length - 1] = stepDataEnd;
             } else if (departureTransit.isEmpty ||
-                departureTransit.last.stopEnd == stepDataEnd.stopEnd) {
+                departureTransit.last.mainTripInfo!.stopEnd ==
+                    stepDataEnd.mainTripInfo!.stopEnd) {
               departureTransit.add(stepDataEnd);
             }
             data = stepDataEnd;
           } else {
-            if (stepDataEnd.distanceDepartureToStop! < 2000) {
+            if (stepDataEnd.mainTripInfo!.distanceDepartureToStop! < 2000) {
               departureTransit.add(stepDataEnd);
               maxDistanceTo = 500;
               maxDistanceFrom = 500;
@@ -339,10 +403,12 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
   }
 
   bool _checkForDuplicateStopId(
-    List<TransitResponseModel> data,
+    List<TransitFullResponseModel> data,
     TransitResponseModel tr,
   ) {
-    return !data.any((item) => item.stopEnd!.stopId == tr.stopEnd!.stopId);
+    return !data.any(
+      (item) => item.mainTripInfo!.stopEnd!.stopId == tr.stopEnd!.stopId,
+    );
   }
 
   Future<AppParamModel> _getAppParam() async {
@@ -361,8 +427,8 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
               "https://apps.apple.com/us/app/seddo/id6737347803?l=fr-FR",
           iosLink:
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
-            apiKey: "",
-            useGoogleSearch: false
+          apiKey: "",
+          useGoogleSearch: false,
         );
       }
     } catch (e) {
@@ -375,7 +441,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         iosLink:
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         apiKey: "",
-        useGoogleSearch: false
+        useGoogleSearch: false,
       );
     }
   }

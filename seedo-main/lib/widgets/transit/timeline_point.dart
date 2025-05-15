@@ -15,7 +15,7 @@ class TimelinePoint extends StatelessWidget {
   final double lat;
   final double lon;
   final bool? isDestination;
-  final TransitResponseModel? transit;
+  final TransitFullResponseModel? transit;
 
   TimelinePoint({
     required this.label,
@@ -57,8 +57,8 @@ class TimelinePoint extends StatelessWidget {
                           Icon(Icons.directions_walk, color: Colors.grey),
                           SizedBox(width: 4),
                           WalkingDurationWidget(
-                            startLat: transit!.stopEnd!.stopLat,
-                            startLon: transit!.stopEnd!.stopLon,
+                            startLat: transit!.mainTripInfo!.stopEnd!.stopLat,
+                            startLon: transit!.mainTripInfo!.stopEnd!.stopLon,
                             endLat: lat,
                             endLon: lon,
                           ),
@@ -126,8 +126,8 @@ class TimelinePoint extends StatelessWidget {
                           WalkingDurationWidget(
                             startLat: lat,
                             startLon: lon,
-                            endLat: transit!.stopStart!.stopLat,
-                            endLon: transit!.stopStart!.stopLon,
+                            endLat: transit!.mainTripInfo!.stopStart!.stopLat,
+                            endLon: transit!.mainTripInfo!.stopStart!.stopLon,
                           ),
                         ],
                       ),

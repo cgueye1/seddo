@@ -58,3 +58,14 @@ String getTimeAgo(String isoDateString) {
     return "Publié il y a $years an${years > 1 ? 's' : ''}";
   }
 }
+
+
+
+String formatTimeToHHmm(String? timeStr) {
+  try {
+    final time = DateFormat('HH:mm:ss').parse(timeStr!);
+    return DateFormat('HH:mm').format(time);
+  } catch (e) {
+    return timeStr!; // ou retournez "??:??" en cas d'erreur
+  }
+}

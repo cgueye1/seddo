@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:seddoapp/widgets/transit/TransitInterTimeline.dart';
 import 'package:seddoapp/widgets/transit/WalkingDurationWidget.dart';
 import '../../bloc/route_timeline/route_timeline_bloc.dart';
 import '../../models/transit/Stop.dart';
 import '../../models/transit/StopTimeResponse.dart';
 import '../../models/transit/TransitResponseModel.dart';
 import '../../utils/constant.dart';
+import '../../utils/date_formatter.dart';
 import '../../utils/url_launcher.dart';
 
-class TimelineTile extends StatelessWidget {
-  final TransitResponseModel transit;
-  final TransitResponseModel nexttransit;
+class TimelineTile extends StatefulWidget {
+  final TransitFullResponseModel transit;
+  final TransitFullResponseModel nexttransit;
   final StopModel? nextStop;
   final String? label;
   final StopTimeResponseModel? stopTimeResponse;
@@ -37,6 +39,12 @@ class TimelineTile extends StatelessWidget {
     required this.destination,
   });
 
+  @override
+  _TimelineTileState createState() => _TimelineTileState();
+}
+
+class _TimelineTileState extends State<TimelineTile> {
+  bool _showStops = false; // État pour contrôler l'affichage
   String normalizeText(String? input) {
     try {
       return utf8.decode(input!.runes.toList());
@@ -99,8 +107,21 @@ class TimelineTile extends StatelessWidget {
     }
   }
 
+  double computeTimelineHeight(int count) {
+    if (count <= 0) return 0.0;
+
+    const double rowHeightWithLine = 56.0;
+    const double rowHeightLast = 28.0;
+
+    return (count) * rowHeightWithLine + rowHeightLast;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final timelineHeight = computeTimelineHeight(
+      widget.transit.intermediateStopsWithTimes.length,
+    );
+
     return Stack(
       children: [
         Column(
@@ -108,9 +129,9 @@ class TimelineTile extends StatelessWidget {
           children: [
             Row(
               children: [
-                nextStop != null
+                widget.nextStop != null
                     ? SvgPicture.asset(
-                      nextStop != null
+                      widget.nextStop != null
                           ? "assets/icons/game-icons_subway-train.svg"
                           : "assets/icons/noto_bus-stop.svg",
                     )
@@ -127,10 +148,11 @@ class TimelineTile extends StatelessWidget {
                     ),
                 Expanded(
                   child: Text(
-                    nextStop != null
-                        ? "  ${label!}"
+                    widget.nextStop != null
+                        ? "  ${widget.label!}"
                         : normalizeText(
-                          transit.stopStart?.stopName.toString(),
+                          widget.transit.mainTripInfo!.stopStart?.stopName
+                              .toString(),
                         ),
                   ),
                 ),
@@ -140,10 +162,15 @@ class TimelineTile extends StatelessWidget {
               width: 2,
               margin: EdgeInsets.only(left: 10),
               height:
-                  isLast
-                      ? (nextStop != null && stopTimeResponse == null
+                  widget.isLast
+                      ? (widget.nextStop != null &&
+                              widget.stopTimeResponse == null
                           ? 80
+                          : _showStops
+                          ?  timelineHeight
                           : 150)
+                      : _showStops
+                      ?  timelineHeight
                       : 150,
               color: Colors.grey,
             ),
@@ -167,8 +194,8 @@ class TimelineTile extends StatelessWidget {
                           height: 100,
                           child: Row(
                             children: [
-                              nextStop != null
-                                  ? stopTimeResponse != null
+                              widget.nextStop != null
+                                  ? widget.stopTimeResponse != null
                                       ? SvgPicture.asset(
                                         "assets/transit/game-icons_subway-train.svg",
                                       )
@@ -185,12 +212,16 @@ class TimelineTile extends StatelessWidget {
                                 child: SizedBox(
                                   width: 200,
                                   child: Text(
-                                    isLast && nextStop != null
-                                        ? stopTimeResponse != null
-                                            ? "Gare de ${nextStop!.stop_name}"
+                                    widget.isLast && widget.nextStop != null
+                                        ? widget.stopTimeResponse != null
+                                            ? "Gare de ${widget.nextStop!.stop_name}"
                                             : ""
                                         : normalizeText(
-                                          transit.stopEnd!.stopName,
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .stopEnd!
+                                              .stopName,
                                         ),
                                     style: TextStyle(
                                       overflow: TextOverflow.visible,
@@ -203,7 +234,7 @@ class TimelineTile extends StatelessWidget {
                           ),
                         ),
                       ),
-                      if (nextStop == null)
+                      if (widget.nextStop == null)
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
@@ -213,9 +244,13 @@ class TimelineTile extends StatelessWidget {
                               margin: EdgeInsets.only(left: 10),
                               child: CustomPaint(painter: DashPainter()),
                             ),
-                            if (nextStop == null &&
-                                transit.stopEnd!.stopId !=
-                                    nexttransit.stopEnd!.stopId)
+                            if (widget.nextStop == null &&
+                                widget.transit.mainTripInfo!.stopEnd!.stopId !=
+                                    widget
+                                        .nexttransit
+                                        .mainTripInfo!
+                                        .stopEnd!
+                                        .stopId)
                               Padding(
                                 padding: EdgeInsets.only(left: 20),
                                 child: Row(
@@ -226,21 +261,43 @@ class TimelineTile extends StatelessWidget {
                                     ),
                                     SizedBox(width: 4),
                                     WalkingDurationWidget(
-                                      startLat: transit.stopEnd!.stopLat,
-                                      startLon: transit.stopEnd!.stopLon,
+                                      startLat:
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .stopEnd!
+                                              .stopLat,
+                                      startLon:
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .stopEnd!
+                                              .stopLon,
                                       endLat:
-                                          nexttransit.stopStart!.stopLat,
+                                          widget
+                                              .nexttransit
+                                              .mainTripInfo!
+                                              .stopStart!
+                                              .stopLat,
                                       endLon:
-                                          nexttransit.stopStart!.stopLon,
+                                          widget
+                                              .nexttransit
+                                              .mainTripInfo!
+                                              .stopStart!
+                                              .stopLon,
                                     ),
                                   ],
                                 ),
                               ),
 
-                            if (nextStop == null &&
-                                transit.stopEnd!.stopId ==
-                                    nexttransit.stopEnd!.stopId &&
-                                !destination)
+                            if (widget.nextStop == null &&
+                                widget.transit.mainTripInfo!.stopEnd!.stopId ==
+                                    widget
+                                        .nexttransit
+                                        .mainTripInfo!
+                                        .stopEnd!
+                                        .stopId &&
+                                !widget.destination)
                               Padding(
                                 padding: EdgeInsets.only(left: 20),
                                 child: Row(
@@ -251,10 +308,20 @@ class TimelineTile extends StatelessWidget {
                                     ),
                                     SizedBox(width: 4),
                                     WalkingDurationWidget(
-                                      startLat: transit.stopEnd!.stopLat,
-                                      startLon: transit.stopEnd!.stopLon,
-                                      endLat: lat!,
-                                      endLon: lon!,
+                                      startLat:
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .stopEnd!
+                                              .stopLat,
+                                      startLon:
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .stopEnd!
+                                              .stopLon,
+                                      endLat: widget.lat!,
+                                      endLon: widget.lon!,
                                     ),
                                   ],
                                 ),
@@ -283,7 +350,7 @@ class TimelineTile extends StatelessWidget {
               border: Border.all(color: Colors.grey.shade300, width: .4),
             ),
             child:
-                nextStop != null
+                widget.nextStop != null
                     ? Column(
                       children: [
                         Row(
@@ -292,10 +359,10 @@ class TimelineTile extends StatelessWidget {
                             Container(
                               margin: EdgeInsets.only(left: 16),
                               child:
-                                  stopTimeResponse == null
+                                  widget.stopTimeResponse == null
                                       ? Image.network(
                                         APIConstants.API_BASE_URL_IMG +
-                                            nextStop!.picture,
+                                            widget.nextStop!.picture,
                                         width: 100,
                                         fit: BoxFit.fill,
                                       )
@@ -308,9 +375,12 @@ class TimelineTile extends StatelessWidget {
                             Container(
                               margin: EdgeInsets.only(right: 16),
                               child: Text(
-                                stopTimeResponse != null
-                                    ? stopTimeResponse!.trip.tripShortName
-                                    : nextStop!.stop_name,
+                                widget.stopTimeResponse != null
+                                    ? widget
+                                        .stopTimeResponse!
+                                        .trip
+                                        .tripShortName
+                                    : widget.nextStop!.stop_name,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -325,8 +395,10 @@ class TimelineTile extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             SizedBox(width: 16),
-                            stopTimeResponse != null
-                                ? Text('$label -> ${nextStop!.stop_name}')
+                            widget.stopTimeResponse != null
+                                ? Text(
+                                  '${widget.label} -> ${widget.nextStop!.stop_name}',
+                                )
                                 : Text(
                                   "Laissez vous transporTER",
                                   style: TextStyle(fontSize: 16),
@@ -335,10 +407,9 @@ class TimelineTile extends StatelessWidget {
                         ),
 
                         SizedBox(height: 10),
-                        if (stopTimeResponse != null)
+                        if (widget.stopTimeResponse != null)
                           Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Row(
                                 children: [
@@ -347,14 +418,9 @@ class TimelineTile extends StatelessWidget {
                                     height: 26,
                                     decoration: BoxDecoration(
                                       color: Colors.black,
-                                      borderRadius: BorderRadius.circular(
-                                        10,
-                                      ),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    padding: EdgeInsets.only(
-                                      left: 5,
-                                      right: 5,
-                                    ),
+                                    padding: EdgeInsets.only(left: 5, right: 5),
                                     child: Row(
                                       children: [
                                         SvgPicture.asset(
@@ -364,18 +430,17 @@ class TimelineTile extends StatelessWidget {
                                               (
                                                 BuildContext context,
                                               ) => Container(
-                                                padding:
-                                                    const EdgeInsets.all(
-                                                      30.0,
-                                                    ),
+                                                padding: const EdgeInsets.all(
+                                                  30.0,
+                                                ),
                                                 child:
                                                     const CircularProgressIndicator(),
                                               ),
                                         ),
                                         SizedBox(width: 5),
                                         Text(
-                                          stopTimeResponse != null
-                                              ? '${stopTimeResponse!.duration} min'
+                                          widget.stopTimeResponse != null
+                                              ? '${widget.stopTimeResponse!.duration} min'
                                               : "",
                                         ),
                                       ],
@@ -386,14 +451,9 @@ class TimelineTile extends StatelessWidget {
                                     height: 26,
                                     decoration: BoxDecoration(
                                       color: Colors.black,
-                                      borderRadius: BorderRadius.circular(
-                                        10,
-                                      ),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
-                                    padding: EdgeInsets.only(
-                                      left: 5,
-                                      right: 5,
-                                    ),
+                                    padding: EdgeInsets.only(left: 5, right: 5),
                                     child: Row(
                                       children: [
                                         SvgPicture.asset(
@@ -403,18 +463,17 @@ class TimelineTile extends StatelessWidget {
                                               (
                                                 BuildContext context,
                                               ) => Container(
-                                                padding:
-                                                    const EdgeInsets.all(
-                                                      30.0,
-                                                    ),
+                                                padding: const EdgeInsets.all(
+                                                  30.0,
+                                                ),
                                                 child:
                                                     const CircularProgressIndicator(),
                                               ),
                                         ),
                                         SizedBox(width: 5),
                                         Text(
-                                          stopTimeResponse != null
-                                              ? '${stopTimeResponse!.distance} km'
+                                          widget.stopTimeResponse != null
+                                              ? '${widget.stopTimeResponse!.distance} km'
                                               : "",
                                         ),
                                       ],
@@ -422,7 +481,7 @@ class TimelineTile extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              if (stopTimeResponse != null)
+                              if (widget.stopTimeResponse != null)
                                 Container(
                                   margin: EdgeInsets.only(right: 16),
                                   child: SvgPicture.asset(
@@ -433,58 +492,74 @@ class TimelineTile extends StatelessWidget {
                           ),
                       ],
                     )
-                    : Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    : Column(
                       children: [
-                        nextStop != null
-                            ? Image.asset(
-                              "assets/transit/ter-transit.png",
-                              width: 60,
-                            )
-                            : transit.stop.transitType == "BRT"
-                            ? Image.asset(
-                              "assets/transit/brt.png",
-                              width: 90,
-                            )
-                            : transit.stop.transitType == "DDD"
-                            ? Image.asset(
-                              "assets/transit/dddk.png",
-                              width: 60,
-                            )
-                            : Image.asset(
-                              "assets/transit/aftu.png",
-                              width: 60,
-                            ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            widget.nextStop != null
+                                ? Image.asset(
+                                  "assets/transit/ter-transit.png",
+                                  width: 60,
+                                )
+                                : widget
+                                        .transit
+                                        .mainTripInfo!
+                                        .stop
+                                        .transitType ==
+                                    "BRT"
+                                ? Image.asset(
+                                  "assets/transit/brt.png",
+                                  width: 90,
+                                )
+                                : widget
+                                        .transit
+                                        .mainTripInfo!
+                                        .stop
+                                        .transitType ==
+                                    "DDD"
+                                ? Image.asset(
+                                  "assets/transit/dddk.png",
+                                  width: 60,
+                                )
+                                : Image.asset(
+                                  "assets/transit/aftu.png",
+                                  width: 60,
+                                ),
 
-                        SizedBox(width: 20),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.max,
+                            SizedBox(width: 20),
+                            Expanded(
+                              child: Column(
                                 children: [
-                                  Text(
-                                    "Ligne de bus : ",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Text(
+                                        "Ligne de bus : ",
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        replaceUnderscores(
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .trip!
+                                              .routeId,
+                                        ),
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    replaceUnderscores(
-                                      transit.trip!.routeId,
-                                    ),
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SizedBox(height: 10),
-                             /* Row(
+                                  SizedBox(height: 10),
+                                  /* Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 mainAxisSize: MainAxisSize.max,
@@ -506,75 +581,120 @@ class TimelineTile extends StatelessWidget {
                                 ],
                               ),
                               SizedBox(height: 10),*/
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
-                                  Text(
-                                    "Durée estimée: ",
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    "${getFormattedTravelDuration(transit.departureStopTime!.departureTime, transit.destinationStopTime!.arrivalTime)}",
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    mainAxisSize: MainAxisSize.max,
+                                    children: [
+                                      Text(
+                                        "Heure de départ: ",
+                                        style: TextStyle(
+                                          color: Colors.grey,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      Text(
+                                        "${formatTimeToHHmm(widget.transit.mainTripInfo!.departureStopTime!.departureTime)}",
 
-                              SizedBox(height: 20),
-
-                              InkWell(
-                                onTap: () {
-                                  final currentPosition =
-                                      context
-                                          .read<RouteTimelineBloc>()
-                                          .state
-                                          .currentPosition;
-
-                                  UrlLauncher().openMapsNavigation(
-                                    double.parse(
-                                      currentPosition!.latitude.toString(),
-                                    ),
-                                    double.parse(
-                                      currentPosition.longitude.toString(),
-                                    ),
-                                    transit.stopStart!.stopLat,
-                                    transit.stopStart!.stopLon,
-                                    travelMode: "walk",
-                                  );
-                                },
-                                child: Container(
-                                  height: 35,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Color(0xFFE65100),
-                                      width: .2,
-                                    ),
-                                    color: Color(0xFFE65100),
-                                    borderRadius: BorderRadius.circular(
-                                      100,
-                                    ),
+                                        // "${getFormattedTravelDuration(transit.mainTripInfo!.departureStopTime!.departureTime, transit.mainTripInfo!.destinationStopTime!.arrivalTime)}",
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  child: Center(
-                                    child: Text(
-                                      "Itinéraire vers l'arrêt",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
+
+                                  SizedBox(height: 20),
+                                  if (widget
+                                          .transit
+                                          .intermediateStopsWithTimes
+                                          .length >
+                                      2)
+                                    InkWell(
+                                      onTap: () {
+                                        setState(() {
+                                          _showStops =
+                                              !_showStops; // Inverser l'état au clic
+                                        });
+                                      },
+                                      child: Container(
+                                        height: 35,
+                                        padding: EdgeInsets.only(
+                                          left: 10,
+                                          right: 10,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Color(0xFFE65100),
+                                            width: .2,
+                                          ),
+                                          color: Color(0xFFE65100),
+                                          borderRadius: BorderRadius.circular(
+                                            100,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Center(
+                                              child: Text(
+                                                "${widget.transit.intermediateStopsWithTimes.length - 2} Arrets en route",
+                                                style: TextStyle(
+                                                  color: Colors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            Icon(
+                                              _showStops
+                                                  ? Icons
+                                                      .keyboard_arrow_up_outlined
+                                                  : Icons
+                                                      .keyboard_arrow_down_outlined,
+                                              color: Colors.white,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        Column(
+                          children: [
+                            SizedBox(height: 10),
+                            if (_showStops)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 12.0,
+                                ),
+                                child: TransitInterTimeline(
+                                  items:
+                                      widget
+                                                  .transit
+                                                  .intermediateStopsWithTimes
+                                                  .length >
+                                              2
+                                          ? widget
+                                              .transit
+                                              .intermediateStopsWithTimes
+                                              .sublist(
+                                                1,
+                                                widget
+                                                        .transit
+                                                        .intermediateStopsWithTimes
+                                                        .length -
+                                                    1,
+                                              )
+                                          : [],
                                 ),
                               ),
-                            ],
-                          ),
+                          ],
                         ),
                       ],
                     ),
