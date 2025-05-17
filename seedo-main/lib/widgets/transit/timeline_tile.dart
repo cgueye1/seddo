@@ -605,60 +605,7 @@ class _TimelineTileState extends State<TimelineTile> {
                                     ],
                                   ),
 
-                                  SizedBox(height: 20),
-                                  if (widget
-                                          .transit
-                                          .intermediateStopsWithTimes
-                                          .length >
-                                      2)
-                                    InkWell(
-                                      onTap: () {
-                                        setState(() {
-                                          _showStops =
-                                              !_showStops; // Inverser l'état au clic
-                                        });
-                                      },
-                                      child: Container(
-                                        height: 35,
-                                        padding: EdgeInsets.only(
-                                          left: 10,
-                                          right: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: Color(0xFFE65100),
-                                            width: .2,
-                                          ),
-                                          color: Color(0xFFE65100),
-                                          borderRadius: BorderRadius.circular(
-                                            100,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            Center(
-                                              child: Text(
-                                                "${widget.transit.intermediateStopsWithTimes.length - 2} Arrets en route",
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                            Icon(
-                                              _showStops
-                                                  ? Icons
-                                                      .keyboard_arrow_up_outlined
-                                                  : Icons
-                                                      .keyboard_arrow_down_outlined,
-                                              color: Colors.white,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
+
                                 ],
                               ),
                             ),
@@ -667,6 +614,65 @@ class _TimelineTileState extends State<TimelineTile> {
 
                         Column(
                           children: [
+                            if (widget
+                                .transit
+                                .intermediateStopsWithTimes
+                                .length >
+                                2)
+                            SizedBox(height: 20),
+                            if (widget
+                                .transit
+                                .intermediateStopsWithTimes
+                                .length >
+                                2)
+                              InkWell(
+                                onTap: () {
+                                  setState(() {
+                                    _showStops =
+                                    !_showStops; // Inverser l'état au clic
+                                  });
+                                },
+                                child: Container(
+                                  height: 35,
+                                  padding: EdgeInsets.only(
+                                    left: 10,
+                                    right: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.grey.shade200,
+                                      width: .2,
+                                    ),
+                                    color: Colors.grey.shade200,
+                                    borderRadius: BorderRadius.circular(
+                                      100,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Center(
+                                        child: Text(
+                                          "( ${widget.transit.intermediateStopsWithTimes.length - 2} ) Arrêts intermédiaires",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.normal,
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(
+                                        _showStops
+                                            ? Icons
+                                            .keyboard_arrow_up_outlined
+                                            : Icons
+                                            .keyboard_arrow_down_outlined,
+                                        color: Colors.black,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             SizedBox(height: 10),
                             if (_showStops)
                               Padding(

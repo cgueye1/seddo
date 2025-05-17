@@ -83,14 +83,17 @@ class TransitResponseModel {
 class TransitFullResponseModel {
   final TransitResponseModel? mainTripInfo;
   final List<TransitResponseInterModel> intermediateStopsWithTimes;
+  final int size;
 
   TransitFullResponseModel({
     required this.mainTripInfo,
     required this.intermediateStopsWithTimes,
+    required this.size
   });
 
   factory TransitFullResponseModel.fromJson(Map<String, dynamic> json) {
     return TransitFullResponseModel(
+      size:json['size'] ?? 0,
       mainTripInfo:
           json['mainTripInfo'] != null
               ? TransitResponseModel.fromJson(json['mainTripInfo'])
@@ -112,6 +115,7 @@ class TransitFullResponseModel {
       'mainTripInfo': mainTripInfo?.toJson(),
       'intermediateStopsWithTimes':
           intermediateStopsWithTimes.map((e) => e.toJson()).toList(),
+      "size": size
     };
   }
 }

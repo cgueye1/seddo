@@ -32,6 +32,12 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     on<RouteTimelineDepartureDataRequested>(_onDepartureDataRequested);
     on<RouteTimelineCurrentPositionUpdated>(_onCurrentPositionUpdated);
     on<RouteTimelineDispose>(_onDispose);
+    on<RouteTimelineTabChanged>((event, emit) async {
+      print("Tab changed to ${event.index}");
+      emit(state.copyWith(itineraireIndex: event.index));
+
+    });
+
   }
 
   @override
@@ -46,7 +52,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     Emitter<RouteTimelineState> emit,
   ) async {
     final appParam = await _getAppParam();
-    emit(state.copyWith(status: RouteTimelineStatus.loading));
+    emit(state.copyWith(status: RouteTimelineStatus.loading,departureTransit: [],itineraireIndex: event.index));
 
     try {
       final currentPosition = await locationService.getCurrentLocation();
@@ -152,8 +158,10 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     final now = DateTime.now();
 
     final body = {
-      "date": formattedDate,
+     "date": formattedDate,
       "time": formattedTime,
+      //"date":"20250515",
+    //  "time":"10:48:00",
       "stopId": "string",
       "start_stop_code": "string",
       "end_stop_code": "string",
@@ -166,13 +174,15 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       "maxDistanceTo": maxDistanceTo,
       "type": "string",
       "orderByFrom": orderByFrom,
+      "index": state.itineraireIndex
     };
+    print(body);
+
     final response = await repository.saveBodyFree(
       body,
       "transit/stops/findBus",
     );
-    print("response.data is Map<String, dynamic>");
-    print(response.data != null && response.data is Map<String, dynamic>);
+
 
     if (response.data != null && response.data is Map<String, dynamic>) {
       return TransitFullResponseModel.fromJson(response.data);
@@ -243,12 +253,15 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       );
 
       if (state.departureTransit.isNotEmpty) {
+        emit(state.copyWith(itineraireSize: state.departureTransit.first.size));
+
         if (!state.adShown &&
             state.appParam != null &&
             !state.appParam!.hideAds) {
           await _showInterstitialAd();
           emit(state.copyWith(adShown: true));
         }
+
 
         break;
       }
@@ -283,8 +296,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     );
 
 
-    print("state.departureTransit.length");
-    print(data);
+
 
     if (data != null) {
       double firstDistanceDepartureToStop =
@@ -393,6 +405,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
               departureTransit: [...departureTransit],
               maxDistanceTo: maxDistanceTo,
               maxDistanceFrom: maxDistanceFrom,
+
             ),
           );
         }

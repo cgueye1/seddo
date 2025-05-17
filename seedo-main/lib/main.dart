@@ -2,33 +2,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
 // Blocs
 import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
-// import 'package:seddoapp/pages/home.dart';
-// import 'package:seddoapp/pages/publie.dart';
-// import 'package:seddoapp/pages/setting.dart';
-// import 'package:seddoapp/pages/auth/login.dart';
-// import 'package:seddoapp/pages/home.dart';
-// import 'package:seddoapp/pages/publie.dart';
-// import 'package:seddoapp/pages/SignalPage.dart';
-// import 'package:seddoapp/pages/setting.dart';
-
-// Pages
-// import 'package:seddoapp/pages/home.dart';
-// import 'package:seddoapp/pages/transit/TransportCommun.dart';
-// Repositories & Services
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/AdMobService.dart';
 import 'package:seddoapp/services/PushNotificationService.dart';
-// import 'package:seddoapp/services/AdMobService.dart';
-// import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/widgets/navitems.dart';
-
 import 'firebase_options.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -86,13 +69,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primaryColor: HexColor(
           '#D95C18',
-        ), // orange foncé (teinte custom, style deep orange 900)
+        ),
         colorScheme: ColorScheme.fromSeed(
           seedColor: HexColor('#D95C18'),
           brightness: Brightness.light,
         ),
         fontFamily: 'Poppins',
-        textTheme: const TextTheme(
+        textTheme:  TextTheme(
           displayLarge: TextStyle(fontFamily: 'Poppins'),
           displayMedium: TextStyle(fontFamily: 'Poppins'),
           displaySmall: TextStyle(fontFamily: 'Poppins'),

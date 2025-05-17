@@ -17,12 +17,15 @@ class RouteTimelineState extends Equatable {
   final Position? currentPosition;
   final bool adShown;
   final AppParamModel? appParam;
-
+  final int itineraireIndex;
+  final PlaceModel? fromPlaceDetails;
+  final PlaceModel? toPlaceDetails;
+  final itineraireSize ;
 
   const RouteTimelineState({
     this.status = RouteTimelineStatus.initial,
     this.departureTransit = const [],
-   // this.selectedFilter,
+    // this.selectedFilter,
     this.startLat = 0,
     this.startLon = 0,
     this.endLat = 0,
@@ -33,13 +36,17 @@ class RouteTimelineState extends Equatable {
     this.errorMessage,
     this.currentPosition,
     this.adShown = false,
-    this.appParam
+    this.appParam,
+    this.itineraireIndex = 0,
+    this.itineraireSize = 0,
+    this.fromPlaceDetails,
+    this.toPlaceDetails,
   });
 
   RouteTimelineState copyWith({
     RouteTimelineStatus? status,
     List<TransitFullResponseModel>? departureTransit,
-  //  Filter? selectedFilter,
+    //  Filter? selectedFilter,
     double? startLat,
     double? startLon,
     bool? departureLoader,
@@ -50,7 +57,11 @@ class RouteTimelineState extends Equatable {
     String? errorMessage,
     Position? currentPosition,
     bool? adShown,
-    AppParamModel? appParam
+    AppParamModel? appParam,
+    int? itineraireIndex,
+    int? itineraireSize,
+    PlaceModel? fromPlaceDetails,
+    PlaceModel? toPlaceDetails,
   }) {
     return RouteTimelineState(
       status: status ?? this.status,
@@ -66,8 +77,12 @@ class RouteTimelineState extends Equatable {
       departureLoader: departureLoader ?? this.departureLoader,
       currentPosition: currentPosition ?? this.currentPosition,
       adShown: adShown ?? this.adShown,
-      appParam:  appParam?? this. appParam,
+      appParam: appParam ?? this.appParam,
+      itineraireIndex: itineraireIndex ?? this.itineraireIndex,
+      itineraireSize:  itineraireSize ?? this. itineraireSize,
 
+      fromPlaceDetails: fromPlaceDetails?? this.fromPlaceDetails,
+      toPlaceDetails: toPlaceDetails ?? this.toPlaceDetails,
     );
   }
 
@@ -75,7 +90,7 @@ class RouteTimelineState extends Equatable {
   List<Object?> get props => [
     status,
     departureTransit,
-  //  selectedFilter,
+    //  selectedFilter,
     startLat,
     startLon,
     endLat,
@@ -86,6 +101,10 @@ class RouteTimelineState extends Equatable {
     departureLoader,
     currentPosition,
     adShown,
-    appParam
+    appParam,
+    itineraireIndex,
+    itineraireSize,
+    fromPlaceDetails,
+    toPlaceDetails
   ];
 }

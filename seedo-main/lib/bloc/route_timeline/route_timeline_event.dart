@@ -11,11 +11,13 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
   final PlaceModel? fromPlaceDetails;
   final PlaceModel? toPlaceDetails;
   final StopTimeResponseModel? stopTimeResponse;
+  final int index;
 
   const RouteTimelineInitialized({
     this.fromPlaceDetails,
     this.toPlaceDetails,
     this.stopTimeResponse,
+    this.index=0
   });
 
   @override
@@ -23,6 +25,7 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
     fromPlaceDetails ?? '',
     toPlaceDetails ?? '',
     stopTimeResponse ?? '',
+    index
   ];
 }
 
@@ -79,4 +82,10 @@ class RouteTimelineDispose extends RouteTimelineEvent {
 
   @override
   List<Object> get props => [];
+}
+
+
+class RouteTimelineTabChanged extends RouteTimelineEvent {
+  final int index;
+  const RouteTimelineTabChanged(this.index);
 }
