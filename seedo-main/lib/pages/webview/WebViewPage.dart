@@ -4,7 +4,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class WebViewPage extends StatefulWidget {
   final String url;
 
-  const WebViewPage({Key? key, required this.url}) : super(key: key);
+  const WebViewPage({super.key, required this.url});
 
   @override
   State<WebViewPage> createState() => _WebViewPageState();
@@ -13,42 +13,47 @@ class WebViewPage extends StatefulWidget {
 class _WebViewPageState extends State<WebViewPage> {
   late final WebViewController _controller;
 
-
   @override
   void initState() {
     super.initState();
     _controller =
-    WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..loadRequest(Uri.parse(widget.url));
+        WebViewController()
+          ..setJavaScriptMode(JavaScriptMode.unrestricted)
+          ..loadRequest(Uri.parse(widget.url));
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: Container(
-        width:100,
+        width: 100,
         height: 30,
         decoration: BoxDecoration(
           color: Colors.white.withOpacity(.4),
-          borderRadius: BorderRadius.circular(50)
+          borderRadius: BorderRadius.circular(50),
         ),
         padding: EdgeInsets.all(5),
         child: InkWell(
-            onTap: () {
-              Navigator.of(context).pop();
-            },
-            child: Center(child:Row(
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+          child: Center(
+            child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-
-              Icon(Icons.arrow_back_ios_outlined),
-              SizedBox(width: 5,),
-              Text("Retour",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.black),)
-            ]))
-
+              children: [
+                Icon(Icons.arrow_back_ios_outlined),
+                SizedBox(width: 5),
+                Text(
+                  "Retour",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-
       ),
       body: WebViewWidget(controller: _controller),
     );

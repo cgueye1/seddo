@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seddoapp/bloc/auth/auth_state.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
+import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/pages/CommandesPage.dart';
+import 'package:seddoapp/pages/auth/login.dart';
 import 'package:seddoapp/pages/profil.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 
 class SettingPage extends StatefulWidget {
-  const SettingPage({Key? key}) : super(key: key);
+  const SettingPage({super.key});
 
   @override
   State<SettingPage> createState() => _SettingPageState();
@@ -22,11 +25,9 @@ class _SettingPageState extends State<SettingPage> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         return Scaffold(
-          backgroundColor:
-              Colors.grey[100], // Mise à jour de la couleur de fond
+          backgroundColor: Colors.grey[100],
           appBar: AppBar(
-            backgroundColor:
-                Colors.grey[100], // Mise à jour de la couleur de l'AppBar
+            backgroundColor: Colors.grey[100],
             elevation: 0,
             title: const Text(
               'Paramètres',
@@ -40,7 +41,7 @@ class _SettingPageState extends State<SettingPage> {
           body: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(
               horizontal: 20.0,
-              vertical: 10.0, // Réduction du padding vertical
+              vertical: 10.0,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,16 +49,14 @@ class _SettingPageState extends State<SettingPage> {
                 // Profile card
                 Container(
                   decoration: BoxDecoration(
-                    color:
-                        Colors
-                            .white, // Mise à jour de la couleur du fond en blanc
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 8,
-                    ), // Ajout de padding vertical
+                    ),
                     leading: const CircleAvatar(
                       radius: 25,
                       backgroundImage: AssetImage('assets/icons/profile.png'),
@@ -65,23 +64,30 @@ class _SettingPageState extends State<SettingPage> {
                     title: Text(
                       state.currentUser != null
                           ? '${state.currentUser!.firstName} ${state.currentUser!.lastName}'
-                          : 'Cheikh Gueye', // Mise à jour du nom par défaut
+                          : 'Invité',
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
                     subtitle: Text(
-                      state.currentUser?.email ??
-                          'chgueye@gmail.com', // Mise à jour de l'email par défaut
+                      state.currentUser?.email ?? 'exemple@gmail.com',
                       style: const TextStyle(fontSize: 14),
                     ),
                     trailing: const Icon(Icons.edit_outlined),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => ProfilePage()),
-                      );
+                      // Vérifier si l'utilisateur est connecté avant d'accéder au profil
+                      if (state.currentUser != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePage(),
+                          ),
+                        );
+                      } else {
+                        // Afficher une boîte de dialogue demandant à l'utilisateur de se connecter
+                        _showLoginRequiredDialog(context);
+                      }
                     },
                   ),
                 ),
@@ -105,7 +111,10 @@ class _SettingPageState extends State<SettingPage> {
                         color: HexColor('#D95C18').withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Icon(Icons.article, color: HexColor('#D95C18')),
+                      child: Icon(
+                        Icons.article_rounded,
+                        color: HexColor('#D95C18'),
+                      ),
                     ),
                     title: const Text(
                       'Mes commandes',
@@ -120,12 +129,18 @@ class _SettingPageState extends State<SettingPage> {
                       size: 30,
                     ),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CommandesPage(),
-                        ),
-                      );
+                      // Vérifier si l'utilisateur est connecté avant d'accéder aux commandes
+                      if (state.currentUser != null) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CommandesPage(),
+                          ),
+                        );
+                      } else {
+                        // Afficher une boîte de dialogue demandant à l'utilisateur de se connecter
+                        _showLoginRequiredDialog(context);
+                      }
                     },
                   ),
                 ),
@@ -256,13 +271,96 @@ class _SettingPageState extends State<SettingPage> {
                       ),
                     ),
                     onTap: () {
-                      // Logique de déconnexion
+                      // Vérifier si l'utilisateur est connecté avant de se déconnecter
+                      if (state.currentUser != null) {
+                        // Afficher le dialogue de confirmation de déconnexion
+                        _showLogoutConfirmDialog(context);
+                      } else {
+                        // Informer l'utilisateur qu'il n'est pas connecté
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Vous n\'êtes pas connecté.'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
               ],
             ),
           ),
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher une boîte de dialogue lorsque l'utilisateur n'est pas connecté
+  void _showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Connexion requise'),
+          content: const Text(
+            'Vous devez être connecté pour accéder à cette fonctionnalité.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => LogIn()),
+                );
+              },
+              child: const Text('Se connecter'),
+              style: TextButton.styleFrom(foregroundColor: HexColor('#D95C18')),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Méthode pour afficher une boîte de dialogue de confirmation de déconnexion
+  void _showLogoutConfirmDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Déconnexion'),
+          content: const Text('Êtes-vous sûr de vouloir vous déconnecter?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Annuler'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Utiliser le bloc AuthBloc pour la déconnexion
+                context.read<AuthBloc>().add(AuthLogoutEvent());
+
+                // Afficher un message de déconnexion réussie
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Vous avez été déconnecté avec succès.'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
+              },
+              child: const Text('Déconnecter'),
+              style: TextButton.styleFrom(foregroundColor: HexColor('#D95C18')),
+            ),
+          ],
         );
       },
     );

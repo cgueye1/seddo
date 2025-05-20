@@ -16,7 +16,8 @@ class TimelinePoint extends StatelessWidget {
   final bool? isDestination;
   final TransitFullResponseModel? transit;
 
-  TimelinePoint({
+  const TimelinePoint({
+    super.key,
     required this.label,
     this.isStart = false,
     this.isEnd = false,

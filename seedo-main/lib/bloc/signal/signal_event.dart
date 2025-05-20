@@ -57,7 +57,12 @@ class StopAudio extends SignalementEvent {
 }
 
 class RemovePhoto extends SignalementEvent {
-  const RemovePhoto();
+  final int? index; // Ajout d'un index pour identifier quelle photo supprimer
+
+  const RemovePhoto({this.index});
+
+  @override
+  List<Object?> get props => [index];
 }
 
 class RemoveAudio extends SignalementEvent {

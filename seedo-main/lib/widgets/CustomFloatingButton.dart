@@ -13,7 +13,7 @@ class CustomFloatingButton extends StatelessWidget {
   final Color? iconColor; // 🔸 nouvelle propriété
 
   const CustomFloatingButton({
-    Key? key,
+    super.key,
     required this.imagePath,
     required this.onPressed,
     this.backgroundColor = Colors.white,
@@ -23,7 +23,7 @@ class CustomFloatingButton extends StatelessWidget {
     this.labelColor = Colors.black54,
     this.imageSize = 30.0,
     this.iconColor, // 🔸 ajout au constructeur
-  }) : super(key: key);
+  });
 
   Widget _buildImage() {
     String extension = imagePath.toLowerCase();

@@ -1,4 +1,6 @@
 // 3. Now, let's create the BLoC
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -251,7 +253,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
 
       if (pricing.price != 0.0 && response != null) {
         final paiementRequest = PaiementRequestModel(
-          ref: '${titre}-${response.data["id"]}',
+          ref: '$titre-${response.data["id"]}',
           price: pricing.price.toString(),
           itemName: titre,
           commandeName: titre,

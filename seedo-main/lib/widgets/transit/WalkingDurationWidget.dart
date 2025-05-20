@@ -8,7 +8,8 @@ class WalkingDurationWidget extends StatelessWidget {
   final double endLat;
   final double endLon;
 
-  WalkingDurationWidget({
+  const WalkingDurationWidget({
+    super.key,
     required this.startLat,
     required this.startLon,
     required this.endLat,
@@ -25,7 +26,8 @@ class WalkingDurationWidget extends StatelessWidget {
     final deltaLat = lat2Rad - lat1Rad;
     final deltaLon = lon2Rad - lon1Rad;
 
-    final a = sin(deltaLat / 2) * sin(deltaLat / 2) +
+    final a =
+        sin(deltaLat / 2) * sin(deltaLat / 2) +
         cos(lat1Rad) * cos(lat2Rad) * sin(deltaLon / 2) * sin(deltaLon / 2);
     final c = 2 * atan2(sqrt(a), sqrt(1 - a));
 
@@ -35,7 +37,13 @@ class WalkingDurationWidget extends StatelessWidget {
   double _degToRad(double deg) {
     return deg * (pi / 180.0);
   }
-  String getWalkingDuration(double startLat, double startLon, double endLat, double endLon) {
+
+  String getWalkingDuration(
+    double startLat,
+    double startLon,
+    double endLat,
+    double endLon,
+  ) {
     double distanceKm = calculateDistance(startLat, startLon, endLat, endLon);
 
     const walkingSpeedKmPerHour = 5.0;

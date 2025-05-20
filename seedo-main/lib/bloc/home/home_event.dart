@@ -242,3 +242,17 @@ class LoadNearbyADS extends HomeEvent {
   @override
   List<Object?> get props => [latitude, longitude];
 }
+
+class CheckAuthStatusEvent extends HomeEvent {
+  const CheckAuthStatusEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+class ResetDialogFlagEvent extends HomeEvent {
+  const ResetDialogFlagEvent();
+
+  @override
+  List<Object> get props => [];
+}

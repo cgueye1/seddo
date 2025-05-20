@@ -2,130 +2,246 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
-import 'package:seddoapp/widgets/publicationListcard.dart';
+import 'package:seddoapp/models/publication_model.dart';
+import 'package:seddoapp/pages/details.dart';
+import 'package:seddoapp/utils/constant.dart';
+import 'package:seddoapp/utils/date_formatter.dart';
+import 'package:seddoapp/utils/HexColor.dart';
+import 'package:intl/intl.dart';
 
 class PublicationListSection extends StatelessWidget {
-  const PublicationListSection({super.key});
+  const PublicationListSection({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        print(
-          "Rebuilding PublicationListSection: ${state.publications.length} publications, keyword=${state.lastSearchKeyword}",
-        );
+        if (state.isLoadingPublications) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state.publications.isEmpty) {
+          return const Center(child: Text('Aucune publication disponible'));
+        }
 
-        return Column(
-          key: const ValueKey('publications'),
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
-              child: SizedBox(
-                width: double.infinity,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (state.lastSearchKeyword == null ||
-                        state.lastSearchKeyword!.isEmpty)
-                      GestureDetector(
-                        onTap: () {},
-                        child: const Text(
-                          '',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                            color: Color.fromARGB(255, 0, 0, 0),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(child: _buildPublicationsList(context, state)),
-          ],
+        return ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          itemCount: state.publications.length,
+          itemBuilder: (context, index) {
+            final publication = state.publications[index];
+            return PublicationItem(publication: publication);
+          },
         );
       },
     );
   }
+}
 
-  Widget _buildPublicationsList(BuildContext context, HomeState state) {
-    if (state.isLoadingPublications) {
-      return const Center(child: CircularProgressIndicator());
-    }
+class PublicationItem extends StatelessWidget {
+  final Publication publication;
 
-    if (state.publicationsError != null) {
-      return Center(child: Text('Erreur: ${state.publicationsError}'));
-    }
+  const PublicationItem({Key? key, required this.publication})
+    : super(key: key);
 
-    // Si nous sommes en mode recherche et la liste est vide, montrez "Aucun résultat"
-    if (state.publications.isEmpty) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Column(
-            children: [
-              const Icon(Icons.search_off, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text(
-                state.lastSearchKeyword != null &&
-                        state.lastSearchKeyword!.isNotEmpty
-                    ? "Aucun résultat pour '${state.lastSearchKeyword}'"
-                    : "Aucune publication disponible",
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-            ],
+  @override
+  Widget build(BuildContext context) {
+    // Format price display
+    String priceText =
+        publication.price == 0
+            ? "Gratuit"
+            : "${NumberFormat.decimalPattern().format(publication.price)} FCFA";
+
+    // Determine price badge color
+    Color priceBadgeColor =
+        publication.price == 0
+            ? HexColor("#4CAF50") // Green for free
+            : HexColor("#D95C18"); // Orange for paid
+
+    return GestureDetector(
+      onTap: () {
+        // Navigation vers la page de détails avec la publication sélectionnée
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailPage(publication: publication),
           ),
+        );
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 20),
+        height: 165, // Fixed height for consistent cards
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
-      );
-    }
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Image on the left
+            ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(15),
+                bottomLeft: Radius.circular(15),
+              ),
+              child: Container(
+                width: 130, // Fixed width for the image
+                height: double.infinity,
+                child:
+                    publication.picture.isNotEmpty
+                        ? Image.network(
+                          '${APIConstants.API_BASE_URL_IMG}${publication.picture}',
+                          width: double.infinity,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            print("Error loading image: $error");
+                            return Container(
+                              color: Colors.grey[200],
+                              child: const Icon(
+                                Icons.image_not_supported,
+                                size: 32,
+                                color: Colors.grey,
+                              ),
+                            );
+                          },
+                          loadingBuilder: (context, child, loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              color: Colors.grey[200],
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  value:
+                                      loadingProgress.expectedTotalBytes != null
+                                          ? loadingProgress
+                                                  .cumulativeBytesLoaded /
+                                              loadingProgress
+                                                  .expectedTotalBytes!
+                                          : null,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                        : Container(
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Icon(
+                              Icons.image_not_supported,
+                              size: 32,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+              ),
+            ),
 
-    // Changed to use a ListView inside a SingleChildScrollView for proper scrolling
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: state.publications.length,
-          itemBuilder: (context, index) {
-            // Display price tag based on publication data
-            String priceTag;
-            Color priceTagColor;
+            // Content section on the right
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Category badge at the top
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HexColor("#F0DCFD"),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        publication.categorie.titre,
+                        style: TextStyle(
+                          color: HexColor("#7E30CE"),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
 
-            // This is a simplified example - you should replace with actual logic to determine price
-            if (state.publications[index].titre.contains("Gratuit") ||
-                index == 0) {
-              // First item is free (Paëla)
-              priceTag = "Gratuit";
-              priceTagColor = Colors.green;
-            } else if (index == 1) {
-              // Second item (Thiébou Dieune)
-              priceTag = "2 500 FCFA";
-              priceTagColor = Colors.deepOrange;
-            } else {
-              // Third item (C'est bon)
-              priceTag = "3500 FCFA";
-              priceTagColor = Colors.deepOrange;
-            }
+                    // Title
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        publication.titre,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
 
-            // Get category (in this case, all are "Alimentation")
-            String category = "Alimentation";
+                    // Publication time
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 13,
+                          color: Colors.grey[600],
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          getTimeAgo(publication.createdDate),
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
 
-            // Get expiration date - replace with actual data from your model
-            String expirationDate = index == 0 ? "06/05/2025" : "07/05/2025";
+                    const SizedBox(height: 4),
 
-            return PublicationListCard(
-              publication: state.publications[index],
-              item: state.publications[index],
-              currentPosition: state.currentPosition!,
-              priceTag: priceTag,
-              priceTagColor: priceTagColor,
-              category: category,
-              expirationDate: expirationDate,
-            );
-          },
+                    // Expiration date
+                    Text(
+                      "Expire le ${DateFormat('dd/MM/yyyy').format(DateTime.parse(publication.createdDate))}",
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: HexColor("#D95C18"),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+
+                    // Price badge at the bottom right
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: priceBadgeColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          priceText,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

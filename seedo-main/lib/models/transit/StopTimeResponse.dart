@@ -1,4 +1,4 @@
-
+// ignore_for_file: file_names
 
 import 'package:seddoapp/models/transit/RouteModel.dart';
 import 'package:seddoapp/models/transit/Stop.dart';
@@ -17,26 +17,29 @@ class StopTimeResponseModel {
   final String duration;
   final bool end;
 
-  StopTimeResponseModel(
-      {required this.route,
-      required this.stopTime,
-      required this.trip,
-      required this.distance,
-      required this.duration,
-      required this.end,
-      required this.stopTimeTripUpdate,
-      required this.stop});
+  StopTimeResponseModel({
+    required this.route,
+    required this.stopTime,
+    required this.trip,
+    required this.distance,
+    required this.duration,
+    required this.end,
+    required this.stopTimeTripUpdate,
+    required this.stop,
+  });
 
   factory StopTimeResponseModel.fromJson(Map<String, dynamic> map) {
     return StopTimeResponseModel(
       route: RouteModel.fromJson(map['route']),
       trip: TripModel.fromJson(map['trip']),
-      stopTime: map['stopTime'] != null
-          ? StopTimeModel.fromJson(map['stopTime'])
-          : null,
-      stopTimeTripUpdate: map["stopTimeUpdate"] != null
-          ? StopTimeTripUpdate.fromJson(map["stopTimeUpdate"])
-          : null,
+      stopTime:
+          map['stopTime'] != null
+              ? StopTimeModel.fromJson(map['stopTime'])
+              : null,
+      stopTimeTripUpdate:
+          map["stopTimeUpdate"] != null
+              ? StopTimeTripUpdate.fromJson(map["stopTimeUpdate"])
+              : null,
       distance: map['distance'].toString(),
       duration: map['duration'].toString(),
       end: map['end'],

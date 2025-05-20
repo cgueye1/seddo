@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class SplashPage extends StatefulWidget {
-  const SplashPage({Key? key}) : super(key: key);
+  const SplashPage({super.key});
 
   @override
   _SplashState createState() => _SplashState();
@@ -33,6 +33,16 @@ class _SplashState extends State<SplashPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Center(child: Image.asset('assets/images/seddo_.png')),
+                // Center(
+                //   child: Text(
+                //     'SEDDO',
+                //     style: TextStyle(
+                //       fontSize: 100,
+                //       fontWeight: FontWeight.w500,
+                //       color: HexColor('#D95C18'),
+                //     ),
+                //   ),
+                // ),
               ],
             ),
           ),

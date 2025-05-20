@@ -1,5 +1,5 @@
 // Dans homeBloc.dart
-// ignore_for_file: avoid_init_to_null, unused_local_variable, unnecessary_null_comparison
+// ignore_for_file: avoid_init_to_null, unused_local_variable, unnecessary_null_comparison, unused_element
 
 import 'dart:async';
 
@@ -14,7 +14,9 @@ import 'package:seddoapp/repositories/auth_repository.dart';
 import 'package:seddoapp/repositories/categorie_repository.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
+import 'package:seddoapp/services/SharedPreferencesService.dart';
 import 'package:seddoapp/services/menu_service.dart';
+import 'package:seddoapp/utils/constant.dart';
 import '../../models/AppParamModel.dart';
 import '../../repositories/defaultRepository.dart';
 import 'home_state.dart';
@@ -35,6 +37,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final TextEditingController searchController = TextEditingController();
   final SearchManager searchManager = SearchManager();
   final DefaultRepository repository = DefaultRepository();
+  final SharedPreferencesService _sharedPreferencesService =
+      SharedPreferencesService();
 
   final LocationService locationService = LocationService();
 
@@ -51,6 +55,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<CategoryChanged>(_onCategoryChanged);
     on<LoadSubcategories>(_onLoadSubcategories);
     on<SubcategoryChanged>(_onSubcategoryChanged);
+    on<CheckAuthStatusEvent>(_onCheckAuthStatus);
 
     on<TypesFilterChanged>(_onTypesFilterChanged);
     on<ResetFilters>(_onResetFilters);
@@ -69,6 +74,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
     on<ResetInitialPublicationsFlag>(_onResetInitialPublicationsFlag);
     on<LoadNearbyADS>(_loadNearbyADS);
+    on<ResetDialogFlagEvent>((event, emit) {
+      emit(state.copyWith(showLoginDialog: false));
+    });
 
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
@@ -584,7 +592,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
   Future<List<Publication>> _getAds(double lat, double lon) async {
     final response = await repository.getData(
-      "meals/sponsored?latitude=${lat}&longitude=${lon}",
+      "meals/sponsored?latitude=$lat&longitude=$lon",
     );
 
     if (response.data != null) {
@@ -752,5 +760,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     }
+  }
+
+  Future<void> _onCheckAuthStatus(
+    CheckAuthStatusEvent event,
+    Emitter<HomeState> emit,
+  ) async {
+    final authToken = await _sharedPreferencesService.getValue(
+      APIConstants.AUTH_TOKEN,
+    );
+
+    if (authToken != null && authToken.isNotEmpty) {
+      // L'utilisateur est authentifié
+      emit(state.copyWith(isAuthenticated: true, showLoginDialog: false));
+    } else {
+      // L'utilisateur n'est pas authentifié, montrer la boîte de dialogue
+      emit(state.copyWith(isAuthenticated: false, showLoginDialog: true));
+    }
+  }
+
+  // Gestionnaire pour réinitialiser le drapeau de dialogue
+  void _onResetDialogFlag(ResetDialogFlagEvent event, Emitter<HomeState> emit) {
+    emit(state.copyWith(showLoginDialog: false));
   }
 }

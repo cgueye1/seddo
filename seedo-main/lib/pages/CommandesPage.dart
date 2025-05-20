@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 
 class CommandesPage extends StatefulWidget {
-  const CommandesPage({Key? key}) : super(key: key);
+  const CommandesPage({super.key});
 
   @override
   State<CommandesPage> createState() => _CommandesPageState();

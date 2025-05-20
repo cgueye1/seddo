@@ -17,16 +17,15 @@ class PlaceSearchWidget extends StatefulWidget {
   final FocusNode? focusNode;
   final String apiKey;
 
-
-  const PlaceSearchWidget ({
-    Key? key,
+  const PlaceSearchWidget({
+    super.key,
     required this.onLocationSelected,
     required this.label,
     required this.icon,
     this.initPlace,
     this.focusNode,
-    required this.apiKey
-  }) : super(key: key);
+    required this.apiKey,
+  });
 
   @override
   _DakarSearchWidgetState createState() => _DakarSearchWidgetState();
@@ -38,7 +37,6 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
   final Duration _debounceDelay = const Duration(milliseconds: 500);
   bool positionLoader = false;
   late FocusNode _focusNode;
-
 
   @override
   void initState() {
@@ -81,9 +79,9 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
 
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/geocode/json'
-            '?latlng=${position.latitude},${position.longitude}'
-            '&key=${widget.apiKey}'
-            '&language=fr',
+        '?latlng=${position.latitude},${position.longitude}'
+        '&key=${widget.apiKey}'
+        '&language=fr',
       );
 
       final response = await http.get(url);
@@ -100,7 +98,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
             address: result['formatted_address'],
           );
           print("result__");
-          print(result );
+          print(result);
 
           _controller.text = place.name;
           widget.onLocationSelected(place);
@@ -126,12 +124,12 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
     try {
       final url = Uri.parse(
         'https://maps.googleapis.com/maps/api/place/autocomplete/json'
-            '?input=${Uri.encodeQueryComponent(query)}'
-            '&key=${widget.apiKey}'
-            '&language=fr'
-            '&components=country:sn'
-            '&location=14.7167,-17.4677' // Dakar coordinates
-            '&radius=50000', // 50km around Dakar
+        '?input=${Uri.encodeQueryComponent(query)}'
+        '&key=${widget.apiKey}'
+        '&language=fr'
+        '&components=country:sn'
+        '&location=14.7167,-17.4677' // Dakar coordinates
+        '&radius=50000', // 50km around Dakar
       );
 
       final response = await http.get(url);
@@ -149,7 +147,7 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
               longitude: 0, // Temporaire, sera mis à jour dans _getPlaceDetails
               name: prediction['description'],
               address: prediction['description'],
-              placeId:  prediction['place_id'],
+              placeId: prediction['place_id'],
             );
           }).toList();
         }
@@ -164,9 +162,9 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
   Future<PlaceModel> _getPlaceDetails(String placeId) async {
     final url = Uri.parse(
       'https://maps.googleapis.com/maps/api/place/details/json'
-          '?place_id=$placeId'
-          '&key=${widget.apiKey}'
-          '&language=fr',
+      '?place_id=$placeId'
+      '&key=${widget.apiKey}'
+      '&language=fr',
     );
 
     final response = await http.get(url);
@@ -242,19 +240,21 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
                 suggestion.name,
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
-              subtitle: suggestion.address != suggestion.name
-                  ? Text(
-                suggestion.address,
-                overflow: TextOverflow.ellipsis,
-              )
-                  : null,
+              subtitle:
+                  suggestion.address != suggestion.name
+                      ? Text(
+                        suggestion.address,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                      : null,
             );
           },
           onSelected: (suggestion) async {
             try {
-
               // Pour les suggestions Google, nous devons obtenir les détails complets
-              final place = await _getPlaceDetails(suggestion.placeId!); // Note: Ici nous utilisons name comme ID temporaire
+              final place = await _getPlaceDetails(
+                suggestion.placeId!,
+              ); // Note: Ici nous utilisons name comme ID temporaire
               print("place.longitude");
               print(place.longitude);
               _controller.text = place.name;
@@ -268,40 +268,42 @@ class _DakarSearchWidgetState extends State<PlaceSearchWidget> {
               FocusScope.of(context).unfocus();
             }
           },
-          emptyBuilder: (context) => Padding(
-            padding: EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'Aucun résultat trouvé',
-                  style: TextStyle(color: Colors.grey),
-                ),
-                SizedBox(height: 10),
-                positionLoader
-                    ? Center(
-                  child: Container(
-                    width: 50,
-                    child: LoadingIndicator(
-                      indicatorType: Indicator.ballScaleRipple,
-                      colors: const [Colors.orangeAccent],
-                      strokeWidth: 2,
-                      backgroundColor: Colors.transparent,
-                      pathBackgroundColor: Colors.transparent,
+          emptyBuilder:
+              (context) => Padding(
+                padding: EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Aucun résultat trouvé',
+                      style: TextStyle(color: Colors.grey),
                     ),
-                  ),
-                )
-                    : Center(
-                  child: ElevatedButton.icon(
-                    onPressed: _useCurrentLocation,
-                    icon: Icon(Icons.my_location),
-                    label: Text("Utiliser ma position actuelle"),
-                  ),
+                    SizedBox(height: 10),
+                    positionLoader
+                        ? Center(
+                          child: SizedBox(
+                            width: 50,
+                            child: LoadingIndicator(
+                              indicatorType: Indicator.ballScaleRipple,
+                              colors: const [Colors.orangeAccent],
+                              strokeWidth: 2,
+                              backgroundColor: Colors.transparent,
+                              pathBackgroundColor: Colors.transparent,
+                            ),
+                          ),
+                        )
+                        : Center(
+                          child: ElevatedButton.icon(
+                            onPressed: _useCurrentLocation,
+                            icon: Icon(Icons.my_location),
+                            label: Text("Utiliser ma position actuelle"),
+                          ),
+                        ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-          loadingBuilder: (context) => Center(child: CircularProgressIndicator()),
+              ),
+          loadingBuilder:
+              (context) => Center(child: CircularProgressIndicator()),
         ),
       ],
     );

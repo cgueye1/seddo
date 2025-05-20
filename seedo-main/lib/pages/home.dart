@@ -6,6 +6,7 @@ import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/pages/SignalPage.dart';
+import 'package:seddoapp/pages/auth/login.dart';
 import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
@@ -54,10 +55,31 @@ class _HomePageContent extends StatefulWidget {
   State<_HomePageContent> createState() => _HomePageContentState();
 }
 
+void handleSignalButtonPress(BuildContext context) {
+  // Déclencher l'événement de vérification d'authentification
+  context.read<HomeBloc>().add(const CheckAuthStatusEvent());
+}
+
 class _HomePageContentState extends State<_HomePageContent> {
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocConsumer<HomeBloc, HomeState>(
+      listener: (context, state) {
+        // Si l'utilisateur est authentifié et a cliqué pour signaler
+        if (state.isAuthenticated && state.showLoginDialog == false) {
+          showSignalModal(context);
+        }
+
+        // Si l'utilisateur n'est pas authentifié et doit voir le dialogue
+        if (!state.isAuthenticated && state.showLoginDialog) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showLoginRequiredDialog(context);
+            // Réinitialiser l'état showLoginDialog après l'affichage
+            context.read<HomeBloc>().add(const ResetDialogFlagEvent());
+          });
+        }
+      },
+
       builder: (context, state) {
         if (!state.hasLoadedInitialPublications &&
             state.currentLatitude != null &&
@@ -73,17 +95,15 @@ class _HomePageContentState extends State<_HomePageContent> {
           // Ajout de la barre de navigation fixe en bas
           // Ajout du bouton flottant avec navigation vers la page de signalement
           floatingActionButton: CustomFloatingButton(
-            imagePath:
-                'assets/icons/siren.png', // Chemin vers votre image d'alerte
+            imagePath: 'assets/icons/siren.png',
             onPressed: () {
-              // Ouverture de la modale de signalement
-              showSignalModal(context);
+              // Use the new handler function instead of directly showing the modal
+              handleSignalButtonPress(context);
             },
             label: '',
             backgroundColor: Colors.white,
             elevation: 4.0,
           ),
-
           // Placement du bouton en bas à droite
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           body:
@@ -283,5 +303,58 @@ class _HomePageContentState extends State<_HomePageContent> {
         ),
       );
     }
+  }
+
+  // Fonction pour afficher la boîte de dialogue de connexion requise
+  void showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            'Connexion requise',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Veuillez vous connecter d\'abord pour signaler une situation.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: HexColor('#D95C18'),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+
+                // Naviguer vers la page de connexion avec Navigator.push
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (context) => LogIn()));
+              },
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

@@ -1,45 +1,63 @@
-// lib/blocs/auth/auth_state.dart
-
 import 'package:equatable/equatable.dart';
-import '../../models/user_model.dart';
 
-abstract class AuthState extends Equatable {
-  const AuthState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class AuthInitialState extends AuthState {}
-
-class AuthLoadingState extends AuthState {}
-
-class AuthAuthenticatedState extends AuthState {
-  final UserModel user;
-  final String message;
-
-  const AuthAuthenticatedState({required this.user, required this.message});
+abstract class AuthEvent extends Equatable {
+  const AuthEvent();
 
   @override
-  List<Object?> get props => [user, message];
+  List<Object> get props => [];
 }
 
-class AuthUnauthenticatedState extends AuthState {}
+class AuthLoginEvent extends AuthEvent {
+  final String email;
+  final String password;
 
-class AuthErrorState extends AuthState {
-  final String message;
-
-  const AuthErrorState({required this.message});
+  const AuthLoginEvent({required this.email, required this.password});
 
   @override
-  List<Object?> get props => [message];
+  List<Object> get props => [email, password];
 }
 
-class AuthForgotPasswordSentState extends AuthState {
+class AuthSignupEvent extends AuthEvent {
+  final String firstName;
+  final String lastName;
+  final String email;
+  final String password;
+  final String phone;
+  final bool activated;
+  final String role;
+  final String profil;
+
+  const AuthSignupEvent({
+    required this.firstName,
+    required this.lastName,
+    required this.email,
+    required this.password,
+    required this.phone,
+    this.activated = true,
+    this.role = "USER",
+    this.profil = "USER",
+  });
+
+  @override
+  List<Object> get props => [
+    firstName,
+    lastName,
+    email,
+    password,
+    phone,
+    activated,
+    role,
+    profil,
+  ];
+}
+
+class AuthLogoutEvent extends AuthEvent {}
+
+class AuthForgotPasswordEvent extends AuthEvent {
   final String email;
 
-  const AuthForgotPasswordSentState({required this.email});
+  const AuthForgotPasswordEvent({required this.email});
 
   @override
-  List<Object?> get props => [email];
+  List<Object> get props => [email];
 }

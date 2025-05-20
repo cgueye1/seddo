@@ -5,7 +5,7 @@ import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/widgets/CustomFloatingButton.dart';
 
 class SmsPage extends StatefulWidget {
-  const SmsPage({Key? key}) : super(key: key);
+  const SmsPage({super.key});
 
   @override
   State<SmsPage> createState() => _SmsPageState();
@@ -253,8 +253,8 @@ class _SmsPageState extends State<SmsPage> {
   }
 
   void _showSendMessageModal(BuildContext context) {
-    final TextEditingController _phoneController = TextEditingController();
-    final TextEditingController _messageController = TextEditingController();
+    final TextEditingController phoneController = TextEditingController();
+    final TextEditingController messageController = TextEditingController();
 
     showModalBottomSheet(
       context: context,
@@ -329,7 +329,7 @@ class _SmsPageState extends State<SmsPage> {
                         // Champ de saisie
                         Expanded(
                           child: TextField(
-                            controller: _phoneController,
+                            controller: phoneController,
                             keyboardType: TextInputType.phone,
                             decoration: const InputDecoration(
                               hintText: 'Entrez le numéro de téléphone',
@@ -356,7 +356,7 @@ class _SmsPageState extends State<SmsPage> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: TextField(
-                      controller: _messageController,
+                      controller: messageController,
                       maxLines: 5,
                       decoration: const InputDecoration(
                         hintText: 'Ecrivez votre message...',
@@ -374,8 +374,8 @@ class _SmsPageState extends State<SmsPage> {
                       onPressed: () {
                         _sendMessage(
                           context,
-                          _phoneController.text,
-                          _messageController.text,
+                          phoneController.text,
+                          messageController.text,
                         );
                       },
                       style: ElevatedButton.styleFrom(

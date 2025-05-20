@@ -20,7 +20,8 @@ class TransitRoute {
     return TransitRoute(
       routeId: map['routeId'],
       agencyId: map['agency_id'],
-      routeShortName: map['route_short_name'], // Utilisation de la méthode statique
+      routeShortName:
+          map['route_short_name'], // Utilisation de la méthode statique
       routeLongName: removePrefix(map['routeId'], map['route_long_name']),
       routeType: map['route_type'],
       routeSortOrder: map['route_sort_order'],
@@ -45,8 +46,10 @@ class TransitRoute {
 
   // Méthode statique pour supprimer le préfixe
   static String removePrefix(String prefix, String input) {
-    if (input.startsWith(prefix + '_')) {
-      return input.substring(prefix.length + 1); // Retourner la chaîne après le préfixe
+    if (input.startsWith('${prefix}_')) {
+      return input.substring(
+        prefix.length + 1,
+      ); // Retourner la chaîne après le préfixe
     }
     return input;
   }

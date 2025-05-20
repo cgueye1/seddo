@@ -1,18 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/widgets/transit/TransitInterTimeline.dart';
 import 'package:seddoapp/widgets/transit/WalkingDurationWidget.dart';
-import '../../bloc/route_timeline/route_timeline_bloc.dart';
 import '../../models/transit/Stop.dart';
 import '../../models/transit/StopTimeResponse.dart';
 import '../../models/transit/TransitResponseModel.dart';
 import '../../utils/constant.dart';
 import '../../utils/date_formatter.dart';
-import '../../utils/url_launcher.dart';
 
 class TimelineTile extends StatefulWidget {
   final TransitFullResponseModel transit;
@@ -26,7 +23,8 @@ class TimelineTile extends StatefulWidget {
   final double? lon;
   final bool destination;
 
-  TimelineTile({
+  const TimelineTile({
+    super.key,
     required this.transit,
     this.isLast = false,
     required this.nexttransit,
@@ -64,7 +62,7 @@ class _TimelineTileState extends State<TimelineTile> {
     if (delayInSeconds.isNegative) {
       return minutes.abs() != 0 ? "-${minutes.abs()} min " : "${seconds}s";
     } else {
-      return minutes != 0 ? "+${minutes} min" : "${seconds}s";
+      return minutes != 0 ? "+$minutes min" : "${seconds}s";
     }
   }
 
@@ -103,7 +101,7 @@ class _TimelineTileState extends State<TimelineTile> {
     if (hours > 0) {
       return '${hours}h ${minutes.toString().padLeft(2, '0')}min';
     } else {
-      return '${minutes} min';
+      return '$minutes min';
     }
   }
 
@@ -167,10 +165,10 @@ class _TimelineTileState extends State<TimelineTile> {
                               widget.stopTimeResponse == null
                           ? 80
                           : _showStops
-                          ?  timelineHeight
+                          ? timelineHeight
                           : 150)
                       : _showStops
-                      ?  timelineHeight
+                      ? timelineHeight
                       : 150,
               color: Colors.grey,
             ),
@@ -594,7 +592,13 @@ class _TimelineTileState extends State<TimelineTile> {
                                         ),
                                       ),
                                       Text(
-                                        "${formatTimeToHHmm(widget.transit.mainTripInfo!.departureStopTime!.departureTime)}",
+                                        formatTimeToHHmm(
+                                          widget
+                                              .transit
+                                              .mainTripInfo!
+                                              .departureStopTime!
+                                              .departureTime,
+                                        ),
 
                                         // "${getFormattedTravelDuration(transit.mainTripInfo!.departureStopTime!.departureTime, transit.mainTripInfo!.destinationStopTime!.arrivalTime)}",
                                         style: TextStyle(

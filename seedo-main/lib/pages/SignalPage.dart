@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/signal/signal_bloc.dart';
 import 'package:seddoapp/bloc/signal/signal_event.dart';
 import 'package:seddoapp/bloc/signal/signal_state.dart';
+import 'package:seddoapp/utils/DottedBorderPainter.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 
 import '../repositories/publication_repository.dart';
@@ -24,13 +25,13 @@ Future<void> showSignalModal(BuildContext context) {
     builder:
         (context) => BlocProvider(
           create: (_) => SignalementBloc(publicationRepository),
-          child: SignalModalContent(),
+          child: const SignalModalContent(),
         ),
   );
 }
 
 class SignalModalContent extends StatefulWidget {
-  const SignalModalContent({Key? key}) : super(key: key);
+  const SignalModalContent({super.key});
 
   @override
   _SignalModalContentState createState() => _SignalModalContentState();
@@ -78,7 +79,7 @@ class _SignalModalContentState extends State<SignalModalContent> {
       },
       builder: (context, state) {
         return Container(
-          height: MediaQuery.of(context).size.height * 0.85,
+          height: MediaQuery.of(context).size.height * 0.65,
           decoration: const BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.only(
@@ -99,19 +100,7 @@ class _SignalModalContentState extends State<SignalModalContent> {
                   borderRadius: BorderRadius.circular(5),
                 ),
               ),
-              // Zone de fermeture
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(right: 16),
-                    child: IconButton(
-                      icon: const Icon(Icons.close, size: 30),
-                      onPressed: () => Navigator.of(context).pop(),
-                    ),
-                  ),
-                ],
-              ),
+
               // Contenu
               Expanded(
                 child: SingleChildScrollView(
@@ -136,18 +125,37 @@ class _SignalModalContentState extends State<SignalModalContent> {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        TextField(
-                          controller: _descriptionController,
-                          maxLines: 5,
-                          decoration: InputDecoration(
-                            hintText: 'Décrivez la situation en détail...',
-                            hintStyle: TextStyle(color: Colors.grey[400]),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
+
+                        Container(
+                          height: 90,
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey[300]!),
+                            borderRadius: BorderRadius.circular(15),
+                            color: const Color.fromARGB(255, 255, 255, 255),
+                          ),
+                          child: TextField(
+                            controller: _descriptionController,
+                            expands: true,
+                            maxLines: null,
+                            minLines: null,
+                            decoration: const InputDecoration(
+                              hintText: 'Décrivez la situation en détail...',
+                              hintStyle: TextStyle(
+                                fontSize: 13,
+                                color: Color.fromARGB(255, 78, 73, 73),
+                              ),
+                              border: InputBorder.none,
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                             ),
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
                           ),
                         ),
-                        const SizedBox(height: 30),
+
+                        const SizedBox(height: 20),
                         const Text(
                           'Médias (optionnel)',
                           style: TextStyle(
@@ -156,7 +164,8 @@ class _SignalModalContentState extends State<SignalModalContent> {
                           ),
                         ),
                         const SizedBox(height: 15),
-                        // Options de médias
+
+                        // Options de médias avec bordures en pointillés
                         Row(
                           children: [
                             // Option Photo/Video
@@ -168,32 +177,32 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                       .capturePhoto();
                                 },
                                 child: Container(
-                                  height: 140,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: Colors.grey[300]!,
+                                  height: 100,
+                                  child: DottedBorder(
+                                    color: HexColor('#CBD5E1'),
+                                    borderRadius: 12.0,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          Icons.camera_alt,
+                                          size: 36,
+                                          color: HexColor('#D95C18'),
+                                        ),
+                                        const SizedBox(height: 10),
+                                        const Text(
+                                          'Photo/Video',
+                                          style: TextStyle(fontSize: 13),
+                                        ),
+                                      ],
                                     ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.camera_alt,
-                                        size: 36,
-                                        color: Colors.deepOrange[400],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      const Text(
-                                        'Photo/Video',
-                                        style: TextStyle(fontSize: 16),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),
                             ),
                             const SizedBox(width: 15),
+
                             // Option Audio
                             Expanded(
                               child: GestureDetector(
@@ -204,57 +213,55 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                     );
                                   } else {
                                     context.read<SignalementBloc>().add(
-                                      StartRecording(),
+                                      const StartRecording(),
                                     );
                                   }
                                 },
                                 child: Container(
-                                  height: 140,
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color:
+                                  height: 100,
+                                  child: DottedBorder(
+                                    color:
+                                        state.isRecording
+                                            ? Colors.red
+                                            : HexColor('#CBD5E1'),
+                                    borderRadius: 12.0,
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
                                           state.isRecording
-                                              ? Colors.red
-                                              : Colors.grey[300]!,
-                                      width: state.isRecording ? 2.0 : 1.0,
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        state.isRecording
-                                            ? Icons.stop_circle
-                                            : Icons.mic,
-                                        size: 36,
-                                        color:
-                                            state.isRecording
-                                                ? Colors.red
-                                                : Colors.deepOrange[400],
-                                      ),
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        state.isRecording
-                                            ? 'Arrêter l\'enregistrement'
-                                            : 'Enregistrement audio',
-                                        style: TextStyle(
-                                          fontSize: 16,
+                                              ? Icons.stop_circle
+                                              : Icons.mic,
+                                          size: 36,
                                           color:
                                               state.isRecording
                                                   ? Colors.red
-                                                  : null,
+                                                  : HexColor('#D95C18'),
                                         ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      if (state.isRecording)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 8,
+                                        const SizedBox(height: 10),
+                                        Text(
+                                          state.isRecording
+                                              ? 'Arrêter'
+                                              : 'Enregistrement audio',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color:
+                                                state.isRecording
+                                                    ? Colors.red
+                                                    : null,
                                           ),
-                                          child: _buildRecordingIndicator(),
+                                          textAlign: TextAlign.center,
                                         ),
-                                    ],
+                                        if (state.isRecording)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 8,
+                                            ),
+                                            child: _buildRecordingIndicator(),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
@@ -263,45 +270,55 @@ class _SignalModalContentState extends State<SignalModalContent> {
                         ),
 
                         // Afficher les photos sélectionnées
-                        if (state.photo != null)
+                        if (state.photos != null && state.photos!.isNotEmpty)
                           Container(
                             margin: const EdgeInsets.only(top: 20),
-                            child: Stack(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    state.photo!,
-                                    height: 150,
-                                    width: 150,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 5,
-                                  top: 5,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      // Ajouter une méthode pour supprimer la photo
-                                      context.read<SignalementBloc>().add(
-                                        const RemovePhoto(),
-                                      );
-                                    },
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
+                            height: 90,
+                            width: 150,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: state.photos!.length,
+                              itemBuilder: (context, index) {
+                                return Container(
+                                  margin: const EdgeInsets.only(right: 10),
+                                  child: Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.file(
+                                          state.photos![index],
+                                          height: 150,
+                                          width: 150,
+                                          fit: BoxFit.cover,
+                                        ),
                                       ),
-                                      child: const Icon(
-                                        Icons.close,
-                                        size: 18,
-                                        color: Colors.red,
+                                      Positioned(
+                                        right: 5,
+                                        top: 5,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            context.read<SignalementBloc>().add(
+                                              RemovePhoto(index: index),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(4),
+                                            decoration: const BoxDecoration(
+                                              color: Colors.white,
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(
+                                              Icons.close,
+                                              size: 18,
+                                              color: Colors.red,
+                                            ),
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                                ),
-                              ],
+                                );
+                              },
                             ),
                           ),
 
@@ -314,12 +331,12 @@ class _SignalModalContentState extends State<SignalModalContent> {
                               horizontal: 15,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: const Color.fromARGB(255, 255, 255, 255),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.mic, color: Colors.deepOrange[400]),
+                                Icon(Icons.mic, color: HexColor('#D95C18')),
                                 const SizedBox(width: 10),
                                 const Text("Enregistrement audio"),
                                 const Spacer(),
@@ -344,7 +361,6 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                     color: Colors.red,
                                   ),
                                   onPressed: () {
-                                    // Ajouter une méthode pour supprimer l'audio
                                     context.read<SignalementBloc>().add(
                                       const RemoveAudio(),
                                     );
@@ -373,7 +389,7 @@ class _SignalModalContentState extends State<SignalModalContent> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: HexColor('#D95C18'),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(10),
                               ),
                             ),
                             onPressed:
@@ -381,7 +397,7 @@ class _SignalModalContentState extends State<SignalModalContent> {
                                     ? null
                                     : () {
                                       context.read<SignalementBloc>().add(
-                                        SubmitSignalement(authorId: 1),
+                                        const SubmitSignalement(authorId: 1),
                                       );
                                     },
                             child:
@@ -425,7 +441,7 @@ class _SignalModalContentState extends State<SignalModalContent> {
           ),
         ),
         const SizedBox(width: 5),
-        Text(
+        const Text(
           'Enregistrement en cours...',
           style: TextStyle(fontSize: 12, color: Colors.red),
         ),

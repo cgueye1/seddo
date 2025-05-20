@@ -13,11 +13,11 @@ class RouteTimelinePage extends StatelessWidget {
   final StopTimeResponseModel? stopTimeResponse;
 
   const RouteTimelinePage({
-    Key? key,
+    super.key,
     this.toPlaceDetails,
     this.fromPlaceDetails,
     this.stopTimeResponse,
-  }) : super(key: key);
+  });
 
   @override
   @override
@@ -25,15 +25,14 @@ class RouteTimelinePage extends StatelessWidget {
     return BlocProvider(
       create:
           (context) =>
-      RouteTimelineBloc()
-        ..add(
-          RouteTimelineInitialized(
-              fromPlaceDetails: fromPlaceDetails,
-              toPlaceDetails: toPlaceDetails,
-              stopTimeResponse: stopTimeResponse,
-              index: 0
-          ),
-        ),
+              RouteTimelineBloc()..add(
+                RouteTimelineInitialized(
+                  fromPlaceDetails: fromPlaceDetails,
+                  toPlaceDetails: toPlaceDetails,
+                  stopTimeResponse: stopTimeResponse,
+                  index: 0,
+                ),
+              ),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: BlocBuilder<RouteTimelineBloc, RouteTimelineState>(
@@ -42,7 +41,13 @@ class RouteTimelinePage extends StatelessWidget {
               children: [
                 // Content body
                 Padding(
-                  padding:  EdgeInsets.only(top:  state.departureTransit.isNotEmpty &&  state.departureTransit.first.size> 1? 60:0),
+                  padding: EdgeInsets.only(
+                    top:
+                        state.departureTransit.isNotEmpty &&
+                                state.departureTransit.first.size > 1
+                            ? 60
+                            : 0,
+                  ),
                   // espace pour les tabs
                   child: SingleChildScrollView(
                     child: Column(
@@ -51,26 +56,23 @@ class RouteTimelinePage extends StatelessWidget {
                         if (state.status == RouteTimelineStatus.loading ||
                             state.departureLoader)
                           Container(
-                            height: MediaQuery
-                                .of(context)
-                                .size
-                                .height / 2,
+                            height: MediaQuery.of(context).size.height / 2,
                             child: Center(child: CircularProgressIndicator()),
                           )
+                        else if (state.departureTransit.isEmpty &&
+                            state.status == RouteTimelineStatus.success)
+                          _buildNoTransitFound(context, state)
                         else
-                          if (state.departureTransit.isEmpty &&
-                              state.status == RouteTimelineStatus.success)
-                            _buildNoTransitFound(context, state)
-                          else
-                            _buildTimeline(context, state),
+                          _buildTimeline(context, state),
                       ],
                     ),
                   ),
                 ),
 
-
                 // Tabs at top using Positioned + Row
-                if( state.departureTransit.isNotEmpty && state.departureTransit.first.size > 1 && !state.departureLoader )
+                if (state.departureTransit.isNotEmpty &&
+                    state.departureTransit.first.size > 1 &&
+                    !state.departureLoader)
                   Positioned(
                     top: 0,
                     left: 0,
@@ -78,89 +80,99 @@ class RouteTimelinePage extends StatelessWidget {
                     child: Container(
                       color: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 16),
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
                       child: SingleChildScrollView(
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: List.generate(
-                              state.departureTransit.first.size, (index) {
-                            final allLabels = [
-                              '1er Itinéraire',
-                              '2e Itinéraire',
-                              '3e Itinéraire'
+                            state.departureTransit.first.size,
+                            (index) {
+                              final allLabels = [
+                                '1er Itinéraire',
+                                '2e Itinéraire',
+                                '3e Itinéraire',
+                              ];
+                              final label =
+                                  index < allLabels.length
+                                      ? allLabels[index]
+                                      : 'Itinéraire ${index + 1}';
 
-                            ];
-                            final label = index < allLabels.length
-                                ? allLabels[index]
-                                : 'Itinéraire ${index + 1}';
+                              final isSelected = state.itineraireIndex == index;
 
-                            final isSelected = state.itineraireIndex == index;
-
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 12),
-                              child: GestureDetector(
-                                onTap: () {
-                                  context.read<RouteTimelineBloc>().add(
-                                      RouteTimelineTabChanged(index));
-                                  context.read<RouteTimelineBloc>().add(
-                                    RouteTimelineInitialized(
-                                      fromPlaceDetails: fromPlaceDetails,
-                                      toPlaceDetails: toPlaceDetails,
-                                      stopTimeResponse: stopTimeResponse,
-                                      index: index,
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 12),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    context.read<RouteTimelineBloc>().add(
+                                      RouteTimelineTabChanged(index),
+                                    );
+                                    context.read<RouteTimelineBloc>().add(
+                                      RouteTimelineInitialized(
+                                        fromPlaceDetails: fromPlaceDetails,
+                                        toPlaceDetails: toPlaceDetails,
+                                        stopTimeResponse: stopTimeResponse,
+                                        index: index,
+                                      ),
+                                    );
+                                  },
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 250),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 10,
+                                      horizontal: 16,
                                     ),
-                                  );
-                                },
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 250),
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 16),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(30),
-                                    color: isSelected
-                                        ? Colors.blueAccent
-                                        : Colors.grey.shade100,
-                                    boxShadow: isSelected
-                                        ? [
-                                      BoxShadow(
-                                        color: Colors.blueAccent.withOpacity(
-                                            0.25),
-                                        blurRadius: 6,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ]
-                                        : [],
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.directions_bus,
-                                        size: 18,
-                                        color: isSelected
-                                            ? Colors.white
-                                            : Colors.blueAccent,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        label,
-                                        style: TextStyle(
-                                          color: isSelected
-                                              ? Colors.white
-                                              : Colors.black87,
-                                          fontWeight: FontWeight.w600,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(30),
+                                      color:
+                                          isSelected
+                                              ? Colors.blueAccent
+                                              : Colors.grey.shade100,
+                                      boxShadow:
+                                          isSelected
+                                              ? [
+                                                BoxShadow(
+                                                  color: Colors.blueAccent
+                                                      .withOpacity(0.25),
+                                                  blurRadius: 6,
+                                                  offset: const Offset(0, 3),
+                                                ),
+                                              ]
+                                              : [],
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.directions_bus,
+                                          size: 18,
+                                          color:
+                                              isSelected
+                                                  ? Colors.white
+                                                  : Colors.blueAccent,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          label,
+                                          style: TextStyle(
+                                            color:
+                                                isSelected
+                                                    ? Colors.white
+                                                    : Colors.black87,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          }),
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  )
-
+                  ),
               ],
             );
           },
@@ -170,7 +182,8 @@ class RouteTimelinePage extends StatelessWidget {
   }
 
   Widget _buildNoTransitFound(BuildContext context, RouteTimelineState state) {
-    return Container(
+    return SizedBox(
+      height: MediaQuery.of(context).size.height / 2,
       child: Center(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -221,10 +234,6 @@ class RouteTimelinePage extends StatelessWidget {
           ],
         ),
       ),
-      height: MediaQuery
-          .of(context)
-          .size
-          .height / 2,
     );
   }
 
@@ -236,9 +245,9 @@ class RouteTimelinePage extends StatelessWidget {
         padding: EdgeInsets.all(0),
         physics: NeverScrollableScrollPhysics(),
         itemCount:
-        state.departureTransit.length > 0
-            ? state.departureTransit.length + 2
-            : state.departureTransit.length,
+            state.departureTransit.isNotEmpty
+                ? state.departureTransit.length + 2
+                : state.departureTransit.length,
         itemBuilder: (context, index) {
           if (index == 0) {
             return TimelinePoint(
@@ -268,9 +277,9 @@ class RouteTimelinePage extends StatelessWidget {
               lon: state.endLon,
               isLast: index == state.departureTransit.length,
               nexttransit:
-              index != state.departureTransit.length
-                  ? state.departureTransit[index]
-                  : transit,
+                  index != state.departureTransit.length
+                      ? state.departureTransit[index]
+                      : transit,
               currentPosition: null, // You can pass current position if needed
             );
           }

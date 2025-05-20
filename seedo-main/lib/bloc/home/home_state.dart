@@ -37,6 +37,8 @@ class HomeState extends Equatable {
   final bool hasLoadedInitialPublications;
   final AppParamModel? appParam;
   final Position? currentPosition;
+  final bool isAuthenticated;
+  final bool showLoginDialog;
 
   const HomeState({
     this.selectedTabIndex = 0,
@@ -68,6 +70,8 @@ class HomeState extends Equatable {
     this.hasLoadedInitialPublications = false,
     this.appParam,
     this.currentPosition,
+    this.isAuthenticated = false,
+    this.showLoginDialog = false,
   });
 
   factory HomeState.initial() {
@@ -99,6 +103,8 @@ class HomeState extends Equatable {
       hasLoadedInitialPublications: false,
       adsList: const [],
       appParam: null,
+      isAuthenticated: false,
+      showLoginDialog: false,
     );
   }
 
@@ -132,6 +138,8 @@ class HomeState extends Equatable {
     bool? hasLoadedInitialPublications,
     AppParamModel? appParam,
     Position? currentPosition,
+    bool? isAuthenticated,
+    bool? showLoginDialog,
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
@@ -167,6 +175,8 @@ class HomeState extends Equatable {
       hasLoadedInitialPublications:
           hasLoadedInitialPublications ?? this.hasLoadedInitialPublications,
       currentPosition: currentPosition ?? this.currentPosition,
+      isAuthenticated: isAuthenticated ?? this.isAuthenticated,
+      showLoginDialog: showLoginDialog ?? this.showLoginDialog,
     );
   }
 
@@ -200,5 +210,7 @@ class HomeState extends Equatable {
     hasLoadedInitialPublications,
     appParam,
     currentPosition,
+    isAuthenticated,
+    showLoginDialog,
   ];
 }

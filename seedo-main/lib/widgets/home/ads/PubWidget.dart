@@ -10,7 +10,7 @@ import '../../../utils/date_formatter.dart';
 class PubWidget extends StatelessWidget {
   final Publication item;
 
-  const PubWidget({Key? key, required this.item}) : super(key: key);
+  const PubWidget({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {

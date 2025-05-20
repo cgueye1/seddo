@@ -17,13 +17,13 @@ class DakarSearchWidget extends StatefulWidget {
   final FocusNode? focusNode;
 
   const DakarSearchWidget({
-    Key? key,
+    super.key,
     required this.onLocationSelected,
     required this.label,
     required this.icon,
     this.initPlace,
     this.focusNode,
-  }) : super(key: key);
+  });
 
   @override
   _DakarSearchWidgetState createState() => _DakarSearchWidgetState();
@@ -34,7 +34,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
   Timer? _debounceTimer;
   final Duration _debounceDelay = const Duration(milliseconds: 500);
   bool positionLoader = false;
-  FocusNode _focusNode = FocusNode();
+  final FocusNode _focusNode = FocusNode();
 
   static const double dakarLat = 14.7167;
   static const double dakarLon = -17.4677;
@@ -270,7 +270,7 @@ class _DakarSearchWidgetState extends State<DakarSearchWidget> {
                       SizedBox(height: 10),
                       positionLoader
                           ? Center(
-                            child: Container(
+                            child: SizedBox(
                               width: 50,
                               child: LoadingIndicator(
                                 indicatorType: Indicator.ballScaleRipple,

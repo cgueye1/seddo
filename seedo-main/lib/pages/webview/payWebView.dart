@@ -7,7 +7,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 class PayWebView extends StatefulWidget {
   final String url;
 
-  PayWebView({Key? key, required this.url}) : super(key: key);
+  const PayWebView({super.key, required this.url});
 
   @override
   _PayWebViewState createState() => _PayWebViewState();
@@ -18,7 +18,8 @@ class _PayWebViewState extends State<PayWebView> with WidgetsBindingObserver {
   bool _loading = true;
   late final WebViewController controller;
   int intersIndex = 0;
-  Completer<WebViewController> _controller = Completer<WebViewController>();
+  final Completer<WebViewController> _controller =
+      Completer<WebViewController>();
 
   @override
   void initState() {

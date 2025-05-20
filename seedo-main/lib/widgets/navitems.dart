@@ -14,6 +14,8 @@ import '../pages/splash/Splash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class MainScreen extends StatelessWidget {
+  const MainScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<PackageInfo>(
@@ -52,8 +54,8 @@ class MainScreen extends StatelessWidget {
 
     final pages = [
       HomePage(),
-      Publicationslist(),
       if (!hideTransit) TransportCommun(appParam: state.appParam),
+      Publicationslist(),
       SettingPage(),
     ];
 
@@ -65,8 +67,7 @@ class MainScreen extends StatelessWidget {
 class CustomBottomNavigationBar extends StatelessWidget {
   final HomeState state;
 
-  const CustomBottomNavigationBar({Key? key, required this.state})
-    : super(key: key);
+  const CustomBottomNavigationBar({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
@@ -74,9 +75,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
 
     final navItems = [
       _buildNavItem(context, 0, 'assets/icons/home.svg', 'Accueil'),
-      _buildNavItem(context, 1, 'assets/icons/news.svg', 'Publications'),
       if (!hideTransit)
-        _buildNavItem(context, 2, 'assets/icons/bus.svg', 'Transport'),
+        _buildNavItem(context, 1, 'assets/icons/bus.svg', 'Transport'),
+      _buildNavItem(context, 2, 'assets/icons/news.svg', 'Publications'),
+
       _buildNavItem(
         context,
         hideTransit ? 2 : 3,

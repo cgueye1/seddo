@@ -4,11 +4,10 @@ import 'package:geolocator/geolocator.dart';
 
 class SignalementState extends Equatable {
   final String? selectedType;
-  final File? photo;
+  final List<File>? photos; // Changé de File unique à List<File>
   final String description;
   final String? audioPath;
-  final List<String>?
-  audioFiles; // Liste pour stocker plusieurs enregistrements audio
+  final List<String>? audioFiles;
   final bool isRecording;
   final bool isPlaying;
   final bool isSubmitting;
@@ -18,10 +17,10 @@ class SignalementState extends Equatable {
 
   const SignalementState({
     this.selectedType,
-    this.photo,
+    this.photos, // Changé de photo à photos
     this.description = '',
     this.audioPath,
-    this.audioFiles, // Nouvelle propriété
+    this.audioFiles,
     this.isRecording = false,
     this.isPlaying = false,
     this.isSubmitting = false,
@@ -32,10 +31,10 @@ class SignalementState extends Equatable {
 
   SignalementState copyWith({
     String? selectedType,
-    File? photo,
+    List<File>? photos, // Changé de File à List<File>
     String? description,
     String? audioPath,
-    List<String>? audioFiles, // Nouvelle propriété
+    List<String>? audioFiles,
     bool? isRecording,
     bool? isPlaying,
     bool? isSubmitting,
@@ -45,10 +44,10 @@ class SignalementState extends Equatable {
   }) {
     return SignalementState(
       selectedType: selectedType ?? this.selectedType,
-      photo: photo ?? this.photo,
+      photos: photos ?? this.photos, // Mise à jour
       description: description ?? this.description,
       audioPath: audioPath ?? this.audioPath,
-      audioFiles: audioFiles ?? this.audioFiles, // Mise à jour
+      audioFiles: audioFiles ?? this.audioFiles,
       isRecording: isRecording ?? this.isRecording,
       isPlaying: isPlaying ?? this.isPlaying,
       isSubmitting: isSubmitting ?? this.isSubmitting,
@@ -61,10 +60,10 @@ class SignalementState extends Equatable {
   @override
   List<Object?> get props => [
     selectedType,
-    photo,
+    photos, // Mise à jour
     description,
     audioPath,
-    audioFiles, // Ajout à la liste des propriétés
+    audioFiles,
     isRecording,
     isPlaying,
     isSubmitting,

@@ -68,14 +68,14 @@ class MyApp extends StatelessWidget {
       title: 'SEDDO APP',
       theme: ThemeData(
         primaryColor: HexColor(
-          '#D95C18',
-        ),
+          '#ffffff',
+        ), // orange foncé (teinte custom, style deep orange 900)
         colorScheme: ColorScheme.fromSeed(
-          seedColor: HexColor('#D95C18'),
+          seedColor: HexColor('#fff'),
           brightness: Brightness.light,
         ),
         fontFamily: 'Poppins',
-        textTheme:  TextTheme(
+        textTheme: const TextTheme(
           displayLarge: TextStyle(fontFamily: 'Poppins'),
           displayMedium: TextStyle(fontFamily: 'Poppins'),
           displaySmall: TextStyle(fontFamily: 'Poppins'),

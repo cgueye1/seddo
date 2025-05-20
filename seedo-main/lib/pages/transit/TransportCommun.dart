@@ -16,7 +16,7 @@ import 'RouteTimelinePage.dart';
 class TransportCommun extends StatefulWidget {
   AppParamModel? appParam;
 
-  TransportCommun({Key? key, this.appParam}) : super(key: key);
+  TransportCommun({super.key, this.appParam});
 
   @override
   _HomeState createState() => _HomeState();
@@ -88,9 +88,9 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
 
                     children: [
                       widget.appParam!.useGoogleSearch
-                          ?  PlaceSearchWidget(
+                          ? PlaceSearchWidget(
                             key: ValueKey("${origine?.name}-1"),
-                            apiKey:widget.appParam!.apiKey ,
+                            apiKey: widget.appParam!.apiKey,
                             initPlace: origine,
                             icon: Icon(
                               Icons.trip_origin_outlined,
@@ -132,48 +132,48 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
                       SizedBox(height: 15),
                       widget.appParam!.useGoogleSearch
                           ? PlaceSearchWidget(
-                        apiKey:widget.appParam!.apiKey ,
-                        key: ValueKey(destination?.name),
-                        icon: Icon(
-                          Icons.location_on_sharp,
-                          color: HexColor("#F52D56"),
-                        ),
-                        label: "Destination",
-                        initPlace: destination,
-                        onLocationSelected: (PlaceModel location) {
-                          setState(() {
-                            loading = true;
-                          });
+                            apiKey: widget.appParam!.apiKey,
+                            key: ValueKey(destination?.name),
+                            icon: Icon(
+                              Icons.location_on_sharp,
+                              color: HexColor("#F52D56"),
+                            ),
+                            label: "Destination",
+                            initPlace: destination,
+                            onLocationSelected: (PlaceModel location) {
+                              setState(() {
+                                loading = true;
+                              });
 
-                          Future.delayed(Duration(seconds: 1), () {
-                            setState(() {
-                              loading = false;
-                              destination = location;
-                            });
-                          });
-                        },
-                      ):
-                      DakarSearchWidget(
-                        key: ValueKey(destination?.name),
-                        icon: Icon(
-                          Icons.location_on_sharp,
-                          color: HexColor("#F52D56"),
-                        ),
-                        label: "Destination",
-                        initPlace: destination,
-                        onLocationSelected: (PlaceModel location) {
-                          setState(() {
-                            loading = true;
-                          });
+                              Future.delayed(Duration(seconds: 1), () {
+                                setState(() {
+                                  loading = false;
+                                  destination = location;
+                                });
+                              });
+                            },
+                          )
+                          : DakarSearchWidget(
+                            key: ValueKey(destination?.name),
+                            icon: Icon(
+                              Icons.location_on_sharp,
+                              color: HexColor("#F52D56"),
+                            ),
+                            label: "Destination",
+                            initPlace: destination,
+                            onLocationSelected: (PlaceModel location) {
+                              setState(() {
+                                loading = true;
+                              });
 
-                          Future.delayed(Duration(seconds: 1), () {
-                            setState(() {
-                              loading = false;
-                              destination = location;
-                            });
-                          });
-                        },
-                      ),
+                              Future.delayed(Duration(seconds: 1), () {
+                                setState(() {
+                                  loading = false;
+                                  destination = location;
+                                });
+                              });
+                            },
+                          ),
                     ],
                   ),
                 ),
@@ -211,9 +211,9 @@ class _HomeState extends State<TransportCommun> with WidgetsBindingObserver {
             bottom: 0,
             child:
                 loading && (origine != null && destination != null)
-                    ? Container(
-                      child: Center(child: CircularProgressIndicator()),
+                    ? SizedBox(
                       height: MediaQuery.of(context).size.height / 2,
+                      child: Center(child: CircularProgressIndicator()),
                     )
                     : (origine != null && destination != null)
                     ? Container(

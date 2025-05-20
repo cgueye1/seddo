@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
+import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
+import 'package:seddoapp/pages/auth/login.dart';
 import 'package:seddoapp/widgets/navitems.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({Key? key}) : super(key: key);
+  const ProfilePage({super.key});
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -26,9 +28,96 @@ class _ProfilePageState extends State<ProfilePage> {
     super.dispose();
   }
 
+  void showLoginRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          title: const Text(
+            'Connexion requise',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          content: const Text(
+            'Veuillez vous connecter d\'abord pour modifier votre profil.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+              },
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(
+                  0xFFD95C18,
+                ), // Utiliser HexColor si disponible
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop(); // Fermer la boîte de dialogue
+
+                // Naviguer vers la page de connexion
+                Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (context) => LogIn()));
+              },
+              child: const Text(
+                'Se connecter',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Fonction pour gérer l'appui sur le bouton Éditer le profil
+  void handleEditProfileButtonPress(BuildContext context) {
+    // Déclencher l'événement de vérification d'authentification
+    context.read<HomeBloc>().add(const CheckAuthStatusEvent());
+  }
+
+  // Fonction pour éditer le profil si l'utilisateur est authentifié
+  void editProfile(BuildContext context) {
+    // Logique pour enregistrer les modifications du profil
+    // Vous pouvez ajouter ici le code pour mettre à jour le profil
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Profil mis à jour avec succès'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<HomeBloc, HomeState>(
+    return BlocConsumer<HomeBloc, HomeState>(
+      listener: (context, state) {
+        // Si l'utilisateur est authentifié et a cliqué pour éditer le profil
+        if (state.isAuthenticated && state.showLoginDialog == false) {
+          editProfile(context);
+        }
+
+        // Si l'utilisateur n'est pas authentifié et doit voir le dialogue
+        if (!state.isAuthenticated && state.showLoginDialog) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showLoginRequiredDialog(context);
+            // Réinitialiser l'état showLoginDialog après l'affichage
+            context.read<HomeBloc>().add(const ResetDialogFlagEvent());
+          });
+        }
+      },
       builder: (context, state) {
         return Scaffold(
           bottomNavigationBar: CustomBottomNavigationBar(state: state),
@@ -98,6 +187,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     state.currentUser != null
                         ? '${state.currentUser!.firstName} ${state.currentUser!.lastName}'
                         : 'Invité',
+
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
@@ -123,7 +213,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       TextFormField(
                         controller: _prenomController,
                         decoration: InputDecoration(
-                          hintText: 'Entrez votre prenom',
+                          hintText: state.currentUser?.firstName ?? 'Prénom',
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 16,
@@ -156,7 +246,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       TextFormField(
                         controller: _nomController,
                         decoration: InputDecoration(
-                          hintText: 'Entrez votre nom',
+                          hintText: state.currentUser?.lastName ?? 'Nom',
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 16,
@@ -228,7 +318,10 @@ class _ProfilePageState extends State<ProfilePage> {
                                           const Icon(Icons.flag, size: 24),
                                 ),
                                 const SizedBox(width: 6),
-                                const Text('(+221)'),
+                                Text(
+                                  '(+221)',
+                                  semanticsLabel: state.currentUser?.phone,
+                                ),
                               ],
                             ),
                           ),
@@ -253,7 +346,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          hintText: 'Entrez votre email',
+                          hintText: state.currentUser?.email ?? 'Email',
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 20,
                             vertical: 16,

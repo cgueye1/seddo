@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -21,7 +23,7 @@ import '../services/publication_service.dart';
 class PubliePage extends StatelessWidget {
   final List<dynamic>? categories;
 
-  const PubliePage({Key? key, this.categories}) : super(key: key);
+  const PubliePage({super.key, this.categories});
 
   @override
   Widget build(BuildContext context) {
@@ -43,7 +45,7 @@ class PubliePage extends StatelessWidget {
 }
 
 class PubliePageView extends StatefulWidget {
-  const PubliePageView({Key? key}) : super(key: key);
+  const PubliePageView({super.key});
 
   @override
   State<PubliePageView> createState() => _PubliePageViewState();
@@ -81,6 +83,7 @@ class _PubliePageViewState extends State<PubliePageView> {
     }
   }
 
+  @override
   void initState() {
     super.initState();
 
@@ -620,13 +623,13 @@ class _PubliePageViewState extends State<PubliePageView> {
       onAddImagesPressed: () async {
         try {
           final picker = ImagePicker();
-          final List<XFile>? images = await picker.pickMultiImage(
+          final List<XFile> images = await picker.pickMultiImage(
             maxWidth: 1200,
             maxHeight: 1200,
             imageQuality: 85,
           );
 
-          if (images != null && images.isNotEmpty) {
+          if (images.isNotEmpty) {
             context.read<PublicationBloc>().add(
               ImagesAdded(images.map((e) => e.path).toList()),
             );

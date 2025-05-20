@@ -20,7 +20,7 @@ class Step2Form extends StatefulWidget {
   final Function(PricingModel?) onPricingChanged;
 
   const Step2Form({
-    Key? key,
+    super.key,
     required this.onBackPressed,
     required this.onPublishPressed,
     required this.onAddImagesPressed,
@@ -32,7 +32,7 @@ class Step2Form extends StatefulWidget {
     required this.pricingList,
     this.selectedPricing,
     required this.onPricingChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<Step2Form> createState() => _Step2FormState();

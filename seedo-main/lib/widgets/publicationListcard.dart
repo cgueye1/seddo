@@ -1,87 +1,89 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seddoapp/bloc/home/home_bloc.dart';
+import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/models/publication_model.dart';
-import 'package:seddoapp/pages/reservation.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
+import 'package:seddoapp/utils/HexColor.dart';
+import 'package:intl/intl.dart';
 
 class PublicationListCard extends StatelessWidget {
-  final Publication publication;
-  final double width;
-  final String? location;
-  final double height;
-  final Publication item;
-  final Position currentPosition;
-  final String priceTag;
-  final Color priceTagColor;
-  final String category;
-  final String expirationDate;
+  const PublicationListCard({Key? key}) : super(key: key);
 
-  const PublicationListCard({
-    super.key,
-    required this.publication,
-    this.width = 250,
-    this.location,
-    this.height = 120,
-    required this.item,
-    required this.currentPosition,
-    this.priceTag = "Gratuit",
-    this.priceTagColor = Colors.green,
-    this.category = "Alimentation",
-    this.expirationDate = "06/05/2025",
-  });
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        if (state.isLoadingPublications) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state.publications.isEmpty) {
+          return const Center(child: Text('Aucune publication disponible'));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.only(right: 20),
+          itemCount: state.publications.length,
+          itemBuilder: (context, index) {
+            final publication = state.publications[index];
+            return PublicationItem(publication: publication);
+          },
+        );
+      },
+    );
+  }
+}
+
+class PublicationItem extends StatelessWidget {
+  final Publication publication;
+
+  const PublicationItem({Key? key, required this.publication})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Navigation vers la page de détail de la publication sélectionnée
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => MealDetailPage(
-                  publication: publication,
-                  currentPosition: currentPosition,
-                ),
-          ),
-        );
+        // Navigate to publication details
+        // Navigator.push(
+        //   context,
+        //   MaterialPageRoute(
+        //     builder: (context) => MealDetailPage(publication: publication, currentPosition: currentPosition),
+        //   ),
+        // );
       },
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        margin: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
+              blurRadius: 5,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left image
+            // Image
             ClipRRect(
               borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
               ),
               child:
                   publication.picture.isNotEmpty
                       ? Image.network(
                         '${APIConstants.API_BASE_URL_IMG}${publication.picture}',
-                        height: 120,
-                        width: 120,
+                        height: 180,
+                        width: double.infinity,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            height: 120,
-                            width: 120,
+                            height: 180,
                             color: Colors.grey[300],
                             child: const Center(
                               child: Icon(Icons.image_not_supported, size: 40),
@@ -90,8 +92,7 @@ class PublicationListCard extends StatelessWidget {
                         },
                       )
                       : Container(
-                        height: 120,
-                        width: 120,
+                        height: 180,
                         color: Colors.grey[300],
                         child: const Center(
                           child: Icon(Icons.image_not_supported, size: 40),
@@ -99,101 +100,97 @@ class PublicationListCard extends StatelessWidget {
                       ),
             ),
 
-            // Right content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Category pill
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        category,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.purple,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
+            // Category badge
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 12),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: HexColor("#F0DCFD"),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "Alimentation",
+                  style: TextStyle(
+                    color: HexColor("#7E30CE"),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ),
 
-                    const SizedBox(height: 8),
-
-                    // Title
-                    Text(
+            // Title and Price row
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
                       publication.titre,
                       style: const TextStyle(
-                        fontSize: 20,
+                        fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-
-                    // Published time
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 16,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Publié il y a ${getTimeAgo(item.createdDate)}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
                     ),
-
-                    const SizedBox(height: 4),
-
-                    // Expiration date
-                    Text(
-                      'Expire le $expirationDate',
+                    decoration: BoxDecoration(
+                      color:
+                          publication.price == 0
+                              ? HexColor("#4CAF50")
+                              : HexColor("#D95C18"),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      publication.price == 0
+                          ? "Gratuit"
+                          : "${NumberFormat.decimalPattern().format(publication.price)} FCFA",
                       style: const TextStyle(
-                        fontSize: 14,
-                        color: Colors.redAccent,
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
+                  ),
+                ],
+              ),
+            ),
 
-                    // Spacer to push price tag to bottom
-                    const Spacer(),
+            // Published time
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Text(
+                    "Publié il y a ${getTimeAgo(publication.createdDate)}",
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                  ),
+                ],
+              ),
+            ),
 
-                    // Price tag (Right aligned)
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: priceTagColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          priceTag,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+            // Expiration date
+            Padding(
+              padding: const EdgeInsets.only(left: 16, top: 4, bottom: 16),
+              child: Text(
+                "Expire le ${getTimeAgo(publication.createdDate)}",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: HexColor("#D95C18"),
+                  fontWeight: FontWeight.w500,
                 ),
               ),
             ),

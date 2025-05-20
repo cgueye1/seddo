@@ -37,8 +37,15 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   }
 
   void _onRemovePhoto(RemovePhoto event, Emitter<SignalementState> emit) {
-    // Simplement mettre la photo à null
-    emit(state.copyWith(photo: null));
+    if (state.photos == null || event.index == null) {
+      // Si aucune photo ou index non fourni, réinitialiser toutes les photos
+      emit(state.copyWith(photos: []));
+    } else {
+      // Créer une nouvelle liste sans la photo à l'index spécifié
+      final updatedPhotos = List<File>.from(state.photos!)
+        ..removeAt(event.index!);
+      emit(state.copyWith(photos: updatedPhotos));
+    }
   }
 
   void _onRemoveAudio(RemoveAudio event, Emitter<SignalementState> emit) {
@@ -47,7 +54,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
       _audioPlayer.stop();
 
       // Si nous avons une liste d'audios, nous devons la mettre à jour
-      List<String>? updatedAudioFiles = null;
+      List<String>? updatedAudioFiles;
       if (state.audioFiles != null && state.audioFiles!.isNotEmpty) {
         // Créer une nouvelle liste sans l'audio actuel
         updatedAudioFiles = List<String>.from(state.audioFiles!)
@@ -110,7 +117,14 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
   }
 
   void _onPhotoCaptured(PhotoCaptured event, Emitter<SignalementState> emit) {
-    emit(state.copyWith(photo: event.photo));
+    // Créer une nouvelle liste avec toutes les photos existantes plus la nouvelle
+    List<File> updatedPhotos = [];
+    if (state.photos != null) {
+      updatedPhotos = List.from(state.photos!);
+    }
+    updatedPhotos.add(event.photo);
+
+    emit(state.copyWith(photos: updatedPhotos));
   }
 
   void _onDescriptionChanged(
@@ -288,7 +302,13 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
       final titre = "";
       final description = state.description;
       final authorId = event.authorId;
-      List<String> pictures = state.photo != null ? [state.photo!.path] : [];
+
+      // Utiliser la liste de photos complète
+      List<String> pictures = [];
+      if (state.photos != null && state.photos!.isNotEmpty) {
+        pictures = state.photos!.map((file) => file.path).toList();
+      }
+
       final available = true;
       final universel = false;
       final date = "";

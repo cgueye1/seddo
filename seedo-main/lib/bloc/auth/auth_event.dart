@@ -1,63 +1,45 @@
+// lib/blocs/auth/auth_state.dart
+
 import 'package:equatable/equatable.dart';
+import '../../models/user_model.dart';
 
-abstract class AuthEvent extends Equatable {
-  const AuthEvent();
+abstract class AuthState extends Equatable {
+  const AuthState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
-class AuthLoginEvent extends AuthEvent {
-  final String email;
-  final String password;
+class AuthInitialState extends AuthState {}
 
-  const AuthLoginEvent({required this.email, required this.password});
+class AuthLoadingState extends AuthState {}
+
+class AuthAuthenticatedState extends AuthState {
+  final UserModel user;
+  final String message;
+
+  const AuthAuthenticatedState({required this.user, required this.message});
 
   @override
-  List<Object> get props => [email, password];
+  List<Object?> get props => [user, message];
 }
 
-class AuthSignupEvent extends AuthEvent {
-  final String firstName;
-  final String lastName;
-  final String email;
-  final String password;
-  final String phone;
-  final bool activated;
-  final String role;
-  final String profil;
+class AuthUnauthenticatedState extends AuthState {}
 
-  const AuthSignupEvent({
-    required this.firstName,
-    required this.lastName,
-    required this.email,
-    required this.password,
-    required this.phone,
-    this.activated = true,
-    this.role = "USER",
-    this.profil = "USER",
-  });
+class AuthErrorState extends AuthState {
+  final String message;
+
+  const AuthErrorState({required this.message});
 
   @override
-  List<Object> get props => [
-    firstName,
-    lastName,
-    email,
-    password,
-    phone,
-    activated,
-    role,
-    profil,
-  ];
+  List<Object?> get props => [message];
 }
 
-class AuthLogoutEvent extends AuthEvent {}
-
-class AuthForgotPasswordEvent extends AuthEvent {
+class AuthForgotPasswordSentState extends AuthState {
   final String email;
 
-  const AuthForgotPasswordEvent({required this.email});
+  const AuthForgotPasswordSentState({required this.email});
 
   @override
-  List<Object> get props => [email];
+  List<Object?> get props => [email];
 }
