@@ -1,6 +1,7 @@
 // lib/blocs/auth/auth_state.dart
 
 import 'package:equatable/equatable.dart';
+import 'package:seddoapp/bloc/auth/auth_state.dart';
 import '../../models/user_model.dart';
 
 abstract class AuthState extends Equatable {
@@ -42,4 +43,15 @@ class AuthForgotPasswordSentState extends AuthState {
 
   @override
   List<Object?> get props => [email];
+}
+
+class AuthLogoutEvent extends AuthEvent {}
+
+class AuthForgotPasswordEvent extends AuthEvent {
+  final String email;
+
+  const AuthForgotPasswordEvent({required this.email});
+
+  @override
+  List<Object> get props => [email];
 }

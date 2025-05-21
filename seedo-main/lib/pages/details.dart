@@ -5,12 +5,12 @@ import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/models/publication_model.dart';
-import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
+import 'package:seddoapp/widgets/reservation/ReservationsTab.dart';
 
 class DetailPage extends StatefulWidget {
   final Publication publication;
@@ -96,48 +96,33 @@ class _DetailPageState extends State<DetailPage> {
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          // Contenu principal
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Carousel d'images avec PageView
+            Stack(
               children: [
-                // Carousel d'images avec PageView
-                Stack(
-                  children: [
-                    SizedBox(
-                      height: 250,
-                      child: PageView.builder(
-                        controller: _pageController,
-                        onPageChanged: (index) {
-                          setState(() {
-                            _currentPage = index;
-                          });
-                        },
-                        itemCount: pictures.length,
-                        itemBuilder: (context, index) {
-                          final imagePath = pictures[index];
-                          return imagePath.isNotEmpty
-                              ? Image.network(
-                                '${APIConstants.API_BASE_URL_IMG}$imagePath',
-                                width: double.infinity,
-                                height: 250,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    height: 250,
-                                    color: Colors.grey[300],
-                                    child: const Center(
-                                      child: Icon(
-                                        Icons.image_not_supported,
-                                        size: 50,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              )
-                              : Container(
+                SizedBox(
+                  height: 250,
+                  child: PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentPage = index;
+                      });
+                    },
+                    itemCount: pictures.length,
+                    itemBuilder: (context, index) {
+                      final imagePath = pictures[index];
+                      return imagePath.isNotEmpty
+                          ? Image.network(
+                            '${APIConstants.API_BASE_URL_IMG}$imagePath',
+                            width: double.infinity,
+                            height: 250,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
                                 height: 250,
                                 color: Colors.grey[300],
                                 child: const Center(
@@ -147,113 +132,119 @@ class _DetailPageState extends State<DetailPage> {
                                   ),
                                 ),
                               );
-                        },
-                      ),
-                    ),
-
-                    // Heart icon
-                    Positioned(
-                      bottom: 10,
-                      right: 10,
-                      child: IconButton(
-                        padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(),
-                        icon: Icon(
-                          _isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: _isFavorite ? Colors.red : Colors.white,
-                          size: 35,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _isFavorite = !_isFavorite;
-                          });
-
-                          context.read<HomeBloc>().add(
-                            ToggleFavoritePublication(
-                              publicationId: widget.publication.id,
+                            },
+                          )
+                          : Container(
+                            height: 250,
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Icon(Icons.image_not_supported, size: 50),
                             ),
                           );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Indicateurs de position (dots)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      for (int i = 0; i < pictures.length; i++)
-                        Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color:
-                                i == _currentPage
-                                    ? HexColor("#D95C18")
-                                    : Colors.grey.shade300,
-                          ),
-                        ),
-                    ],
+                    },
                   ),
                 ),
 
-                // Tabs
-                DefaultTabController(
-                  length: 2,
-                  child: Column(
-                    children: [
-                      TabBar(
-                        tabs: [
-                          Tab(
-                            child: Text(
-                              'Détails',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                          Tab(
-                            child: Text(
-                              'Réservations (3)',
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                        indicatorColor: HexColor("#D95C18"),
-                        labelColor: Colors.black,
-                        unselectedLabelColor: Colors.grey,
-                      ),
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        height: 800, // Adjust based on content
-                        child: TabBarView(
-                          children: [
-                            // Premier onglet - Détails
-                            _buildDetailsTab(),
+                // Heart icon
+                Positioned(
+                  bottom: 10,
+                  right: 10,
+                  child: IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    icon: Icon(
+                      _isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: _isFavorite ? Colors.red : Colors.white,
+                      size: 35,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isFavorite = !_isFavorite;
+                      });
 
-                            // Deuxième onglet - Réservations
-                            Center(
-                              child: Text('Contenu des réservations à venir'),
-                            ),
-                          ],
+                      context.read<HomeBloc>().add(
+                        ToggleFavoritePublication(
+                          publicationId: widget.publication.id,
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
               ],
             ),
-          ),
-        ],
+
+            // Indicateurs de position (dots)
+            Padding(
+              padding: const EdgeInsets.only(top: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  for (int i = 0; i < pictures.length; i++)
+                    Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 3),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color:
+                            i == _currentPage
+                                ? HexColor("#D95C18")
+                                : Colors.grey.shade300,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
+            DefaultTabController(
+              length: 2,
+              child: Column(
+                children: [
+                  TabBar(
+                    indicatorColor: HexColor("#D95C18"),
+                    indicatorSize: TabBarIndicatorSize.label,
+                    labelColor: HexColor("#D95C18"),
+                    unselectedLabelColor: HexColor('#595757'),
+                    tabs: const [
+                      Tab(
+                        child: Text(
+                          'Détails',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      Tab(
+                        child: Text(
+                          'Réservations (3)',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: MediaQuery.of(context).size.height - 300,
+                    child: TabBarView(
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        SingleChildScrollView(
+                          physics: const ClampingScrollPhysics(),
+                          child: _buildDetailsTab(),
+                        ),
+                        // Utiliser notre nouveau widget ReservationsTab
+                        SingleChildScrollView(
+                          physics: const ClampingScrollPhysics(),
+                          child: ReservationsTab(
+                            publication: widget.publication,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -331,11 +322,11 @@ class _DetailPageState extends State<DetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
           child: Row(
             children: [
-              Icon(Icons.access_time, color: HexColor("#D95C18"), size: 20),
+              Icon(Icons.access_time, color: HexColor("#D95C18"), size: 16),
               const SizedBox(width: 4),
               Text(
                 getTimeAgo(widget.publication.createdDate),
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
               ),
               const SizedBox(width: 12),
               Icon(Icons.add_road, color: HexColor("#D95C18"), size: 16),
@@ -344,7 +335,7 @@ class _DetailPageState extends State<DetailPage> {
               DistanceBadge(distance: widget.publication.distance),
 
               const SizedBox(width: 12),
-              Icon(Icons.access_time, color: HexColor("#F44336"), size: 20),
+              Icon(Icons.access_time, color: HexColor("#F44336"), size: 16),
               const SizedBox(width: 4),
               Text(
                 formatDate(widget.publication.timestamp),
@@ -384,159 +375,20 @@ class _DetailPageState extends State<DetailPage> {
           thickness: 1,
           color: Color.fromARGB(255, 224, 224, 224),
         ),
-        const SizedBox(height: 12),
-
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Disponibilité",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.people, color: HexColor("#D95C18"), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    "3 à 5 personnes",
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.access_time, color: HexColor("#D95C18"), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    formatDate(widget.publication.timestamp),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Divider(
-          height: 0.5,
-          thickness: 1,
-          color: Color.fromARGB(255, 224, 224, 224),
-        ),
-        const SizedBox(height: 12),
-        // Localisation
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Localisation",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      // First location dot
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 213, 59, 12),
-                        ),
-                      ),
-                      // Dashed line
-                      CustomPaint(
-                        size: const Size(1, 55),
-                        painter: DashedLinePainter(
-                          color: const Color.fromARGB(255, 187, 187, 187),
-                          dashHeight: 3,
-                          dashSpace: 3,
-                        ),
-                      ),
-                      // Second location dot with location icon
-                      const Icon(
-                        Icons.location_on,
-                        color: Color.fromARGB(255, 213, 59, 12),
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.publication.author != null
-                              ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName} - Lieu'
-                              : 'Partageur - Lieu',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Point de Départ',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 116, 116, 116),
-                          ),
-                        ),
-                        const SizedBox(height: 26),
-                        // Dans la section où vous affichez "Vous - Nord Foire"
-                        Text(
-                          'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Point D\'arrivée',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 119, 119, 119),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Divider(
-          height: 0.5,
-          thickness: 1,
-          color: Color.fromARGB(255, 224, 224, 224),
-        ),
-        const SizedBox(height: 12),
         // Partageur
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              const Text(
                 "Partageur",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Row(
                 children: [
-                  CircleAvatar(
+                  const CircleAvatar(
                     radius: 24,
                     backgroundImage: AssetImage('assets/icons/profile.png'),
                   ),
@@ -547,8 +399,8 @@ class _DetailPageState extends State<DetailPage> {
                       Text(
                         widget.publication.author != null
                             ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
-                            : 'Fatima Sène',
-                        style: TextStyle(
+                            : 'Nom Partageur',
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
@@ -567,7 +419,6 @@ class _DetailPageState extends State<DetailPage> {
             ],
           ),
         ),
-        // Espace pour le bas de l'écran
       ],
     );
   }
