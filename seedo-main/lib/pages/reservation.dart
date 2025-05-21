@@ -301,14 +301,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       Icon(
                         Icons.access_time,
                         color: HexColor("#D95C18"),
-                        size: 20,
+                        size: 16,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         getTimeAgo(widget.publication.createdDate),
                         style: TextStyle(
                           color: Colors.grey.shade700,
-                          fontSize: 14,
+                          fontSize: 12,
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -325,7 +325,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       Icon(
                         Icons.access_time,
                         color: HexColor("#F44336"),
-                        size: 20,
+                        size: 16,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -339,7 +339,6 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ],
                   ),
                 ),
-
                 // Description
                 Padding(
                   padding: const EdgeInsets.all(16.0),

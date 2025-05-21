@@ -256,3 +256,11 @@ class ResetDialogFlagEvent extends HomeEvent {
   @override
   List<Object> get props => [];
 }
+
+// Ajoutez cet événement dans home_event.dart
+class ResetUserStateEvent extends HomeEvent {
+  const ResetUserStateEvent();
+
+  @override
+  List<Object?> get props => [];
+}

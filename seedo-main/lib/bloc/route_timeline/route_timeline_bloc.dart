@@ -35,9 +35,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     on<RouteTimelineTabChanged>((event, emit) async {
       print("Tab changed to ${event.index}");
       emit(state.copyWith(itineraireIndex: event.index));
-
     });
-
   }
 
   @override
@@ -52,7 +50,13 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     Emitter<RouteTimelineState> emit,
   ) async {
     final appParam = await _getAppParam();
-    emit(state.copyWith(status: RouteTimelineStatus.loading,departureTransit: [],itineraireIndex: event.index));
+    emit(
+      state.copyWith(
+        status: RouteTimelineStatus.loading,
+        departureTransit: [],
+        itineraireIndex: event.index,
+      ),
+    );
 
     try {
       final currentPosition = await locationService.getCurrentLocation();
@@ -113,7 +117,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
   Future<void> _onDepartureDataRequested(
     RouteTimelineDepartureDataRequested event,
     Emitter<RouteTimelineState> emit,
-
   ) async {
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
@@ -126,7 +129,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       endLon: event.endLon,
       emit: emit,
       formattedDate: formattedDate,
-      formattedTime: formattedTime
+      formattedTime: formattedTime,
     );
   }
 
@@ -158,10 +161,10 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     final now = DateTime.now();
 
     final body = {
-     "date": formattedDate,
+      "date": formattedDate,
       "time": formattedTime,
       //"date":"20250515",
-    //  "time":"10:48:00",
+      //  "time":"10:48:00",
       "stopId": "string",
       "start_stop_code": "string",
       "end_stop_code": "string",
@@ -174,7 +177,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       "maxDistanceTo": maxDistanceTo,
       "type": "string",
       "orderByFrom": orderByFrom,
-      "index": state.itineraireIndex
+      "index": state.itineraireIndex,
     };
     print(body);
 
@@ -182,7 +185,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       body,
       "transit/stops/findBus",
     );
-
 
     if (response.data != null && response.data is Map<String, dynamic>) {
       return TransitFullResponseModel.fromJson(response.data);
@@ -209,8 +211,8 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       endLat: endLat,
       endLon: endLon,
       emit: emit,
-        formattedDate:formattedDate,
-        formattedTime:formattedTime
+      formattedDate: formattedDate,
+      formattedTime: formattedTime,
     );
 
     while (state.departureTransit.isEmpty) {
@@ -239,8 +241,12 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       );
 
       final now = DateTime.now();
-      final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
-      final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
+      final formattedDate = DateFormat(
+        'yyyyMMdd',
+      ).format(now); // ex: "20250515"
+      final formattedTime = DateFormat(
+        'HH:mm:ss',
+      ).format(now); // ex: "14:32:07"
 
       await getDepartureData(
         startLat: startLat,
@@ -248,8 +254,8 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         endLat: endLat,
         endLon: endLon,
         emit: emit,
-          formattedDate:formattedDate,
-          formattedTime:formattedTime
+        formattedDate: formattedDate,
+        formattedTime: formattedTime,
       );
 
       if (state.departureTransit.isNotEmpty) {
@@ -261,7 +267,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           await _showInterstitialAd();
           emit(state.copyWith(adShown: true));
         }
-
 
         break;
       }
@@ -295,9 +300,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       formattedTime,
     );
 
-
-
-
     if (data != null) {
       double firstDistanceDepartureToStop =
           data.mainTripInfo!.distanceToDestination!;
@@ -313,8 +315,12 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         maxDistanceTo = 1000;
         maxDistanceFrom = 1000;
         final now = DateTime.now();
-        final formattedDate = DateFormat('yyyyMMdd').format(now); // ex: "20250515"
-        final formattedTime = DateFormat('HH:mm:ss').format(now); // ex: "14:32:07"
+        final formattedDate = DateFormat(
+          'yyyyMMdd',
+        ).format(now); // ex: "20250515"
+        final formattedTime = DateFormat(
+          'HH:mm:ss',
+        ).format(now); // ex: "14:32:07"
         TransitFullResponseModel? stepData = await _findTrips(
           startLat,
           startLon,
@@ -323,12 +329,9 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           true,
           maxDistanceFrom,
           maxDistanceTo,
-            formattedDate,
-            data.mainTripInfo!.destinationStopTime!.arrivalTime
-
+          formattedDate,
+          data.mainTripInfo!.destinationStopTime!.arrivalTime,
         );
-
-
 
         if (stepData != null &&
             stepData.mainTripInfo!.distanceToDestination! <= 1000 &&
@@ -359,10 +362,9 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           false,
           maxDistanceFrom,
           maxDistanceTo,
-            formattedDate,
+          formattedDate,
 
-            data.mainTripInfo!.destinationStopTime!.arrivalTime
-
+          data.mainTripInfo!.destinationStopTime!.arrivalTime,
         );
 
         print("OKLLLLL");
@@ -405,7 +407,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
               departureTransit: [...departureTransit],
               maxDistanceTo: maxDistanceTo,
               maxDistanceFrom: maxDistanceFrom,
-
             ),
           );
         }

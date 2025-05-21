@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
@@ -66,7 +68,7 @@ class PublicationItem extends StatelessWidget {
         );
       },
       child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
+        margin: const EdgeInsets.only(bottom: 10, right: 5),
         height: 165, // Fixed height for consistent cards
         decoration: BoxDecoration(
           color: Colors.white,
@@ -84,11 +86,8 @@ class PublicationItem extends StatelessWidget {
           children: [
             // Image on the left
             ClipRRect(
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(15),
-                bottomLeft: Radius.circular(15),
-              ),
               child: Container(
+                margin: EdgeInsets.only(left: 10, bottom: 10, top: 10),
                 width: 130, // Fixed width for the image
                 height: double.infinity,
                 child:

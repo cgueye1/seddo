@@ -68,7 +68,7 @@ class _PublicationslistState extends State<Publicationslist> {
         },
         builder: (context, state) {
           return Padding(
-            padding: const EdgeInsets.only(top: 60, left: 20),
+            padding: const EdgeInsets.only(top: 50, left: 10, right: 6),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [

@@ -7,7 +7,7 @@ import 'package:seddoapp/bloc/auth/auth_bloc.dart';
 import 'package:seddoapp/bloc/auth/auth_state.dart';
 import 'package:seddoapp/bloc/auth/auth_event.dart';
 import 'package:seddoapp/pages/auth/signup.dart';
-import 'package:seddoapp/pages/home.dart';
+import 'package:seddoapp/widgets/navitems.dart';
 
 class LogIn extends StatefulWidget {
   const LogIn({super.key});
@@ -100,7 +100,7 @@ class _LogInState extends State<LogIn> {
               Navigator.pushReplacement(
                 // ignore: use_build_context_synchronously
                 context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
+                MaterialPageRoute(builder: (context) => const MainScreen()),
               );
             });
           } else if (state is AuthErrorState) {

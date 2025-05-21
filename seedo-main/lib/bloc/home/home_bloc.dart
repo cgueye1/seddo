@@ -68,6 +68,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ToggleFavoritePublication>(_onToggleFavoritePublication);
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
+    on<ResetUserStateEvent>(_onResetUserState);
 
     //updateSubCategorie
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
@@ -81,6 +82,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
   }
+  void _onResetUserState(ResetUserStateEvent event, Emitter<HomeState> emit) {
+    emit(state.copyWith(currentUser: null));
+  }
+
   Future<void> _onInitializeHome(
     InitializeHomeEvent event,
     Emitter<HomeState> emit,

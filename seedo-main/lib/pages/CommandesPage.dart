@@ -1,3 +1,5 @@
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 
@@ -16,7 +18,12 @@ class _CommandesPageState extends State<CommandesPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.index = 0; // Commencer avec "En attente" sélectionné
+    _tabController.index = 0;
+
+    // Ajouter un écouteur pour mettre à jour l'interface quand l'onglet change
+    _tabController.addListener(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -27,6 +34,8 @@ class _CommandesPageState extends State<CommandesPage>
 
   @override
   Widget build(BuildContext context) {
+    final Color primaryColor = HexColor('#D95C18');
+
     return Scaffold(
       backgroundColor: HexColor('#F1F2F6'),
       appBar: AppBar(
@@ -48,56 +57,17 @@ class _CommandesPageState extends State<CommandesPage>
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 0.5),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: HexColor('#D95C18'),
+              indicatorColor: primaryColor,
               indicatorWeight: 3,
               labelColor: Colors.black,
               unselectedLabelColor: Colors.grey,
               tabs: [
-                Tab(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'En attente',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Container(
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          color: HexColor('#D95C18').withOpacity(0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '1',
-                          style: TextStyle(
-                            color: HexColor('#D95C18'),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Tab(
-                  child: Text(
-                    'Validées',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
-                const Tab(
-                  child: Text(
-                    'Refusées',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  ),
-                ),
+                _buildTab("En attente", "1", 0),
+                _buildTab("Validée", "1", 1),
+                _buildTab("Refusée", "1", 2),
               ],
             ),
           ),
@@ -124,6 +94,43 @@ class _CommandesPageState extends State<CommandesPage>
                   "assets/images/empty2.png", // Image pour refusée (avec l'icône X)
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Méthode pour construire un onglet avec style conditionnel
+  Widget _buildTab(String text, String count, int index) {
+    final bool isSelected = _tabController.index == index;
+    Color primaryColor = HexColor('#D95C18');
+
+    return Tab(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            text,
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 5),
+          Container(
+            padding: const EdgeInsets.all(5),
+            decoration: BoxDecoration(
+              color:
+                  isSelected
+                      ? primaryColor.withOpacity(0.1)
+                      : Colors.grey.withOpacity(0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Text(
+              count,
+              style: TextStyle(
+                color: isSelected ? primaryColor : Colors.grey,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
