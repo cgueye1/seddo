@@ -22,6 +22,10 @@ class RouteTimelineState extends Equatable {
   final PlaceModel? toPlaceDetails;
   final itineraireSize ;
 
+
+  final String date;
+  final String time;
+
   const RouteTimelineState({
     this.status = RouteTimelineStatus.initial,
     this.departureTransit = const [],
@@ -41,6 +45,8 @@ class RouteTimelineState extends Equatable {
     this.itineraireSize = 0,
     this.fromPlaceDetails,
     this.toPlaceDetails,
+    this.date ="",
+    this.time=""
   });
 
   RouteTimelineState copyWith({
@@ -62,6 +68,8 @@ class RouteTimelineState extends Equatable {
     int? itineraireSize,
     PlaceModel? fromPlaceDetails,
     PlaceModel? toPlaceDetails,
+    String? date,
+    String? time,
   }) {
     return RouteTimelineState(
       status: status ?? this.status,
@@ -83,6 +91,8 @@ class RouteTimelineState extends Equatable {
 
       fromPlaceDetails: fromPlaceDetails?? this.fromPlaceDetails,
       toPlaceDetails: toPlaceDetails ?? this.toPlaceDetails,
+      date: date ?? this.date,
+      time: time ?? this.time,
     );
   }
 
@@ -105,6 +115,8 @@ class RouteTimelineState extends Equatable {
     itineraireIndex,
     itineraireSize,
     fromPlaceDetails,
-    toPlaceDetails
+    toPlaceDetails,
+    date,
+    time
   ];
 }

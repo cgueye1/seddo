@@ -19,7 +19,7 @@ class ApiService {
       BaseOptions(
         baseUrl: APIConstants.API_BASE_URL,
         connectTimeout: Duration(seconds: 10),
-        receiveTimeout: Duration(seconds: 10),
+        receiveTimeout: Duration(seconds: 50),
         // headers: {"Content-Type": "application/json"},
       ),
     );

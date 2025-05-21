@@ -32,7 +32,7 @@ class MainScreen extends StatelessWidget {
             if (state.appParam == null) {
               return SplashPage();
             }
-            if (state.appParam!.appVersion != currentAppVersion) {
+            if (currentAppVersion!=""   && state.appParam!.appVersion != currentAppVersion) {
               return UpdateRequiredScreen(
                 androidLink: state.appParam!.androidLink,
                 iosLink: state.appParam!.iosLink,

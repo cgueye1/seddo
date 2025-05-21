@@ -29,11 +29,10 @@ class DefaultRepository {
         options: Options(
           headers: {
             "Content-Type": 'application/json',
-            //"Access-Control-Allow-Origin":"*"
           },
         ),
       );
-      print(response.statusCode);
+
 
       return response;
     } on DioException catch (e) {

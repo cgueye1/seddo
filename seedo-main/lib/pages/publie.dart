@@ -452,8 +452,8 @@ class _PubliePageViewState extends State<PubliePageView> {
           ),
           child: TextField(
             controller: _descriptionController,
-            expands: true, // 🔸 Permet au TextField de remplir le conteneur
-            maxLines: null, // 🔸 Permet un nombre de lignes illimité (scroll)
+            expands: true,
+            maxLines: null,
             minLines: null,
             decoration: const InputDecoration(
               hintText: 'Ecrivez quelque chose...',
