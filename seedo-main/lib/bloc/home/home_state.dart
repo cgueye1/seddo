@@ -4,6 +4,7 @@ import 'package:seddoapp/models/menumodels.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import '../../models/AppParamModel.dart';
 import '../../models/CategorieModel.dart';
+import '../../models/campaign/CampaignWinnerDTOModel.dart';
 import '../../models/user_model.dart';
 
 class HomeState extends Equatable {
@@ -39,6 +40,7 @@ class HomeState extends Equatable {
   final Position? currentPosition;
   final bool isAuthenticated;
   final bool showLoginDialog;
+  final List<CampaignWinnerDTOModel> campaignToWinners;
 
   const HomeState({
     this.selectedTabIndex = 0,
@@ -72,6 +74,7 @@ class HomeState extends Equatable {
     this.currentPosition,
     this.isAuthenticated = false,
     this.showLoginDialog = false,
+    this.campaignToWinners = const [],
   });
 
   factory HomeState.initial() {
@@ -105,6 +108,7 @@ class HomeState extends Equatable {
       appParam: null,
       isAuthenticated: false,
       showLoginDialog: false,
+      campaignToWinners: [],
     );
   }
 
@@ -140,6 +144,7 @@ class HomeState extends Equatable {
     Position? currentPosition,
     bool? isAuthenticated,
     bool? showLoginDialog,
+    List<CampaignWinnerDTOModel>? campaignToWinners,
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
@@ -177,6 +182,7 @@ class HomeState extends Equatable {
       currentPosition: currentPosition ?? this.currentPosition,
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       showLoginDialog: showLoginDialog ?? this.showLoginDialog,
+      campaignToWinners: campaignToWinners ?? this.campaignToWinners,
     );
   }
 
@@ -212,5 +218,6 @@ class HomeState extends Equatable {
     currentPosition,
     isAuthenticated,
     showLoginDialog,
+    campaignToWinners,
   ];
 }

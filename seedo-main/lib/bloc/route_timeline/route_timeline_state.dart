@@ -5,6 +5,7 @@ enum RouteTimelineStatus { initial, loading, success, failure }
 class RouteTimelineState extends Equatable {
   final RouteTimelineStatus status;
   final List<TransitFullResponseModel> departureTransit;
+
   //final Filter? selectedFilter;
   final double startLat;
   final double startLon;
@@ -20,11 +21,12 @@ class RouteTimelineState extends Equatable {
   final int itineraireIndex;
   final PlaceModel? fromPlaceDetails;
   final PlaceModel? toPlaceDetails;
-  final itineraireSize ;
-
+  final itineraireSize;
 
   final String date;
   final String time;
+
+  final List<CampaignWinnerDTOModel> campaignToWinners;
 
   const RouteTimelineState({
     this.status = RouteTimelineStatus.initial,
@@ -45,8 +47,9 @@ class RouteTimelineState extends Equatable {
     this.itineraireSize = 0,
     this.fromPlaceDetails,
     this.toPlaceDetails,
-    this.date ="",
-    this.time=""
+    this.date = "",
+    this.time = "",
+    this.campaignToWinners = const [],
   });
 
   RouteTimelineState copyWith({
@@ -70,6 +73,7 @@ class RouteTimelineState extends Equatable {
     PlaceModel? toPlaceDetails,
     String? date,
     String? time,
+    List<CampaignWinnerDTOModel>? campaignToWinners,
   }) {
     return RouteTimelineState(
       status: status ?? this.status,
@@ -87,12 +91,13 @@ class RouteTimelineState extends Equatable {
       adShown: adShown ?? this.adShown,
       appParam: appParam ?? this.appParam,
       itineraireIndex: itineraireIndex ?? this.itineraireIndex,
-      itineraireSize:  itineraireSize ?? this. itineraireSize,
+      itineraireSize: itineraireSize ?? this.itineraireSize,
 
-      fromPlaceDetails: fromPlaceDetails?? this.fromPlaceDetails,
+      fromPlaceDetails: fromPlaceDetails ?? this.fromPlaceDetails,
       toPlaceDetails: toPlaceDetails ?? this.toPlaceDetails,
       date: date ?? this.date,
       time: time ?? this.time,
+      campaignToWinners: campaignToWinners ?? this.campaignToWinners,
     );
   }
 
@@ -117,6 +122,7 @@ class RouteTimelineState extends Equatable {
     fromPlaceDetails,
     toPlaceDetails,
     date,
-    time
+    time,
+    campaignToWinners,
   ];
 }

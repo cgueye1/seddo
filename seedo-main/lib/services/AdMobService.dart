@@ -108,6 +108,7 @@ class AdService {
 
   Future<bool> showInterstitialAd() async {
     if (_interstitialAd != null) {
+      print("oklm");
       _interstitialAd?.show();
       return true;
     }
@@ -129,23 +130,28 @@ class AdService {
     debugPrint('RewardedAd not ready');
     return false;
   }
-  // IDs des pubs
+
+
+
+
+    // IDs des pubs
   String? _getBannerAdUnitId() {
     if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2934735716';
-    if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/6300978111';
+    if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/4890716632';
     return null;
   }
 
   String? _getInterstitialAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-3940256099942544/4411468910';
-    if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/1033173712';
+    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1687789051';
+    if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/6892014276';
     return null;
   }
   String? _getRewardBasedVideoAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-3940256099942544/1712485313';
-    if (Platform.isAndroid) return 'ca-app-pub-3940256099942544/5224354917';
+    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1021949347';
+    if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/7180163580';
     return null;
   }
+
 
 
   void dispose() {

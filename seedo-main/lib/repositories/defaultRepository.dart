@@ -16,7 +16,6 @@ class DefaultRepository {
 
       return response;
     } on DioException catch (e) {
-      print("dsdsds$e");
       rethrow;
     }
   }
@@ -36,7 +35,6 @@ class DefaultRepository {
 
       return response;
     } on DioException catch (e) {
-      print("dsdsds${e.response!.data}");
       rethrow;
     }
   }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/utils/constant.dart';
 import '../../models/transit/TransitResponseModel.dart';
 import '../../utils/date_formatter.dart';
 
@@ -20,7 +22,7 @@ class TransitInterTimeline extends StatelessWidget {
                 // Colonne de l'icône + ligne verticale
                 Column(
                   children: [
-                    Icon(Icons.circle, size: 10, color: Colors.blue),
+                    Icon(Icons.circle, size: 10, color: HexColor(APIConstants.secondaryColorValue)),
                     if (!isLast)
                       Container(width: 1, height: 40, color: Colors.grey),
                   ],
@@ -34,7 +36,8 @@ class TransitInterTimeline extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        formatTimeToHHmm(item.stopTime?.departureTime),
+                       // formatTimeToHHmm(item.stopTime?.departureTime),
+                        "Arrêt",
                         style: const TextStyle(
                           fontSize: 10,
                           color: Colors.black54,

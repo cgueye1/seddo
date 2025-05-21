@@ -14,6 +14,7 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
   final int index;
   final String  date;
   final String  time;
+  final bool canShowAd;
 
   const RouteTimelineInitialized({
     this.fromPlaceDetails,
@@ -21,7 +22,8 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
     this.stopTimeResponse,
     this.index=0,
     this.date="",
-    this.time=""
+    this.time="",
+   required this.canShowAd
   });
 
   @override
@@ -31,7 +33,8 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
     stopTimeResponse ?? '',
     index,
     date,
-    time
+    time,
+    canShowAd
   ];
 }
 

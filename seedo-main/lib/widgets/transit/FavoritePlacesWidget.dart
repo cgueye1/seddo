@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/utils/constant.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../services/transit/FavoritePlaceService.dart';
 import 'DakarSearchWidget.dart';
@@ -120,7 +122,7 @@ class _FavoritePlacesWidgetState extends State<FavoritePlacesWidget> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: Colors.black,
+                    color: HexColor(APIConstants.secondaryColorValue),
                   ),
                 ),
                 Text(""),

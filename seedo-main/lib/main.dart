@@ -11,6 +11,7 @@ import 'package:seddoapp/services/PushNotificationService.dart';
 import 'package:seddoapp/services/api_service.dart';
 import 'package:seddoapp/services/publication_service.dart';
 import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/widgets/navitems.dart';
 import 'firebase_options.dart';
 
@@ -68,10 +69,11 @@ class MyApp extends StatelessWidget {
       title: 'SEDDO APP',
       theme: ThemeData(
         primaryColor: HexColor(
-          '#ffffff',
-        ), // orange foncé (teinte custom, style deep orange 900)
+          APIConstants.primaryColorValue ,
+        ),
+        // orange foncé (teinte custom, style deep orange 900)
         colorScheme: ColorScheme.fromSeed(
-          seedColor: HexColor('#fff'),
+          seedColor: HexColor( APIConstants.secondaryColorValue),
           brightness: Brightness.light,
         ),
         fontFamily: 'Poppins',
