@@ -59,7 +59,6 @@ class PublicationRepository {
     }
   }
 
-  // Search method remains the same, but with improved filtering logic
   Future<List<Publication>> searchPublications({
     required double latitude,
     required double longitude,
@@ -162,6 +161,23 @@ class PublicationRepository {
     } catch (e) {
       print('Erreur lors du paiement dans le repository : $e');
       rethrow;
+    }
+  }
+
+  Future<List<Publication>> getAuthorPublications({
+    required int authorId,
+    int page = 0,
+    int size = 30,
+  }) async {
+    try {
+      return await _publicationService.fetchAuthorPublications(
+        authorId: authorId,
+        page: page,
+        size: size,
+      );
+    } catch (e) {
+      print('Error fetching author publications: $e');
+      throw Exception('Network error while loading author publications');
     }
   }
 }

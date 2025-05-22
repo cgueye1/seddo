@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/pages/home.dart';
 import 'package:seddoapp/pages/publicationslist.dart';
 import 'package:seddoapp/pages/setting.dart';
+import 'package:seddoapp/pages/splash/Splash.dart';
 import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/widgets/update_required_screen.dart';
-import '../pages/splash/Splash.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-
-import '../utils/constant.dart';
 
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
@@ -34,12 +33,15 @@ class MainScreen extends StatelessWidget {
             if (state.appParam == null) {
               return SplashPage();
             }
-            if (currentAppVersion!=""   && state.appParam!.appVersion != currentAppVersion) {
+
+            if (currentAppVersion != "" &&
+                state.appParam!.appVersion != currentAppVersion) {
               return UpdateRequiredScreen(
                 androidLink: state.appParam!.androidLink,
                 iosLink: state.appParam!.iosLink,
               );
             }
+
             return Scaffold(
               body: _getPage(state),
               bottomNavigationBar: CustomBottomNavigationBar(state: state),
@@ -53,16 +55,49 @@ class MainScreen extends StatelessWidget {
   Widget _getPage(HomeState state) {
     final hideTransit = state.appParam!.hideTransit;
     final index = state.currentNavigationIndex;
+    final bool isLoggedIn = state.currentUser != null;
 
     final pages = [
       HomePage(),
-      if (!hideTransit) TransportCommun(appParam: state.appParam, winners: state.campaignToWinners,),
-      Publicationslist(),
+      if (!hideTransit)
+        TransportCommun(
+          appParam: state.appParam,
+          winners: state.campaignToWinners,
+        ),
+      if (!isLoggedIn)
+        _buildLoginRequiredPlaceholder()
+      else
+        Publicationslist(
+          authorId:
+              state
+                  .currentUser!
+                  .id, // Récupérer l'ID depuis l'utilisateur connecté
+        ),
       SettingPage(),
     ];
 
     if (index >= pages.length) return HomePage();
     return pages[index];
+  }
+
+  Widget _buildLoginRequiredPlaceholder() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.lock_outline, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(
+              'Veuillez vous connecter pour accéder aux publications.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -80,7 +115,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
       if (!hideTransit)
         _buildNavItem(context, 1, 'assets/icons/bus.svg', 'Transport'),
       _buildNavItem(context, 2, 'assets/icons/news.svg', 'Publications'),
-
       _buildNavItem(
         context,
         hideTransit ? 2 : 3,
@@ -97,14 +131,6 @@ class CustomBottomNavigationBar extends StatelessWidget {
         ),
         color: Colors.white,
         border: Border.all(color: Colors.grey, width: 0.2),
-       /* boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.2),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, -2),
-          ),
-        ],*/
       ),
       height: 55,
       child: Row(

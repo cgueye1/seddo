@@ -1,6 +1,8 @@
 // 3. Now, let's create the BLoC
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -41,7 +43,9 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
     on<PublicationSubmitted>(_onPublicationSubmitted);
     on<ImageRemoved>(_onImageRemoved); // Ajoutez cette ligne
     on<LoadInitialPricing>(_onLoadInitialPricing);
+
     on<LoadAppParam>(_onLoadAppParam);
+
     on<PricingSelected>((event, emit) {
       emit(state.copyWith(selectedPricing: event.selectedPricing));
     });
@@ -344,48 +348,98 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
   }
 
   Future<void> onCameraPressed(BuildContext context) async {
-    // Vérifiez d'abord si vous avez la permission
-    var status = await Permission.camera.status;
-
-    if (!status.isGranted) {
-      status = await Permission.camera.request();
-      if (!status.isGranted) {
-        // Si la permission est refusée, montrez un message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permission caméra requise')),
-        );
-        return;
-      }
-    }
-
     try {
+      // Vérification plus robuste des permissions
+      var cameraStatus = await Permission.camera.status;
+      var storageStatus = await Permission.storage.status;
+
+      print("Status caméra: $cameraStatus");
+      print("Status stockage: $storageStatus");
+
+      // Demander les permissions si nécessaire
+      if (!cameraStatus.isGranted) {
+        cameraStatus = await Permission.camera.request();
+        if (cameraStatus.isDenied || cameraStatus.isPermanentlyDenied) {
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                  'Permission caméra requise pour prendre des photos',
+                ),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return;
+        }
+      }
+
+      // Vérifier la permission de stockage pour Android
+      if (!storageStatus.isGranted) {
+        storageStatus = await Permission.storage.request();
+      }
+
       final picker = ImagePicker();
+
+      // Prendre la photo avec des paramètres plus conservateurs
       final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
-        imageQuality: 85,
+        imageQuality:
+            70, // Réduire la qualité pour éviter les problèmes de mémoire
+        maxWidth: 1024, // Réduire la taille maximale
+        maxHeight: 1024,
+        preferredCameraDevice: CameraDevice.rear,
       );
 
       if (image != null && context.mounted) {
-        // Traitez l'image ici
-        // Par exemple avec un Bloc :
-        // context.read<PublicationBloc>().add(ImagesAdded([image.path]));
+        print("Photo prise avec succès: ${image.path}");
 
-        // Ou avec un StatefulWidget :
-        // setState(() {
-        //   _selectedImages.add(File(image.path));
-        // });
+        // Vérifier que le fichier existe
+        final file = File(image.path);
+        if (await file.exists()) {
+          // Ajouter l'image via le BLoC
+          context.read<PublicationBloc>().add(ImagesAdded([image.path]));
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Photo ajoutée avec succès'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          throw Exception("Le fichier image n'a pas été créé");
+        }
       }
     } catch (e) {
+      print("Erreur lors de la prise de photo: $e");
       if (context.mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur caméra: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
       }
     }
   }
 
   void _onImagesAdded(ImagesAdded event, Emitter<PublicationState> emit) {
-    emit(state.copyWith(pictures: [...state.pictures, ...event.images]));
+    try {
+      final currentPictures = List<String>.from(state.pictures);
+      final newPictures = [...currentPictures, ...event.images];
+
+      // Limiter le nombre d'images pour éviter les problèmes de mémoire
+      if (newPictures.length > 10) {
+        emit(state.copyWith(errorMessage: "Maximum 10 images autorisées"));
+        return;
+      }
+
+      emit(state.copyWith(pictures: newPictures, errorMessage: null));
+    } catch (e) {
+      emit(
+        state.copyWith(errorMessage: "Erreur lors de l'ajout des images: $e"),
+      );
+    }
   }
 
   void _onImageRemoved(ImageRemoved event, Emitter<PublicationState> emit) {

@@ -72,6 +72,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ToggleFavoritePublication>(_onToggleFavoritePublication);
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
+    on<LoadAuthorPublications>(_onLoadAuthorPublications);
 
     //updateSubCategorie
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
@@ -826,6 +827,34 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       }
     } catch (e) {
       return [];
+    }
+  }
+
+  Future<void> _onLoadAuthorPublications(
+    LoadAuthorPublications event,
+    Emitter<HomeState> emit,
+  ) async {
+    emit(state.copyWith(isLoadingAuthorPublications: true));
+
+    try {
+      final publications = await _publicationRepository.getAuthorPublications(
+        authorId: event.authorId,
+      );
+
+      emit(
+        state.copyWith(
+          authorPublications: publications,
+          isLoadingAuthorPublications: false,
+        ),
+      );
+    } catch (e) {
+      print('Error loading author publications: $e');
+      emit(
+        state.copyWith(
+          isLoadingAuthorPublications: false,
+          authorPublications: [],
+        ),
+      );
     }
   }
 }

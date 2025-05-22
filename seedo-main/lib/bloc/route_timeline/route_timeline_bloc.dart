@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element
+
 import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
@@ -323,6 +325,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         final formattedDate = DateFormat(
           'yyyyMMdd',
         ).format(now); // ex: "20250515"
+        // ignore: unused_local_variable
         final formattedTime = DateFormat(
           'HH:mm:ss',
         ).format(now); // ex: "14:32:07"

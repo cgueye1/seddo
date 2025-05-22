@@ -1,5 +1,6 @@
 // publication_state.dart
 import 'package:equatable/equatable.dart';
+import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/models/user_model.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 
@@ -31,6 +32,8 @@ class PublicationState extends Equatable {
   final bool emergency;
   final bool ad;
   final double price; // en double au lieu de String
+  final List<Publication> authorPublications;
+  final bool isLoadingAuthorPublications;
 
   // Attributs supplémentaires pour l'état du formulaire
   final List<String> categoryTitles;
@@ -92,6 +95,8 @@ class PublicationState extends Equatable {
     this.selectedPricing,
     this.redirectUrl,
     this.appParam,
+    this.authorPublications = const [],
+    this.isLoadingAuthorPublications = false,
   });
 
   PublicationState copyWith({
@@ -135,6 +140,8 @@ class PublicationState extends Equatable {
     PricingModel? selectedPricing,
     String? redirectUrl,
     AppParamModel? appParam,
+    List<Publication>? authorPublications,
+    bool? isLoadingAuthorPublications,
   }) {
     return PublicationState(
       currentStep: currentStep ?? this.currentStep,
@@ -178,6 +185,9 @@ class PublicationState extends Equatable {
       selectedPricing: selectedPricing ?? this.selectedPricing,
       redirectUrl: redirectUrl ?? this.redirectUrl,
       appParam: appParam ?? this.appParam,
+      authorPublications: authorPublications ?? this.authorPublications,
+      isLoadingAuthorPublications:
+          isLoadingAuthorPublications ?? this.isLoadingAuthorPublications,
     );
   }
 
@@ -223,5 +233,7 @@ class PublicationState extends Equatable {
     selectedPricing,
     redirectUrl,
     appParam,
+    authorPublications,
+    isLoadingAuthorPublications,
   ];
 }

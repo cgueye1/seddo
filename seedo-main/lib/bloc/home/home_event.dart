@@ -264,3 +264,12 @@ class ResetUserStateEvent extends HomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class LoadAuthorPublications extends HomeEvent {
+  final int authorId;
+
+  const LoadAuthorPublications({required this.authorId});
+
+  @override
+  List<Object?> get props => [authorId];
+}

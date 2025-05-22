@@ -77,6 +77,59 @@ class PublicationService {
     }
   }
 
+  // Ajoutez cette méthode dans votre PublicationService (paste-3.txt)
+
+  Future<List<Publication>> fetchAuthorPublications({
+    required int authorId,
+    int page = 0,
+    int size = 30,
+  }) async {
+    try {
+      // Construire l'URL avec l'authorId dans le chemin et les autres paramètres en query
+      String url = 'meals/author/$authorId';
+
+      // Ajouter les paramètres de pagination si nécessaire
+      Map<String, dynamic> queryParams = {'page': page, 'size': size};
+
+      // Construire les paramètres de requête
+      String queryString = queryParams.entries
+          .map((entry) => '${entry.key}=${entry.value}')
+          .join('&');
+
+      if (queryString.isNotEmpty) {
+        url += '?$queryString';
+      }
+
+      print(
+        "URL de requête pour les publications de l'auteur: $_dio.options.baseUrl$url",
+      );
+
+      final response = await _dio.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = response.data;
+        final List<dynamic> content = data['content'];
+
+        final publications =
+            content.map((item) {
+              return Publication.fromJson(item);
+            }).toList();
+
+        print("Récupéré ${publications.length} publications de l'auteur");
+        return publications;
+      } else {
+        throw Exception('Erreur HTTP: ${response.statusCode}');
+      }
+    } on DioException catch (e) {
+      print("DioException lors de la requête: ${e.message}");
+      print("Response data: ${e.response?.data}");
+      throw Exception('Erreur Dio: ${e.message}');
+    } catch (e) {
+      print("Exception lors de la requête: $e");
+      throw Exception('Erreur inattendue: $e');
+    }
+  }
+
   Future<Response?> postPublication({
     required String titre,
     required String description,
@@ -93,7 +146,6 @@ class PublicationService {
     bool emergency = false,
     required int days,
     required int pricingId,
-
   }) async {
     try {
       FormData formData = FormData();
@@ -182,8 +234,9 @@ class PublicationService {
     }
   }
 
-
-  Future<PaymentResponseModel> payMeal(PaiementRequestModel paiementRequest) async {
+  Future<PaymentResponseModel> payMeal(
+    PaiementRequestModel paiementRequest,
+  ) async {
     try {
       final response = await _dio.post(
         'peytech/meal',
@@ -196,13 +249,10 @@ class PublicationService {
         throw Exception('Erreur HTTP: ${response.statusCode}');
       }
     } on DioException catch (e) {
-
       throw Exception('Erreur de paiement : ${e.message}');
     } catch (e) {
       print("Erreur inattendue : $e");
       throw Exception('Erreur inattendue : $e');
     }
   }
-
-
 }

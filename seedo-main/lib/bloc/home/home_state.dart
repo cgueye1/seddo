@@ -41,7 +41,8 @@ class HomeState extends Equatable {
   final bool isAuthenticated;
   final bool showLoginDialog;
   final List<CampaignWinnerDTOModel> campaignToWinners;
-
+  final List<Publication> authorPublications;
+  final bool isLoadingAuthorPublications;
   const HomeState({
     this.selectedTabIndex = 0,
     this.currentNavigationIndex = 0,
@@ -75,6 +76,8 @@ class HomeState extends Equatable {
     this.isAuthenticated = false,
     this.showLoginDialog = false,
     this.campaignToWinners = const [],
+    this.authorPublications = const [],
+    this.isLoadingAuthorPublications = false,
   });
 
   factory HomeState.initial() {
@@ -145,6 +148,8 @@ class HomeState extends Equatable {
     bool? isAuthenticated,
     bool? showLoginDialog,
     List<CampaignWinnerDTOModel>? campaignToWinners,
+    List<Publication>? authorPublications,
+    bool? isLoadingAuthorPublications,
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
@@ -183,6 +188,9 @@ class HomeState extends Equatable {
       isAuthenticated: isAuthenticated ?? this.isAuthenticated,
       showLoginDialog: showLoginDialog ?? this.showLoginDialog,
       campaignToWinners: campaignToWinners ?? this.campaignToWinners,
+      authorPublications: authorPublications ?? this.authorPublications,
+      isLoadingAuthorPublications:
+          isLoadingAuthorPublications ?? this.isLoadingAuthorPublications,
     );
   }
 
@@ -219,5 +227,7 @@ class HomeState extends Equatable {
     isAuthenticated,
     showLoginDialog,
     campaignToWinners,
+    authorPublications,
+    isLoadingAuthorPublications,
   ];
 }

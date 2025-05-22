@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -644,11 +646,17 @@ class _PubliePageViewState extends State<PubliePageView> {
       },
       onCameraPressed: () async {
         try {
-          final status = await Permission.camera.request();
-          if (!status.isGranted) {
+          // Vérifier les permissions de manière plus complète
+          Map<Permission, PermissionStatus> statuses =
+              await [Permission.camera, Permission.storage].request();
+
+          if (statuses[Permission.camera] != PermissionStatus.granted) {
             if (context.mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Permission caméra requise')),
+                const SnackBar(
+                  content: Text('Permission caméra refusée'),
+                  backgroundColor: Colors.red,
+                ),
               );
             }
             return;
@@ -657,18 +665,37 @@ class _PubliePageViewState extends State<PubliePageView> {
           final picker = ImagePicker();
           final XFile? image = await picker.pickImage(
             source: ImageSource.camera,
-            maxWidth: 1200,
-            maxHeight: 1200,
-            imageQuality: 85,
+            maxWidth: 1024,
+            maxHeight: 1024,
+            imageQuality: 70,
           );
 
-          if (image != null) {
+          if (image != null && context.mounted) {
+            // Vérifier la taille du fichier pour éviter les problèmes de mémoire
+            final file = File(image.path);
+            final fileSize = await file.length();
+
+            if (fileSize > 10 * 1024 * 1024) {
+              // 10MB max
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Image trop volumineuse'),
+                  backgroundColor: Colors.orange,
+                ),
+              );
+              return;
+            }
+
             context.read<PublicationBloc>().add(ImagesAdded([image.path]));
           }
         } catch (e) {
+          print("Erreur complète: $e");
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Erreur caméra: ${e.toString()}')),
+              SnackBar(
+                content: Text('Erreur: ${e.toString()}'),
+                backgroundColor: Colors.red,
+              ),
             );
           }
         }

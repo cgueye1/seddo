@@ -1,6 +1,7 @@
 // publication_event.dart
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/models/CategorieModel.dart';
 
 import '../../models/PricingModel.dart';
@@ -98,4 +99,14 @@ class PricingSelected extends PublicationEvent {
   @override
   List<Object?> get props => [selectedPricing];
 }
+
 class LoadAppParam extends PublicationEvent {}
+
+class LoadAuthorPublications extends HomeEvent {
+  final int authorId;
+
+  const LoadAuthorPublications({required this.authorId});
+
+  @override
+  List<Object?> get props => [authorId];
+}

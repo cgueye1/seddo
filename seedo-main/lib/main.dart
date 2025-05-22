@@ -51,6 +51,14 @@ void main() async {
             create:
                 (context) => HomeBloc(context.read<PublicationRepository>()),
           ),
+          // BlocProvider<ReservationBloc>(
+          //   create:
+          //       (context) => ReservationBloc(
+          //         reservationRepository: ReservationRepository(
+          //           reservationService: ReservationService(dio),
+          //         ),
+          //       ),
+          // ),
         ],
         child: const MyApp(),
       ),
@@ -68,12 +76,10 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       title: 'SEDDO APP',
       theme: ThemeData(
-        primaryColor: HexColor(
-          APIConstants.primaryColorValue ,
-        ),
+        primaryColor: HexColor(APIConstants.primaryColorValue),
         // orange foncé (teinte custom, style deep orange 900)
         colorScheme: ColorScheme.fromSeed(
-          seedColor: HexColor( APIConstants.secondaryColorValue),
+          seedColor: HexColor(APIConstants.secondaryColorValue),
           brightness: Brightness.light,
         ),
         fontFamily: 'Poppins',
