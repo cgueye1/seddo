@@ -18,13 +18,16 @@ import 'package:seddoapp/services/SharedPreferencesService.dart';
 import 'package:seddoapp/services/menu_service.dart';
 import 'package:seddoapp/utils/constant.dart';
 import '../../models/AppParamModel.dart';
+import '../../models/campaign/CampaignWinnerDTOModel.dart';
 import '../../repositories/defaultRepository.dart';
+import '../../services/AdMobService.dart';
 import 'home_state.dart';
 import 'home_event.dart';
 
 // Ajoutez un nouvel événement
 class LocationUpdated extends HomeEvent {
   final String locationName;
+
   const LocationUpdated({required this.locationName});
 }
 
@@ -41,6 +44,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       SharedPreferencesService();
 
   final LocationService locationService = LocationService();
+  final AdService adService = AdService();
 
   StreamSubscription<Position>? positionStreamSubscription;
 
@@ -68,7 +72,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<ToggleFavoritePublication>(_onToggleFavoritePublication);
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
-    on<ResetUserStateEvent>(_onResetUserState);
 
     //updateSubCategorie
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
@@ -94,6 +97,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // Load menu data
       final categoryPublications = await _menuService.loadMenuData();
       final appParam = await _getAppParam();
+
+      if (appParam != null && !appParam.hideAds) {
+        _showInterstitialAd();
+      }
+
       // Load categories
       final categories = await _categorieRepository.fetchCategoriesNoParent();
       final currentPosition = await locationService.getCurrentLocation();
@@ -140,6 +148,17 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     } catch (e) {
       emit(state.copyWith(error: 'Error: ${e.toString()}'));
     }
+
+    final campaignTopWinner = await _getCampaignTop();
+
+    emit(state.copyWith(campaignToWinners: campaignTopWinner));
+  }
+
+  Future<void> _showInterstitialAd() async {
+    // Délai minimum avant d'afficher la pub (3 secondes)
+    await Future.delayed(Duration(seconds: 10));
+
+    await adService.showInterstitialAd();
   }
 
   Future<void> _onLoadCurrentUser(
@@ -186,9 +205,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         state.copyWith(
           publications: publications,
           isLoadingPublications: false,
-          selectedCategory: state.selectedCategory, // Ajoutez cette ligne
+          selectedCategory: state.selectedCategory,
+          // Ajoutez cette ligne
           selectedCategoryId: event.categoryId ?? state.selectedCategoryId,
-          selectedSubcategory: state.selectedSubcategory, // Ajoutez cette ligne
+          selectedSubcategory: state.selectedSubcategory,
+          // Ajoutez cette ligne
           selectedSubcategoryId:
               event.subcategoryId ?? state.selectedSubcategoryId,
           lastSearchKeyword:
@@ -658,9 +679,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         state.copyWith(
           selectedCategoryId: event.categoryId,
           selectedCategory: selectedCategory,
-          publications: [], // Vide les publications actuelles
+          publications: [],
+          // Vide les publications actuelles
           hasReachedMax: false,
-          selectedSubcategoryId: null, // Réinitialise la sous-catégorie
+          selectedSubcategoryId: null,
+          // Réinitialise la sous-catégorie
           selectedSubcategory: null,
           isLoadingPublications: true,
         ),
@@ -730,7 +753,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
           selectedCategoryId: currentCategoryId,
           selectedSubcategory: selectedSubcategory,
           selectedSubcategoryId: newSubcategoryId,
-          publications: [], // Vide les publications actuelles
+          publications: [],
+          // Vide les publications actuelles
           hasReachedMax: false,
           isLoadingPublications: true,
         ),
@@ -787,5 +811,21 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   // Gestionnaire pour réinitialiser le drapeau de dialogue
   void _onResetDialogFlag(ResetDialogFlagEvent event, Emitter<HomeState> emit) {
     emit(state.copyWith(showLoginDialog: false));
+  }
+
+  Future<List<CampaignWinnerDTOModel>> _getCampaignTop() async {
+    try {
+      final response = await repository.getData("/campaign/top");
+
+      if (response.data != null &&
+          response.data is List &&
+          response.data.isNotEmpty) {
+        return CampaignWinnerDTOModel.fromJsonList(response.data);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
+    }
   }
 }

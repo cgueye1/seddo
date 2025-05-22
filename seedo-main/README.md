@@ -36,3 +36,13 @@ git pull récupère les dernières modifications du dépôt distant.
 
 git stash pop remet tes modifications par-dessus les nouvelles.
 
+
+
+
+# 1. Récupère les modifications du dépôt distant et place tes commits "au-dessus"
+git pull --rebase origin main
+
+# 2. Ensuite, tu peux pousser
+git push origin main
+
+

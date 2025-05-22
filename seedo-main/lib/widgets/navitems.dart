@@ -13,6 +13,8 @@ import 'package:seddoapp/widgets/update_required_screen.dart';
 import '../pages/splash/Splash.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../utils/constant.dart';
+
 class MainScreen extends StatelessWidget {
   const MainScreen({super.key});
 
@@ -32,7 +34,7 @@ class MainScreen extends StatelessWidget {
             if (state.appParam == null) {
               return SplashPage();
             }
-            if (state.appParam!.appVersion != currentAppVersion) {
+            if (currentAppVersion!=""   && state.appParam!.appVersion != currentAppVersion) {
               return UpdateRequiredScreen(
                 androidLink: state.appParam!.androidLink,
                 iosLink: state.appParam!.iosLink,
@@ -54,7 +56,7 @@ class MainScreen extends StatelessWidget {
 
     final pages = [
       HomePage(),
-      if (!hideTransit) TransportCommun(appParam: state.appParam),
+      if (!hideTransit) TransportCommun(appParam: state.appParam, winners: state.campaignToWinners,),
       Publicationslist(),
       SettingPage(),
     ];
@@ -94,17 +96,17 @@ class CustomBottomNavigationBar extends StatelessWidget {
           topRight: Radius.circular(30),
         ),
         color: Colors.white,
-        border: Border.all(color: Colors.grey.withOpacity(0.3), width: 1.0),
-        boxShadow: [
+        border: Border.all(color: Colors.grey, width: 0.2),
+       /* boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.2),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, -2),
           ),
-        ],
+        ],*/
       ),
-      height: 65,
+      height: 55,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: navItems,
@@ -119,10 +121,10 @@ class CustomBottomNavigationBar extends StatelessWidget {
     String label,
   ) {
     final isSelected = index == state.currentNavigationIndex;
-    final iconSize = 28.0;
+    final iconSize = 20.0;
     final Color iconColor =
         isSelected
-            ? HexColor("#D95C18")
+            ? HexColor(APIConstants.primaryColorValue)
             : const Color.fromARGB(255, 113, 113, 113);
 
     return InkWell(

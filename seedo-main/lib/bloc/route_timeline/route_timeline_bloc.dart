@@ -5,6 +5,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 
 import '../../models/AppParamModel.dart';
+import '../../models/campaign/CampaignWinnerDTOModel.dart';
 import '../../models/transit/PlaceModel.dart';
 import '../../models/transit/StopTimeResponse.dart';
 import '../../models/transit/TransitResponseModel.dart';
@@ -33,7 +34,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     on<RouteTimelineCurrentPositionUpdated>(_onCurrentPositionUpdated);
     on<RouteTimelineDispose>(_onDispose);
     on<RouteTimelineTabChanged>((event, emit) async {
-      print("Tab changed to ${event.index}");
       emit(state.copyWith(itineraireIndex: event.index));
     });
   }
@@ -55,6 +55,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         status: RouteTimelineStatus.loading,
         departureTransit: [],
         itineraireIndex: event.index,
+        appParam: appParam,
       ),
     );
 
@@ -65,6 +66,10 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       double endLat = event.toPlaceDetails?.latitude ?? 0;
       double endLon = event.toPlaceDetails?.longitude ?? 0;
 
+      String date = event.date;
+      String time = event.time;
+      int itineraireIndex = event.index;
+
       emit(
         state.copyWith(
           appParam: appParam,
@@ -74,6 +79,9 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           endLat: endLat,
           endLon: endLon,
           currentPosition: currentPosition,
+          itineraireIndex: itineraireIndex,
+          date: date,
+          time: time,
         ),
       );
 
@@ -97,6 +105,12 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
           endLon: endLon,
           emit: emit,
         );
+
+        if (event.canShowAd &&
+            state.appParam != null &&
+            !state.appParam!.hideAds) {
+          await _showInterstitialAd();
+        }
       }
     } catch (e) {
       emit(
@@ -106,11 +120,16 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         ),
       );
     }
+
+    /*final campaignTopWinner = await _getCampaignTop();
+
+    emit(state.copyWith(campaignToWinners: campaignTopWinner));*/
   }
 
   Future<void> _showInterstitialAd() async {
     // Délai minimum avant d'afficher la pub (3 secondes)
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(Duration(seconds: 1));
+
     await adService.showInterstitialAd();
   }
 
@@ -158,17 +177,16 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     String formattedDate,
     String formattedTime,
   ) async {
-    final now = DateTime.now();
+    String date = state.date;
+    String time = state.time;
 
     final body = {
-      "date": formattedDate,
-      "time": formattedTime,
-      //"date":"20250515",
-      //  "time":"10:48:00",
-      "stopId": "string",
-      "start_stop_code": "string",
-      "end_stop_code": "string",
-      "arrivalStopId": "string",
+      "date": date.isEmpty ? formattedDate : date,
+      "time": time.isEmpty ? formattedTime : time,
+      "stopId": "",
+      "start_stop_code": "",
+      "end_stop_code": "",
+      "arrivalStopId": "",
       "departureLat": dlat,
       "departureLon": dlon,
       "destinationLat": alat,
@@ -179,12 +197,8 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       "orderByFrom": orderByFrom,
       "index": state.itineraireIndex,
     };
-    print(body);
 
-    final response = await repository.saveBodyFree(
-      body,
-      "transit/stops/findBus",
-    );
+    final response = await repository.saveBody(body, "transit/stops/findBus");
 
     if (response.data != null && response.data is Map<String, dynamic>) {
       return TransitFullResponseModel.fromJson(response.data);
@@ -218,11 +232,11 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
     while (state.departureTransit.isEmpty) {
       if (maxDistanceToIncrementCount < 5) {
         maxDistanceTo += 500;
+
         maxDistanceToIncrementCount++;
       } else if (maxDistanceFromIncrementCount < 5) {
         maxDistanceFrom += 500;
         maxDistanceFromIncrementCount++;
-        maxDistanceToIncrementCount = 0;
       } else {
         emit(
           state.copyWith(
@@ -260,13 +274,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
 
       if (state.departureTransit.isNotEmpty) {
         emit(state.copyWith(itineraireSize: state.departureTransit.first.size));
-
-        if (!state.adShown &&
-            state.appParam != null &&
-            !state.appParam!.hideAds) {
-          await _showInterstitialAd();
-          emit(state.copyWith(adShown: true));
-        }
 
         break;
       }
@@ -308,8 +315,6 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
       departureTransit.add(data);
 
       emit(state.copyWith(departureTransit: departureTransit));
-      print("state.departureTransit.length");
-      print(state.departureTransit.length);
 
       if (distanceDepartureToStop > 1000) {
         maxDistanceTo = 1000;
@@ -457,6 +462,22 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
         apiKey: "",
         useGoogleSearch: false,
       );
+    }
+  }
+
+  Future<List<CampaignWinnerDTOModel>> _getCampaignTop() async {
+    try {
+      final response = await repository.getData("/campaign/top");
+
+      if (response.data != null &&
+          response.data is List &&
+          response.data.isNotEmpty) {
+        return CampaignWinnerDTOModel.fromJsonList(response.data);
+      } else {
+        return [];
+      }
+    } catch (e) {
+      return [];
     }
   }
 }

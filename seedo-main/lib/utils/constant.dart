@@ -1,4 +1,7 @@
 class APIConstants {
+  static const String primaryColorValue = "#D95C18";
+  static const String secondaryColorValue = "#0D47A1";
+
   // ignore: constant_identifier_names
   static const String API_BASE_URL = "https://wakana.online:8085/api/";
   // ignore: constant_identifier_names

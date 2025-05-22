@@ -107,9 +107,7 @@ class _HomePageContentState extends State<_HomePageContent> {
           // Placement du bouton en bas à droite
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           body:
-              state.currentNavigationIndex == 3
-                  ? TransportCommun()
-                  : SafeArea(
+              SafeArea(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.only(top: 20),
                       child: Column(

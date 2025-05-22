@@ -85,7 +85,7 @@ class _CommandesPageState extends State<CommandesPage>
                 _buildEmptyState(
                   "Validée",
                   "Les publications commandes apparaîtront ici automatiquement.",
-                  "assets/images/empty1.png", // Image pour validée (avec l'icône de l'horloge)
+                  "assets/images/empty1.png",
                 ),
                 // Tab 3: Refusées
                 _buildEmptyState(

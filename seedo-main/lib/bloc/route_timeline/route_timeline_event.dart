@@ -12,12 +12,18 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
   final PlaceModel? toPlaceDetails;
   final StopTimeResponseModel? stopTimeResponse;
   final int index;
+  final String  date;
+  final String  time;
+  final bool canShowAd;
 
   const RouteTimelineInitialized({
     this.fromPlaceDetails,
     this.toPlaceDetails,
     this.stopTimeResponse,
-    this.index=0
+    this.index=0,
+    this.date="",
+    this.time="",
+   required this.canShowAd
   });
 
   @override
@@ -25,7 +31,10 @@ class RouteTimelineInitialized extends RouteTimelineEvent {
     fromPlaceDetails ?? '',
     toPlaceDetails ?? '',
     stopTimeResponse ?? '',
-    index
+    index,
+    date,
+    time,
+    canShowAd
   ];
 }
 
