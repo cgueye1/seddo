@@ -32,7 +32,7 @@ class CategoryDropdown extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
+            /*Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Text(
                 'Catégories',
@@ -43,7 +43,7 @@ class CategoryDropdown extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(height: 8),
+            SizedBox(height: 8),*/
 
             // Catégories tabs avec indicateur
             DefaultTabController(

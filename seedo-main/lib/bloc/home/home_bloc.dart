@@ -215,6 +215,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               event.subcategoryId ?? state.selectedSubcategoryId,
           lastSearchKeyword:
               searchManager.isSearchActive ? state.lastSearchKeyword : null,
+          hasLoadedInitialPublications: true
         ),
       );
     } catch (e) {
