@@ -15,7 +15,10 @@ import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/widgets/update_required_screen.dart';
 
 class MainScreen extends StatelessWidget {
-  const MainScreen({super.key});
+  final int? initialIndex;
+  final int? reservedPublicationId;
+
+  const MainScreen({super.key, this.initialIndex, this.reservedPublicationId});
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +45,15 @@ class MainScreen extends StatelessWidget {
               );
             }
 
+            // Ajoutez cette vérification pour la publication réservée
+            if (reservedPublicationId != null) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.read<HomeBloc>().add(
+                  AddReservedPublication(reservedPublicationId!),
+                );
+              });
+            }
+
             return Scaffold(
               body: _getPage(state),
               bottomNavigationBar: CustomBottomNavigationBar(state: state),
@@ -54,11 +66,11 @@ class MainScreen extends StatelessWidget {
 
   Widget _getPage(HomeState state) {
     final hideTransit = state.appParam!.hideTransit;
-    final index = state.currentNavigationIndex;
+    final index = initialIndex ?? state.currentNavigationIndex;
     final bool isLoggedIn = state.currentUser != null;
 
     final pages = [
-      HomePage(),
+      HomePage(reservedPublicationId: reservedPublicationId), // Passez l'ID ici
       if (!hideTransit)
         TransportCommun(
           appParam: state.appParam,
@@ -67,12 +79,7 @@ class MainScreen extends StatelessWidget {
       if (!isLoggedIn)
         _buildLoginRequiredPlaceholder()
       else
-        Publicationslist(
-          authorId:
-              state
-                  .currentUser!
-                  .id, // Récupérer l'ID depuis l'utilisateur connecté
-        ),
+        Publicationslist(authorId: state.currentUser!.id),
       SettingPage(),
     ];
 

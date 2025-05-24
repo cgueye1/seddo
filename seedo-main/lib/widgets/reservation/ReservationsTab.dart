@@ -1,12 +1,10 @@
-// widgets/reservation/reservations_tab.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seddoapp/bloc/reservation/reservation_bloc.dart';
-import 'package:seddoapp/bloc/reservation/reservation_event.dart';
-import 'package:seddoapp/bloc/reservation/reservation_state.dart';
 import 'package:seddoapp/models/publication_model.dart';
+import 'package:seddoapp/services/ReservationService.dart';
 import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/widgets/reservation/ApprovedReservationsTab.dart';
 import 'package:seddoapp/widgets/reservation/PendingReservationsTab.dart';
+import 'package:seddoapp/widgets/reservation/RejectedReservationsTab.dart';
 
 class ReservationsTab extends StatefulWidget {
   final Publication publication;
@@ -18,168 +16,186 @@ class ReservationsTab extends StatefulWidget {
   _ReservationsTabState createState() => _ReservationsTabState();
 }
 
-class _ReservationsTabState extends State<ReservationsTab>
-    with SingleTickerProviderStateMixin {
+class _ReservationsTabState extends State<ReservationsTab> {
   int _selectedTabIndex = 0;
-  late TabController _tabController;
+  final ReservationService _reservationService = ReservationService();
+
+  // Compteurs pour chaque type de réservation
+  int _pendingCount = 0;
+  int _approvedCount = 0;
+  int _rejectedCount = 0;
+
+  bool _isLoadingCounts = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-    // Charger toutes les réservations au démarrage
-    _loadAllReservations();
+    _loadReservationCounts();
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _loadReservationCounts() async {
+    try {
+      setState(() {
+        _isLoadingCounts = true;
+      });
+
+      // Récupérer toutes les réservations pour ce repas
+      final reservations = await _reservationService.getReservationsByMeal(
+        widget.publication.id,
+      );
+
+      // Compter par statut
+      int pending = 0;
+      int approved = 0;
+      int rejected = 0;
+
+      for (final reservation in reservations) {
+        switch (reservation.status.toUpperCase()) {
+          case 'PENDING':
+            pending++;
+            break;
+          case 'APPROVED':
+          case 'ACCEPTED':
+            approved++;
+            break;
+          case 'REJECTED':
+          case 'REFUSED':
+            rejected++;
+            break;
+        }
+      }
+
+      setState(() {
+        _pendingCount = pending;
+        _approvedCount = approved;
+        _rejectedCount = rejected;
+        _isLoadingCounts = false;
+      });
+    } catch (e) {
+      print('Erreur lors du chargement des compteurs: $e');
+      setState(() {
+        _isLoadingCounts = false;
+      });
+    }
   }
 
-  void _loadAllReservations() {
-    context.read<ReservationBloc>().add(
-      LoadReservationsByPublicationEvent(publicationId: widget.publication.id),
-    );
+  // Méthode pour actualiser les compteurs (à appeler depuis les tabs enfants)
+  void refreshCounts() {
+    _loadReservationCounts();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<ReservationBloc, ReservationState>(
-      listener: (context, state) {
-        if (state.successMessage != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.successMessage!),
-              backgroundColor: Colors.green,
-            ),
-          );
-          // Recharger les réservations après mise à jour
-          _loadAllReservations();
-        }
-        if (state.error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error!), backgroundColor: Colors.red),
-          );
-        }
-      },
-      child: Column(
-        children: [
-          // Custom Tab Bar
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            child: Row(
-              children: [
-                _buildPillTab('En attente', 0),
-                const SizedBox(width: 10),
-                _buildPillTab('Validées', 1),
-                const SizedBox(width: 10),
-                _buildPillTab('Refusées', 2),
-              ],
-            ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 15),
+          child: Row(
+            children: [
+              _buildPillTab('En attente', 0, _pendingCount),
+              const SizedBox(width: 10),
+              _buildPillTab('Validées', 1, _approvedCount),
+              const SizedBox(width: 10),
+              _buildPillTab('Refusées', 2, _rejectedCount),
+            ],
           ),
+        ),
 
-          const SizedBox(height: 16),
+        const SizedBox(height: 16),
 
-          // Tab content
-          Expanded(
-            child: IndexedStack(
-              index: _selectedTabIndex,
-              children: [
-                PendingReservationsTab(publication: widget.publication),
-                ApprovedReservationsTab(publication: widget.publication),
-                RejectedReservationsTab(publication: widget.publication),
-              ],
+        // Tab content
+        IndexedStack(
+          index: _selectedTabIndex,
+          children: [
+            PendingReservationsTab(
+              publication: widget.publication,
+              onReservationChanged: refreshCounts,
             ),
-          ),
-        ],
-      ),
+            ApprovedReservationsTab(
+              publication: widget.publication,
+              // onReservationChanged: refreshCounts,
+            ),
+            RejectedReservationsTab(
+              publication: widget.publication,
+              // onReservationChanged: refreshCounts,
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _buildPillTab(String title, int index) {
+  Widget _buildPillTab(String title, int index, int count) {
     final isSelected = _selectedTabIndex == index;
 
-    return BlocBuilder<ReservationBloc, ReservationState>(
-      builder: (context, state) {
-        // Récupérer le vrai count depuis le state du BLoC
-        int count = 0;
-        switch (index) {
-          case 0: // En attente
-            count = state.pendingReservations.length;
-            break;
-          case 1: // Validées
-            count = state.approvedReservations.length;
-            break;
-          case 2: // Refusées
-            count = state.rejectedReservations.length;
-            break;
-        }
+    Color backgroundColor;
+    Color textColor;
+    Color countBgColor;
+    Color countTextColor;
 
-        Color backgroundColor;
-        Color textColor;
-        Color countBgColor;
-        Color countTextColor;
+    if (isSelected) {
+      backgroundColor = HexColor("#FCE9DE");
+      textColor = HexColor("#D95C18");
+      countBgColor = HexColor("#D95C18");
+      countTextColor = Colors.white;
+    } else {
+      backgroundColor = HexColor('#F5F5F5');
+      textColor = HexColor('#777777');
+      countBgColor = HexColor('#777777');
+      countTextColor = HexColor('#F5F5F5');
+    }
 
-        if (isSelected) {
-          backgroundColor = HexColor("#FCE9DE");
-          textColor = HexColor("#D95C18");
-          countBgColor = HexColor("#D95C18");
-          countTextColor = Colors.white;
-        } else {
-          backgroundColor = HexColor('#F5F5F5');
-          textColor = HexColor('#777777');
-          countBgColor = HexColor('#777777');
-          countTextColor = HexColor('#F5F5F5');
-        }
-
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedTabIndex = index;
-            });
-            _tabController.animateTo(index);
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: backgroundColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  width: 22,
-                  height: 22,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: countBgColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    count.toString(),
-                    style: TextStyle(
-                      color: countTextColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedTabIndex = index;
+        });
       },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 7),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Row(
+          children: [
+            Text(
+              title,
+              style: TextStyle(color: textColor, fontWeight: FontWeight.w500),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              width: 22,
+              height: 22,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: countBgColor,
+                shape: BoxShape.circle,
+              ),
+              child:
+                  _isLoadingCounts
+                      ? SizedBox(
+                        width: 12,
+                        height: 12,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            countTextColor,
+                          ),
+                        ),
+                      )
+                      : Text(
+                        count.toString(),
+                        style: TextStyle(
+                          color: countTextColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

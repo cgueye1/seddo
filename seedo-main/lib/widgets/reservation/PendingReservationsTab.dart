@@ -1,388 +1,308 @@
-// widgets/reservation/PendingReservationsTab.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:seddoapp/bloc/reservation/reservation_event.dart';
-import 'package:seddoapp/bloc/reservation/reservation_state.dart';
 import 'package:seddoapp/models/Reservation.dart';
-import '../../bloc/reservation/reservation_bloc.dart';
-import '../../models/publication_model.dart';
-import '../../utils/HexColor.dart';
+import 'package:seddoapp/models/publication_model.dart';
+import 'package:seddoapp/services/ReservationService.dart';
 
 class PendingReservationsTab extends StatefulWidget {
   final Publication publication;
+  final VoidCallback? onReservationChanged;
 
-  const PendingReservationsTab({Key? key, required this.publication})
-    : super(key: key);
+  const PendingReservationsTab({
+    Key? key,
+    required this.publication,
+    this.onReservationChanged,
+  }) : super(key: key);
 
   @override
   _PendingReservationsTabState createState() => _PendingReservationsTabState();
 }
 
 class _PendingReservationsTabState extends State<PendingReservationsTab> {
+  final ReservationService _reservationService = ReservationService();
+  List<Reservation> _reservations = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    // Charger les réservations en attente
-    context.read<ReservationBloc>().add(
-      LoadReservationsByPublicationEvent(
-        publicationId: widget.publication.id,
-        status: 'PENDING',
-      ),
-    );
+    _loadReservations();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return BlocConsumer<ReservationBloc, ReservationState>(
-      listener: (context, state) {
-        if (state.successMessage != null) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(state.successMessage!)));
-          // Recharger les réservations après mise à jour
-          context.read<ReservationBloc>().add(
-            LoadReservationsByPublicationEvent(
-              publicationId: widget.publication.id,
+  Future<void> _loadReservations() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Récupérer les réservations pour le repas de cette publication
+      final reservations = await _reservationService.getReservationsByMeal(
+        widget.publication.id, // Assumer que publication a un meal avec un id
+      );
+
+      // Filtrer seulement les réservations en attente
+      final pendingReservations =
+          reservations
+              .where((reservation) => reservation.status == 'PENDING')
+              .toList();
+
+      setState(() {
+        _reservations = pendingReservations;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  String _getInitials(String name) {
+    final parts = name.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.length == 1 && parts[0].isNotEmpty) {
+      return parts[0][0].toUpperCase();
+    }
+    return 'U';
+  }
+
+  String _getTimeAgo(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inMinutes < 60) {
+      return 'Il y a ${difference.inMinutes} mins';
+    } else if (difference.inHours < 24) {
+      return 'Il y a ${difference.inHours} heure${difference.inHours > 1 ? 's' : ''}';
+    } else {
+      return 'Il y a ${difference.inDays} jour${difference.inDays > 1 ? 's' : ''}';
+    }
+  }
+
+  Future<void> _handleReservationAction(
+    int reservationId,
+    String action,
+  ) async {
+    try {
+      bool success = false;
+
+      if (action == 'accept') {
+        success = await _reservationService.acceptReservation(reservationId);
+      } else if (action == 'refuse') {
+        success = await _reservationService.refuseReservation(reservationId);
+      }
+
+      if (success) {
+        // Recharger la liste des réservations
+        await _loadReservations();
+
+        // Notifier le parent pour mettre à jour les compteurs
+        if (widget.onReservationChanged != null) {
+          widget.onReservationChanged!();
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              action == 'accept'
+                  ? 'Réservation acceptée avec succès'
+                  : 'Réservation refusée avec succès',
             ),
-          );
-        }
-        if (state.error != null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.error!), backgroundColor: Colors.red),
-          );
-        }
-      },
-      builder: (context, state) {
-        if (state.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state.pendingReservations.isEmpty) {
-          return const Center(
-            child: Text(
-              'Aucune réservation en attente',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: state.pendingReservations.length,
-          itemBuilder: (context, index) {
-            final reservation = state.pendingReservations[index];
-            return ReservationCard(reservation: reservation, showActions: true);
-          },
-        );
-      },
-    );
-  }
-}
-
-// widgets/reservation/ApprovedReservationsTab.dart
-class ApprovedReservationsTab extends StatefulWidget {
-  final Publication publication;
-
-  const ApprovedReservationsTab({Key? key, required this.publication})
-    : super(key: key);
-
-  @override
-  _ApprovedReservationsTabState createState() =>
-      _ApprovedReservationsTabState();
-}
-
-class _ApprovedReservationsTabState extends State<ApprovedReservationsTab> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<ReservationBloc>().add(
-      LoadReservationsByPublicationEvent(
-        publicationId: widget.publication.id,
-        status: 'APPROVED',
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ReservationBloc, ReservationState>(
-      builder: (context, state) {
-        if (state.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state.approvedReservations.isEmpty) {
-          return const Center(
-            child: Text(
-              'Aucune réservation validée',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: state.approvedReservations.length,
-          itemBuilder: (context, index) {
-            final reservation = state.approvedReservations[index];
-            return ReservationCard(
-              reservation: reservation,
-              showActions: false,
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-// widgets/reservation/RejectedReservationsTab.dart
-class RejectedReservationsTab extends StatefulWidget {
-  final Publication publication;
-
-  const RejectedReservationsTab({Key? key, required this.publication})
-    : super(key: key);
-
-  @override
-  _RejectedReservationsTabState createState() =>
-      _RejectedReservationsTabState();
-}
-
-class _RejectedReservationsTabState extends State<RejectedReservationsTab> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<ReservationBloc>().add(
-      LoadReservationsByPublicationEvent(
-        publicationId: widget.publication.id,
-        status: 'REJECTED',
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<ReservationBloc, ReservationState>(
-      builder: (context, state) {
-        if (state.isLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (state.rejectedReservations.isEmpty) {
-          return const Center(
-            child: Text(
-              'Aucune réservation refusée',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
-            ),
-          );
-        }
-
-        return ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: state.rejectedReservations.length,
-          itemBuilder: (context, index) {
-            final reservation = state.rejectedReservations[index];
-            return ReservationCard(
-              reservation: reservation,
-              showActions: false,
-            );
-          },
-        );
-      },
-    );
-  }
-}
-
-// Widget commun pour afficher les réservations
-class ReservationCard extends StatelessWidget {
-  final Reservation reservation;
-  final bool showActions;
-
-  const ReservationCard({
-    Key? key,
-    required this.reservation,
-    required this.showActions,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-      padding: const EdgeInsets.all(15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
+            backgroundColor: Colors.green,
           ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Avatar utilisateur
-              CircleAvatar(
-                radius: 25,
-                backgroundColor: HexColor("#F0DCFD"),
-                child:
-                    reservation.user?.profil != null
-                        ? ClipOval(
-                          child: Image.network(
-                            reservation.user!.profil,
-                            width: 50,
-                            height: 50,
-                            fit: BoxFit.cover,
-                          ),
-                        )
-                        : Text(
-                          reservation.user?.firstName
-                                  .substring(0, 1)
-                                  .toUpperCase() ??
-                              'U',
-                          style: TextStyle(
-                            color: HexColor("#7E30CE"),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-              ),
-              const SizedBox(width: 12),
-              // Informations utilisateur
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      reservation.user?.firstName ?? 'Utilisateur inconnu',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    if (reservation.user?.phone != null)
-                      Text(
-                        reservation.user!.phone,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                  ],
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Erreur de chargement',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              // Badge du statut
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(reservation.status),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  _getStatusText(reservation.status),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage!,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loadReservations,
+                child: const Text('Réessayer'),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+        ),
+      );
+    }
 
-          // Date de réservation
-          Text(
-            'Réservé le ${_formatDate(reservation.createdDate)}',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-          ),
+    return _reservations.isNotEmpty
+        ? RefreshIndicator(
+          onRefresh: _loadReservations,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            shrinkWrap: true,
+            itemCount: _reservations.length,
+            separatorBuilder:
+                (context, index) => const Divider(
+                  height: 1,
+                  thickness: 1,
+                  indent: 16,
+                  endIndent: 16,
+                  color: Color(0xFFEEEEEE),
+                ),
+            itemBuilder: (context, index) {
+              final reservation = _reservations[index];
 
-          if (showActions) ...[
-            const SizedBox(height: 15),
-            // Boutons d'action
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.read<ReservationBloc>().add(
-                        UpdateReservationStatusEvent(
-                          reservationId: reservation.id,
-                          status: 'APPROVED',
+              // Pour l'instant, on utilise des données simulées pour les informations utilisateur
+              // Dans une vraie app, vous devriez récupérer ces infos via une autre API
+              final userName = 'Utilisateur ${reservation.userId}';
+              final userPhone = '+221 77 XXX XX XX';
+
+              return InkWell(
+                onTap: () {
+                  // showReservationDetailModal(
+                  //   context,
+                  //   name: userName,
+                  //   phoneNumber: userPhone,
+                  //   date:
+                  //       widget.publication.meal?.scheduledFor?.toString().split(
+                  //         ' ',
+                  //       )[0] ??
+                  //       'Date non définie',
+                  //   time:
+                  //       widget.publication.meal?.scheduledFor?.toString().split(
+                  //         ' ',
+                  //       )[1] ??
+                  //       'Heure non définie',
+                  //   numberOfPeople:
+                  //       1,
+                  //   status: reservation.status,
+                  //   onAccept:
+                  //       () =>
+                  //           _handleReservationAction(reservation.id, 'accept'),
+                  //   onReject:
+                  //       () =>
+                  //           _handleReservationAction(reservation.id, 'refuse'),
+                  // );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      // Avatar gris avec initiales
+                      Container(
+                        width: 60,
+                        height: 60,
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFE0E0E0), // Gris clair
+                          shape: BoxShape.circle,
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        child: Center(
+                          child: Text(
+                            _getInitials(userName),
+                            style: const TextStyle(
+                              color: Color(0xFF757575), // Gris foncé
+                              fontSize: 24,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
                       ),
-                    ),
-                    child: const Text('Valider'),
+                      const SizedBox(width: 16),
+                      // Informations utilisateur
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '1 personne • ${_getTimeAgo(reservation.createdAt)}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Flèche de navigation
+                      const Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.grey,
+                        size: 16,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      context.read<ReservationBloc>().add(
-                        UpdateReservationStatusEvent(
-                          reservationId: reservation.id,
-                          status: 'REJECTED',
-                        ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text('Refuser'),
-                  ),
+              );
+            },
+          ),
+        )
+        : Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.schedule, color: Colors.grey, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Aucune réservation en attente',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: _loadReservations,
+                  child: const Text('Actualiser'),
                 ),
               ],
             ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Color _getStatusColor(String status) {
-    switch (status) {
-      case 'PENDING':
-        return Colors.orange;
-      case 'APPROVED':
-        return Colors.green;
-      case 'REJECTED':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'PENDING':
-        return 'En attente';
-      case 'APPROVED':
-        return 'Validée';
-      case 'REJECTED':
-        return 'Refusée';
-      default:
-        return status;
-    }
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year} à ${date.hour.toString().padLeft(2, '0')}:${date.minute.toString().padLeft(2, '0')}';
+          ),
+        );
   }
 }

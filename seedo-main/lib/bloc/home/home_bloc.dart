@@ -73,7 +73,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     on<FilterPublicationsBySubcategory>(_onFilterPublicationsBySubcategory);
     on<SearchPublications>(_onSearchPublications);
     on<LoadAuthorPublications>(_onLoadAuthorPublications);
-
+    // on<AddReservedPublication>(_onAddReservedPublication);
     //updateSubCategorie
     on<UpdateSelectedSubcategory>(_onUpdateSelectedSubcategory);
 
@@ -89,6 +89,23 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   void _onResetUserState(ResetUserStateEvent event, Emitter<HomeState> emit) {
     emit(state.copyWith(currentUser: null));
   }
+
+  // Future<void> _onAddReservedPublication(
+  //   AddReservedPublication event,
+  //   Emitter<HomeState> emit,
+  // ) async {
+  //   if (state.publications != null) {
+  //     final updatedPublications =
+  //         state.publications!.map((pub) {
+  //           if (pub.id == event.publicationId) {
+  //             return pub.copyWith(isReserved: true);
+  //           }
+  //           return pub;
+  //         }).toList();
+
+  //     emit(state.copyWith(publications: updatedPublications));
+  //   }
+  // }
 
   Future<void> _onInitializeHome(
     InitializeHomeEvent event,
@@ -215,7 +232,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               event.subcategoryId ?? state.selectedSubcategoryId,
           lastSearchKeyword:
               searchManager.isSearchActive ? state.lastSearchKeyword : null,
-          hasLoadedInitialPublications: true
+          hasLoadedInitialPublications: true,
         ),
       );
     } catch (e) {

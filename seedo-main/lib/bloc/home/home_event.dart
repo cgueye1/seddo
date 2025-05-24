@@ -273,3 +273,13 @@ class LoadAuthorPublications extends HomeEvent {
   @override
   List<Object?> get props => [authorId];
 }
+
+// Dans home_event.dart
+class AddReservedPublication extends HomeEvent {
+  final int publicationId;
+
+  const AddReservedPublication(this.publicationId);
+
+  @override
+  List<Object?> get props => [publicationId];
+}

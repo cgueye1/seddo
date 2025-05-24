@@ -1,48 +1,94 @@
-// bloc/reservation/reservation_event.dart
-abstract class ReservationEvent {}
+// events/reservation_event.dart
+import 'package:equatable/equatable.dart';
 
-class CreateReservationEvent extends ReservationEvent {
+abstract class ReservationEvent extends Equatable {
+  const ReservationEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+// Événements pour récupérer les réservations
+class LoadReservationsByMeal extends ReservationEvent {
+  final int mealId;
+
+  const LoadReservationsByMeal(this.mealId);
+
+  @override
+  List<Object?> get props => [mealId];
+}
+
+class LoadUserReservations extends ReservationEvent {
   final int userId;
-  final int publicationId;
 
-  CreateReservationEvent({required this.userId, required this.publicationId});
+  const LoadUserReservations(this.userId);
+
+  @override
+  List<Object?> get props => [userId];
 }
 
-class LoadReservationsByPublicationEvent extends ReservationEvent {
-  final int publicationId;
-  final String? status;
+// Événements pour créer une réservation
+class CreateReservation extends ReservationEvent {
+  final int mealId;
+  final int? userId;
+  final int? publicationAuthorId;
 
-  LoadReservationsByPublicationEvent({
-    required this.publicationId,
-    this.status,
+  const CreateReservation({
+    required this.mealId,
+    this.userId,
+    this.publicationAuthorId,
   });
+
+  @override
+  List<Object?> get props => [mealId, userId, publicationAuthorId];
 }
 
-class UpdateReservationStatusEvent extends ReservationEvent {
+// Événements pour accepter/refuser une réservation
+class AcceptReservation extends ReservationEvent {
   final int reservationId;
-  final String status;
 
-  UpdateReservationStatusEvent({
-    required this.reservationId,
-    required this.status,
-  });
+  const AcceptReservation(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
 }
 
-class LoadUserReservationsEvent extends ReservationEvent {
+class RefuseReservation extends ReservationEvent {
+  final int reservationId;
+
+  const RefuseReservation(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+// Événement pour annuler une réservation
+class CancelReservation extends ReservationEvent {
+  final int reservationId;
+
+  const CancelReservation(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+// Vérifier si l'utilisateur a déjà une réservation
+class CheckUserReservation extends ReservationEvent {
+  final int mealId;
   final int userId;
-  final String? status;
 
-  LoadUserReservationsEvent({required this.userId, this.status});
+  const CheckUserReservation({required this.mealId, required this.userId});
+
+  @override
+  List<Object?> get props => [mealId, userId];
 }
 
-class CheckUserReservationEvent extends ReservationEvent {
-  final int userId;
-  final int publicationId;
-
-  CheckUserReservationEvent({
-    required this.userId,
-    required this.publicationId,
-  });
+// Événement pour rafraîchir les données
+class RefreshReservations extends ReservationEvent {
+  const RefreshReservations();
 }
 
-class ClearMessagesEvent extends ReservationEvent {}
+// Événement pour réinitialiser l'état
+class ResetReservationState extends ReservationEvent {
+  const ResetReservationState();
+}

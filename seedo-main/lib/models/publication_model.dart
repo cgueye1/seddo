@@ -27,6 +27,10 @@ class Publication {
   bool isFavorite;
   double? distance;
   final double price;
+  int? pendingReservationsCount;
+  int? approvedReservationsCount;
+  int? rejectedReservationsCount;
+  final bool isReserved;
 
   Publication({
     required this.id,
@@ -54,6 +58,10 @@ class Publication {
     required this.price,
     this.isFavorite = false,
     this.distance,
+    required pendingReservationsCount,
+    required approvedReservationsCount,
+    required rejectedReservationsCount,
+    this.isReserved = false,
   });
 
   factory Publication.fromJson(Map<String, dynamic> json) {
@@ -88,6 +96,9 @@ class Publication {
       ad: json['ad'] ?? false,
       distance: json['distance']?.toDouble(),
       action: json['action'] ?? '',
+      pendingReservationsCount: json['pendingReservationsCount'],
+      approvedReservationsCount: json['approvedReservationsCount'],
+      rejectedReservationsCount: json['rejectedReservationsCount'],
     );
   }
 

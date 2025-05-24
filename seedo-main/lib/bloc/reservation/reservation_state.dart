@@ -1,54 +1,146 @@
-// bloc/reservation/reservation_state.dart
+// states/reservation_state.dart
+import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/Reservation.dart';
 
-class ReservationState {
-  final List<Reservation> reservations;
-  final List<Reservation> pendingReservations;
-  final List<Reservation> approvedReservations;
-  final List<Reservation> rejectedReservations;
-  final List<Reservation> userReservations;
-  final bool isLoading;
-  final bool isCreating;
-  final String? error;
-  final String? successMessage;
-  final bool? hasReserved;
+abstract class ReservationState extends Equatable {
+  const ReservationState();
 
-  ReservationState({
-    this.reservations = const [],
-    this.pendingReservations = const [],
-    this.approvedReservations = const [],
-    this.rejectedReservations = const [],
-    this.userReservations = const [],
-    this.isLoading = false,
-    this.isCreating = false,
-    this.error,
-    this.successMessage,
-    this.hasReserved,
+  @override
+  List<Object?> get props => [];
+}
+
+// État initial
+class ReservationInitial extends ReservationState {
+  const ReservationInitial();
+}
+
+// États de chargement
+class ReservationLoading extends ReservationState {
+  const ReservationLoading();
+}
+
+class ReservationCreating extends ReservationState {
+  const ReservationCreating();
+}
+
+class ReservationUpdating extends ReservationState {
+  final int reservationId;
+
+  const ReservationUpdating(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+// États de succès
+class ReservationsLoaded extends ReservationState {
+  final List<Reservation> reservations;
+  final int? mealId;
+  final int? userId;
+
+  const ReservationsLoaded({
+    required this.reservations,
+    this.mealId,
+    this.userId,
   });
 
-  ReservationState copyWith({
+  @override
+  List<Object?> get props => [reservations, mealId, userId];
+
+  ReservationsLoaded copyWith({
     List<Reservation>? reservations,
-    List<Reservation>? pendingReservations,
-    List<Reservation>? approvedReservations,
-    List<Reservation>? rejectedReservations,
-    List<Reservation>? userReservations,
-    bool? isLoading,
-    bool? isCreating,
-    String? error,
-    String? successMessage,
-    bool? hasReserved,
+    int? mealId,
+    int? userId,
   }) {
-    return ReservationState(
+    return ReservationsLoaded(
       reservations: reservations ?? this.reservations,
-      pendingReservations: pendingReservations ?? this.pendingReservations,
-      approvedReservations: approvedReservations ?? this.approvedReservations,
-      rejectedReservations: rejectedReservations ?? this.rejectedReservations,
-      userReservations: userReservations ?? this.userReservations,
-      isLoading: isLoading ?? this.isLoading,
-      isCreating: isCreating ?? this.isCreating,
-      error: error,
-      successMessage: successMessage,
-      hasReserved: hasReserved ?? this.hasReserved,
+      mealId: mealId ?? this.mealId,
+      userId: userId ?? this.userId,
     );
   }
+}
+
+class ReservationCreated extends ReservationState {
+  final Reservation reservation;
+
+  const ReservationCreated(this.reservation);
+
+  @override
+  List<Object?> get props => [reservation];
+}
+
+class ReservationAccepted extends ReservationState {
+  final int reservationId;
+
+  const ReservationAccepted(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+class ReservationRefused extends ReservationState {
+  final int reservationId;
+
+  const ReservationRefused(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+class ReservationCancelled extends ReservationState {
+  final int reservationId;
+
+  const ReservationCancelled(this.reservationId);
+
+  @override
+  List<Object?> get props => [reservationId];
+}
+
+class UserReservationChecked extends ReservationState {
+  final bool hasReservation;
+  final int mealId;
+  final int userId;
+
+  const UserReservationChecked({
+    required this.hasReservation,
+    required this.mealId,
+    required this.userId,
+  });
+
+  @override
+  List<Object?> get props => [hasReservation, mealId, userId];
+}
+
+// États d'erreur
+class ReservationError extends ReservationState {
+  final String message;
+  final String? errorCode;
+
+  const ReservationError({required this.message, this.errorCode});
+
+  @override
+  List<Object?> get props => [message, errorCode];
+}
+
+class ReservationCreationError extends ReservationState {
+  final String message;
+  final int mealId;
+
+  const ReservationCreationError({required this.message, required this.mealId});
+
+  @override
+  List<Object?> get props => [message, mealId];
+}
+
+class ReservationUpdateError extends ReservationState {
+  final String message;
+  final int reservationId;
+
+  const ReservationUpdateError({
+    required this.message,
+    required this.reservationId,
+  });
+
+  @override
+  List<Object?> get props => [message, reservationId];
 }

@@ -4,9 +4,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
+import 'package:seddoapp/bloc/home/home_state.dart';
+import 'package:seddoapp/models/Reservation.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/services/PhoneCallService.dart';
 import 'package:seddoapp/services/WhatsAppService.dart';
+import 'package:seddoapp/services/ReservationService.dart';
 import 'package:seddoapp/utils/DashedLinePainter.dart';
 import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/HexColor.dart';
@@ -14,6 +17,7 @@ import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
 import 'package:seddoapp/utils/url_launcher.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
+import 'package:seddoapp/widgets/navitems.dart';
 
 class MealDetailPage extends StatefulWidget {
   final Publication publication;
@@ -37,6 +41,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
   int _currentPage = 0;
   Timer? _timer;
   bool _isFavorite = false;
+  bool _isCreatingReservation = false;
+  final ReservationService _reservationService = ReservationService();
+
+  // Variables pour gérer les réservations
+  List<Reservation> _reservations = [];
+  bool _isLoadingReservations = false;
+  bool _hasUserReservation = false;
+  Reservation? _userReservation;
 
   // Liste des images à afficher - inclut l'image principale et les images supplémentaires
   late List<String> pictures;
@@ -45,15 +57,25 @@ class _MealDetailPageState extends State<MealDetailPage> {
   void initState() {
     super.initState();
 
-    // Initialiser la liste d'images avec l'image principale et les images supplémentaires
+    // Debug pour voir si l'utilisateur est bien récupéré
+    final homeState = context.read<HomeBloc>().state;
+    print(
+      "🔍 Debug - Current User: ${homeState.currentUser?.firstName} (ID: ${homeState.currentUser?.id})",
+    );
+    print("🔍 Debug - Publication ID: ${widget.publication.id}");
+    print(
+      "🔍 Debug - Publication Author: ${widget.publication.author?.firstName} (ID: ${widget.publication.author?.id})",
+    );
+
+    // ... reste du code initState existant ...
     pictures = [widget.publication.picture];
     if (widget.publication.pictures.isNotEmpty) {
       pictures.addAll(widget.publication.pictures);
     }
 
-    // Démarrer le timer pour changer automatiquement les images
     _startImageTimer();
     _isFavorite = widget.publication.isFavorite;
+    _loadReservations();
   }
 
   @override
@@ -78,6 +100,410 @@ class _MealDetailPageState extends State<MealDetailPage> {
     });
   }
 
+  void _showReservationConfirmationModal() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Réservation confirmée'),
+            content: const Text(
+              'Votre réservation a été enregistrée avec succès. '
+              'Le partageur vous contactera pour confirmer.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context); // Ferme le modal
+
+                  // Navigue vers la HomePage avec l'ID de la publication réservée
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => MainScreen(
+                            reservedPublicationId: widget.publication.id,
+                          ),
+                    ),
+                    (route) => false,
+                  );
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+    );
+  }
+
+  int? _getCurrentUserId() {
+    final homeState = context.read<HomeBloc>().state;
+    return homeState.currentUser?.id;
+  }
+
+  Future<void> _loadReservations() async {
+    setState(() {
+      _isLoadingReservations = true;
+    });
+
+    try {
+      final reservations = await _reservationService.getReservationsByMeal(
+        widget.publication.id,
+      );
+
+      setState(() {
+        _reservations = reservations;
+        _isLoadingReservations = false;
+
+        // Utiliser l'ID utilisateur du HomeBloc
+        final currentUserId = _getCurrentUserId();
+
+        if (currentUserId != null) {
+          final userReservations =
+              reservations
+                  .where((reservation) => reservation.userId == currentUserId)
+                  .toList();
+
+          if (userReservations.isNotEmpty) {
+            _userReservation = userReservations.first;
+            _hasUserReservation = true;
+          } else {
+            _userReservation = null;
+            _hasUserReservation = false;
+          }
+        } else {
+          // Utilisateur non connecté
+          _userReservation = null;
+          _hasUserReservation = false;
+
+          // Optionnel: Afficher un message ou rediriger vers la connexion
+          print("🔍 Utilisateur non connecté");
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingReservations = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors du chargement des réservations: ${e.toString().replaceFirst('Exception: ', '')}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _createReservation() async {
+    print('cheikh');
+    final currentUserId = _getCurrentUserId();
+    if (currentUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vous devez être connecté pour faire une réservation'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isCreatingReservation = true);
+
+    try {
+      final newReservation = await _reservationService.createReservation(
+        mealId: widget.publication.id,
+      );
+
+      // Afficher le modal de confirmation
+      showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Réservation confirmée'),
+              content: const Text(
+                'Votre réservation a été enregistrée avec succès.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Fermer le modal
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder:
+                            (context) => MainScreen(
+                              reservedPublicationId: widget.publication.id,
+                            ),
+                      ),
+                      (route) => false,
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: ${e.toString()}')));
+    } finally {
+      setState(() => _isCreatingReservation = false);
+    }
+  }
+
+  Future<void> _cancelReservation() async {
+    if (_userReservation == null) return;
+
+    // Demander confirmation
+    final shouldCancel = await showDialog<bool>(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text('Annuler la réservation'),
+            content: const Text(
+              'Êtes-vous sûr de vouloir annuler votre réservation ?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Non'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('Oui, annuler'),
+              ),
+            ],
+          ),
+    );
+
+    if (shouldCancel != true) return;
+
+    try {
+      final success = await _reservationService.cancelReservation(
+        _userReservation!.id,
+      );
+
+      if (success) {
+        setState(() {
+          _reservations.removeWhere((r) => r.id == _userReservation!.id);
+          _userReservation = null;
+          _hasUserReservation = false;
+          _showConfirmation = false;
+        });
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Réservation annulée avec succès',
+                style: TextStyle(color: Colors.white),
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Erreur lors de l\'annulation: ${e.toString().replaceFirst('Exception: ', '')}',
+              style: const TextStyle(color: Colors.white),
+            ),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      }
+    }
+  }
+
+  Widget _buildReservationButton() {
+    if (_hasUserReservation) {
+      // L'utilisateur a déjà une réservation
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Statut de la réservation
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: _getReservationStatusColor(
+                  _userReservation!.status,
+                ).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: _getReservationStatusColor(_userReservation!.status),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    _getReservationStatusIcon(_userReservation!.status),
+                    color: _getReservationStatusColor(_userReservation!.status),
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    _getReservationStatusText(_userReservation!.status),
+                    style: TextStyle(
+                      color: _getReservationStatusColor(
+                        _userReservation!.status,
+                      ),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Bouton d'annulation
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: OutlinedButton(
+                onPressed: _cancelReservation,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Colors.red),
+                  foregroundColor: Colors.red,
+                ),
+                child: const Text(
+                  'Annuler ma réservation',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else {
+      // L'utilisateur n'a pas de réservation
+      return Container(
+        width: double.infinity,
+        height: 50,
+        margin: const EdgeInsets.all(16),
+        child: ElevatedButton(
+          onPressed: _isCreatingReservation ? null : _createReservation,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: HexColor("#D95C18"),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child:
+              _isCreatingReservation
+                  ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2,
+                    ),
+                  )
+                  : const Text(
+                    'Réserver maintenant',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+        ),
+      );
+    }
+  }
+
+  Widget _buildReservationButtonWithBloc() {
+    return BlocBuilder<HomeBloc, HomeState>(
+      builder: (context, state) {
+        final currentUser = state.currentUser;
+
+        if (currentUser == null) {
+          // Utilisateur non connecté
+          return Container(
+            width: double.infinity,
+            height: 50,
+            margin: const EdgeInsets.all(16),
+            child: ElevatedButton(
+              onPressed: () {
+                // Rediriger vers la page de connexion
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                      'Veuillez vous connecter pour faire une réservation',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    backgroundColor: Colors.orange,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text(
+                'Se connecter pour réserver',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
+            ),
+          );
+        }
+
+        // Utilisateur connecté - utiliser la logique existante
+        return _buildReservationButton();
+      },
+    );
+  }
+
+  Color _getReservationStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Colors.green;
+      case 'refused':
+        return Colors.red;
+      case 'pendding':
+      default:
+        return Colors.orange;
+    }
+  }
+
+  IconData _getReservationStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return Icons.check_circle;
+      case 'refused':
+        return Icons.cancel;
+      case 'pendding':
+      default:
+        return Icons.schedule;
+    }
+  }
+
+  String _getReservationStatusText(String status) {
+    switch (status.toLowerCase()) {
+      case 'accepted':
+        return 'Réservation acceptée';
+      case 'refused':
+        return 'Réservation refusée';
+      case 'pendding':
+      default:
+        return 'Réservation en attente';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +525,20 @@ class _MealDetailPageState extends State<MealDetailPage> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          // Bouton de rafraîchissement des réservations
+          IconButton(
+            icon:
+                _isLoadingReservations
+                    ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                    : const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _isLoadingReservations ? null : _loadReservations,
+          ),
+        ],
       ),
       body: Stack(
         children: [
@@ -339,6 +779,46 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ],
                   ),
                 ),
+
+                // Compteur de réservations
+                if (_reservations.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: HexColor("#D95C18").withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: HexColor("#D95C18"),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.people,
+                            color: HexColor("#D95C18"),
+                            size: 16,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${_reservations.length} réservation${_reservations.length > 1 ? 's' : ''}',
+                            style: TextStyle(
+                              color: HexColor("#D95C18"),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 // Description
                 Padding(
                   padding: const EdgeInsets.all(16.0),
@@ -375,7 +855,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Disponibilité",
                         style: TextStyle(
                           fontSize: 18,
@@ -428,13 +908,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   color: Color.fromARGB(255, 224, 224, 224),
                 ),
                 const SizedBox(height: 12),
+
                 // Localisation
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Localisation",
                         style: TextStyle(
                           fontSize: 18,
@@ -501,10 +982,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                   ),
                                 ),
                                 const SizedBox(height: 26),
-                                // Dans la section où vous affichez "Vous - Nord Foire"
                                 Text(
-                                  'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
-                                  style: TextStyle(
+                                  'Vous - ${widget.location ?? 'Votre position'}',
+                                  style: const TextStyle(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                   ),
@@ -532,13 +1012,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   color: Color.fromARGB(255, 224, 224, 224),
                 ),
                 const SizedBox(height: 12),
+
                 // Partageur
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      const Text(
                         "Partageur",
                         style: TextStyle(
                           fontSize: 18,
@@ -548,7 +1029,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          CircleAvatar(
+                          const CircleAvatar(
                             radius: 24,
                             backgroundImage: AssetImage(
                               'assets/icons/profile.png',
@@ -562,7 +1043,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                                 widget.publication.author != null
                                     ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
                                     : 'Fatima Sène',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -581,77 +1062,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ],
                   ),
                 ),
-
-                const SizedBox(height: 70), // Espace pour le bas de l'écran
               ],
             ),
           ),
-
-          // Overlay de confirmation
-          if (_showConfirmation)
-            Container(
-              color: Colors.black54,
-              width: double.infinity,
-              height: double.infinity,
-              child: Center(
-                child: Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 40),
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: const BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(
-                          Icons.check,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Votre demande a bien été enregistrée !',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 12),
-                      const Text(
-                        'Votre demande a bien été envoyée ! Maintenant, il ne reste plus qu\'à attendre que le partageur l\'accepte ou non. Vous recevrez une notification dès qu\'il aura fait son choix.',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.popUntil(context, (route) => route.isFirst);
-                        },
-                        child: Text(
-                          'Continuer à naviguer',
-                          style: TextStyle(
-                            color: HexColor("#D95C18"),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
           // Barre de boutons en bas de l'écran
           Positioned(
             left: 0,
@@ -742,14 +1155,49 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   Expanded(
                     child: SizedBox(
                       height: 50,
-
                       child: Center(
                         child: ElevatedButton(
-                          onPressed: () {
-                            setState(() {
-                              _showConfirmation = true;
-                            });
-                          },
+                          onPressed:
+                              _isCreatingReservation
+                                  ? null
+                                  : () async {
+                                    try {
+                                      setState(
+                                        () => _isCreatingReservation = true,
+                                      );
+
+                                      // 1. Créer la réservation si nécessaire
+                                      if (!_hasUserReservation) {
+                                        await _createReservation();
+                                      }
+
+                                      // 2. Naviguer vers MainScreen avec l'état mis à jour
+                                      Navigator.pushAndRemoveUntil(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (context) => MainScreen(
+                                                // Onglet Accueil
+                                                reservedPublicationId:
+                                                    widget.publication.id,
+                                              ),
+                                        ),
+                                        (route) => false,
+                                      );
+                                    } catch (e) {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(content: Text(e.toString())),
+                                      );
+                                    } finally {
+                                      if (mounted) {
+                                        setState(
+                                          () => _isCreatingReservation = false,
+                                        );
+                                      }
+                                    }
+                                  },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color.fromARGB(
                               255,
@@ -766,17 +1214,32 @@ class _MealDetailPageState extends State<MealDetailPage> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: Text(
-                            widget.publication.action.isNotEmpty
-                                ? widget.publication.action
-                                : widget.publication.categorie.action,
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1, // Ajoute cette ligne
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                          child:
+                              _isCreatingReservation
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                  : Text(
+                                    _hasUserReservation
+                                        ? (widget.publication.action.isNotEmpty
+                                            ? widget.publication.action
+                                            : widget
+                                                .publication
+                                                .categorie
+                                                .action)
+                                        : 'Réserver ',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                         ),
                       ),
                     ),

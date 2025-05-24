@@ -2,95 +2,95 @@
 import 'package:seddoapp/models/Reservation.dart';
 import 'package:seddoapp/services/ReservationService.dart';
 
-class ReservationRepository {
+abstract class ReservationRepository {
+  Future<List<Reservation>> getReservationsByMeal(int mealId);
+  Future<Reservation> createReservation({
+    required int mealId,
+    int? userId,
+    int? publicationAuthorId,
+  });
+  Future<bool> acceptReservation(int reservationId);
+  Future<bool> refuseReservation(int reservationId);
+  Future<bool> cancelReservation(int reservationId);
+  Future<List<Reservation>> getUserReservations(int userId);
+  Future<bool> hasUserReservation(int mealId, int userId);
+}
+
+class ReservationRepositoryImpl implements ReservationRepository {
   final ReservationService _reservationService;
 
-  ReservationRepository({required ReservationService reservationService})
-    : _reservationService = reservationService;
+  ReservationRepositoryImpl({ReservationService? reservationService})
+    : _reservationService = reservationService ?? ReservationService();
 
-  // Créer une réservation
+  @override
+  Future<List<Reservation>> getReservationsByMeal(int mealId) async {
+    try {
+      return await _reservationService.getReservationsByMeal(mealId);
+    } catch (e) {
+      throw Exception('Erreur lors de la récupération des réservations: $e');
+    }
+  }
+
+  @override
   Future<Reservation> createReservation({
-    required int userId,
-    required int publicationId,
+    required int mealId,
+    int? userId,
+    int? publicationAuthorId,
   }) async {
     try {
       return await _reservationService.createReservation(
+        mealId: mealId,
         userId: userId,
-        publicationId: publicationId,
+        publicationAuthorId: publicationAuthorId,
       );
     } catch (e) {
-      print('Erreur dans le repository lors de la création: $e');
-      rethrow;
+      throw Exception('Erreur lors de la création de la réservation: $e');
     }
   }
 
-  // Récupérer les réservations par publication
-  Future<List<Reservation>> getReservationsByPublication({
-    required int publicationId,
-    String? status,
-  }) async {
+  @override
+  Future<bool> acceptReservation(int reservationId) async {
     try {
-      return await _reservationService.getReservationsByPublication(
-        publicationId: publicationId,
-        status: status,
-      );
+      return await _reservationService.acceptReservation(reservationId);
     } catch (e) {
-      print('Erreur dans le repository lors de la récupération: $e');
-      rethrow;
+      throw Exception('Erreur lors de l\'acceptation de la réservation: $e');
     }
   }
 
-  // Mettre à jour le statut d'une réservation
-  Future<Reservation> updateReservationStatus({
-    required int reservationId,
-    required String status,
-  }) async {
+  @override
+  Future<bool> refuseReservation(int reservationId) async {
     try {
-      return await _reservationService.updateReservationStatus(
-        reservationId: reservationId,
-        status: status,
-      );
+      return await _reservationService.refuseReservation(reservationId);
     } catch (e) {
-      print('Erreur dans le repository lors de la mise à jour: $e');
-      rethrow;
+      throw Exception('Erreur lors du refus de la réservation: $e');
     }
   }
 
-  // Récupérer les réservations d'un utilisateur
-  Future<List<Reservation>> getUserReservations({
-    required int userId,
-    String? status,
-  }) async {
+  @override
+  Future<bool> cancelReservation(int reservationId) async {
     try {
-      return await _reservationService.getUserReservations(
-        userId: userId,
-        status: status,
-      );
+      return await _reservationService.cancelReservation(reservationId);
     } catch (e) {
-      print(
-        'Erreur dans le repository lors de la récupération utilisateur: $e',
-      );
-      rethrow;
+      throw Exception('Erreur lors de l\'annulation de la réservation: $e');
     }
   }
 
-  // Vérifier si un utilisateur a déjà réservé une publication
-  Future<bool> hasUserReserved({
-    required int userId,
-    required int publicationId,
-  }) async {
+  @override
+  Future<List<Reservation>> getUserReservations(int userId) async {
     try {
-      final reservations = await _reservationService.getUserReservations(
-        userId: userId,
-      );
-
-      return reservations.any(
-        (reservation) =>
-            reservation.publicationId == publicationId &&
-            reservation.status == 'PENDING',
-      );
+      return await _reservationService.getUserReservations(userId);
     } catch (e) {
-      print('Erreur lors de la vérification de réservation: $e');
+      throw Exception(
+        'Erreur lors de la récupération des réservations utilisateur: $e',
+      );
+    }
+  }
+
+  @override
+  Future<bool> hasUserReservation(int mealId, int userId) async {
+    try {
+      return await _reservationService.hasUserReservation(mealId, userId);
+    } catch (e) {
       return false;
     }
   }

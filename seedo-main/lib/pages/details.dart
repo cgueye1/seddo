@@ -10,7 +10,6 @@ import 'package:seddoapp/utils/ExpandableText.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
-import 'package:seddoapp/widgets/home/DistanceBadge.dart';
 import 'package:seddoapp/widgets/reservation/ReservationsTab.dart';
 
 class DetailPage extends StatefulWidget {

@@ -7,7 +7,6 @@ import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/pages/SignalPage.dart';
 import 'package:seddoapp/pages/auth/login.dart';
-import 'package:seddoapp/pages/transit/TransportCommun.dart';
 import 'package:seddoapp/repositories/publication_repository.dart';
 import 'package:seddoapp/services/LocationService.dart';
 import 'package:seddoapp/services/api_service.dart';
@@ -22,8 +21,28 @@ import 'package:seddoapp/widgets/home/SearchBar.dart';
 import '../widgets/home/ads/AdsHorizontalList.dart';
 // import '../widgets/home/ads/PubWidget.dart';
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class HomePage extends StatefulWidget {
+  final int? reservedPublicationId; // Nouveau paramètre
+
+  const HomePage({super.key, this.reservedPublicationId});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    // Ajouter la publication réservée si elle existe
+    if (widget.reservedPublicationId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<HomeBloc>().add(
+          AddReservedPublication(widget.reservedPublicationId!),
+        );
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +68,10 @@ class HomePage extends StatelessWidget {
 
 // Separate stateless widget to use the provided HomeBloc
 class _HomePageContent extends StatefulWidget {
-  const _HomePageContent();
+  final int? reservedPublicationId;
+
+  // ignore: unused_element_parameter
+  const _HomePageContent({this.reservedPublicationId});
 
   @override
   State<_HomePageContent> createState() => _HomePageContentState();
@@ -106,21 +128,20 @@ class _HomePageContentState extends State<_HomePageContent> {
           ),
           // Placement du bouton en bas à droite
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-          body:
-              SafeArea(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(top: 20),
-                      child: Column(
-                        children: [
-                          // Main Yellow Header Block
-                          _buildHeaderBlock(context, state),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(top: 20),
+              child: Column(
+                children: [
+                  // Main Yellow Header Block
+                  _buildHeaderBlock(context, state),
 
-                          // Contenu basé sur l'onglet sélectionné
-                          _buildPublicationsContent(context, state),
-                        ],
-                      ),
-                    ),
-                  ),
+                  // Contenu basé sur l'onglet sélectionné
+                  _buildPublicationsContent(context, state),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
