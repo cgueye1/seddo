@@ -51,7 +51,7 @@ class _SignUpState extends State<SignUp> {
     // After validation passes, navigate to the VerificationPage
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PhoneNumberPage()),
+      MaterialPageRoute(builder: (context) =>  PhoneNumberPage(name: _fullNameController.text, password: _passwordController.text, email: _emailController.text,)),
     );
   }
 
@@ -236,7 +236,7 @@ class _SignUpState extends State<SignUp> {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+            /*  const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -262,7 +262,7 @@ class _SignUpState extends State<SignUp> {
                     ),
                   ),
                 ],
-              ),
+              ),*/
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

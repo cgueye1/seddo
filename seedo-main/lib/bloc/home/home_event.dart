@@ -274,12 +274,22 @@ class LoadAuthorPublications extends HomeEvent {
   List<Object?> get props => [authorId];
 }
 
-// Dans home_event.dart
+
+
+class DeletePublication extends HomeEvent {
+  final int publicationId;
+  DeletePublication(this.publicationId);
+}
+
+
+
+
 class AddReservedPublication extends HomeEvent {
   final int publicationId;
+  final int userId;
 
-  const AddReservedPublication(this.publicationId);
-
-  @override
-  List<Object?> get props => [publicationId];
+  AddReservedPublication({
+    required this.publicationId,
+    required this.userId,
+  });
 }

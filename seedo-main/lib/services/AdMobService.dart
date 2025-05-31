@@ -1,5 +1,6 @@
 // ignore_for_file: unused_field
 
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -15,9 +16,20 @@ class AdService {
   VoidCallback? _currentRewardCallback;
 
   Future<void> initialize() async {
-    await MobileAds.instance.initialize();
-    await _loadAds();
-    debugPrint('AdService initialized');
+    try {
+      final initFuture = MobileAds.instance.initialize();
+      // Add timeout to prevent hanging
+      await initFuture.timeout(const Duration(seconds: 10));
+      debugPrint('AdService initialized successfully');
+      await _loadAds();
+    } on TimeoutException {
+      debugPrint('Ad initialization timed out');
+    } on Exception catch (e) {
+      debugPrint('Ad initialization failed: $e');
+      // Consider retrying after delay
+      await Future.delayed(const Duration(seconds: 5));
+      await initialize(); // Retry once
+    }
   }
 
   Future<void> _loadAds() async {
@@ -136,13 +148,13 @@ class AdService {
 
     // IDs des pubs
   String? _getBannerAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-3940256099942544/2934735716';
+    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1687789051';
     if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/4890716632';
     return null;
   }
 
   String? _getInterstitialAdUnitId() {
-    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1687789051';
+    if (Platform.isIOS) return 'ca-app-pub-7248255245937838/1249779129';
     if (Platform.isAndroid) return 'ca-app-pub-7248255245937838/6892014276';
     return null;
   }

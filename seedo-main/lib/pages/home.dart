@@ -18,6 +18,7 @@ import 'package:seddoapp/widgets/home/PublicationsSection.dart';
 import 'package:seddoapp/widgets/home/UserNameSection.dart';
 import 'package:seddoapp/widgets/home/SearchBar.dart';
 
+import '../services/SharedPreferencesService.dart';
 import '../widgets/home/ads/AdsHorizontalList.dart';
 // import '../widgets/home/ads/PubWidget.dart';
 
@@ -31,17 +32,64 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final SharedPreferencesService _prefsService = SharedPreferencesService();
+
+  Future<void> _checkFirstLaunch() async {
+    bool isEulaAccepted =
+        await _prefsService.getBoolValue('eulaAccepted') ?? false;
+
+    if (!isEulaAccepted) {
+      Future.delayed(Duration.zero, () => _showEulaModal());
+    }
+  }
+
+  Future<void> _acceptEula() async {
+    await _prefsService.saveBoolValue('eulaAccepted', true);
+
+    Navigator.of(context).pop(); // Ferme le modal
+  }
+
+  void _showEulaModal() {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // Empêche la fermeture en cliquant en dehors
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Termes et Conditions (EULA)'),
+          content: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('''
+1. Aucun contenu inapproprié ou abusif n'est toléré.
+2. Les utilisateurs violant cette règle seront exclus.
+3. En utilisant cette application, vous acceptez ces termes.
+                  ''', style: TextStyle(fontSize: 16)),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Checkbox(value: true, onChanged: (value) {}),
+                    Expanded(
+                      child: Text('J\'accepte les termes et conditions'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            ElevatedButton(onPressed: _acceptEula, child: Text('Accepter')),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void initState() {
+    _checkFirstLaunch();
     super.initState();
     // Ajouter la publication réservée si elle existe
-    if (widget.reservedPublicationId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<HomeBloc>().add(
-          AddReservedPublication(widget.reservedPublicationId!),
-        );
-      });
-    }
   }
 
   @override
@@ -54,7 +102,9 @@ class _HomePageState extends State<HomePage> {
     );
 
     // Fournir le repository au HomeBloc
-    return BlocProvider(
+    return _HomePageContent();
+
+    /*  BlocProvider(
       create:
           (context) =>
               HomeBloc(publicationRepository)
@@ -62,7 +112,7 @@ class _HomePageState extends State<HomePage> {
                 ..add(LoadCategories())
                 ..add(const LoadCurrentLocation()),
       child: const _HomePageContent(),
-    );
+    );*/
   }
 }
 
@@ -116,7 +166,7 @@ class _HomePageContentState extends State<_HomePageContent> {
           backgroundColor: const Color.fromARGB(255, 255, 255, 255),
           // Ajout de la barre de navigation fixe en bas
           // Ajout du bouton flottant avec navigation vers la page de signalement
-          floatingActionButton: CustomFloatingButton(
+          /* floatingActionButton: CustomFloatingButton(
             imagePath: 'assets/icons/siren.png',
             onPressed: () {
               // Use the new handler function instead of directly showing the modal
@@ -125,12 +175,12 @@ class _HomePageContentState extends State<_HomePageContent> {
             label: '',
             backgroundColor: Colors.white,
             elevation: 4.0,
-          ),
+          ),*/
           // Placement du bouton en bas à droite
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           body: SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(top: 20),
+              padding: const EdgeInsets.only(top: 0),
               child: Column(
                 children: [
                   // Main Yellow Header Block
@@ -175,14 +225,15 @@ class _HomePageContentState extends State<_HomePageContent> {
                   const UserNameSection(),
                 ],
               ),
+              SizedBox(),
 
               // Right side - Icons
-              Image.asset(
+              /* Image.asset(
                 'assets/icons/notif.png',
                 width: 26,
                 height: 26,
                 color: const Color.fromARGB(255, 0, 0, 0),
-              ),
+              ),*/
             ],
           ),
           // Section de localisation - Modifiée pour afficher l'icône de localisation
@@ -224,7 +275,7 @@ class _HomePageContentState extends State<_HomePageContent> {
           child: CategoryDropdown(),
         ),
         SizedBox(height: 10),
-        _buildAds(context, state),
+       _buildAds(context, state),
 
         // Chargement initial des publications
         BlocBuilder<HomeBloc, HomeState>(

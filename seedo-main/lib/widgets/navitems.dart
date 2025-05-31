@@ -14,11 +14,51 @@ import 'package:seddoapp/utils/HexColor.dart';
 import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/widgets/update_required_screen.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seddoapp/services/api_service.dart';
+import 'package:seddoapp/services/publication_service.dart';
+import 'package:seddoapp/repositories/publication_repository.dart';
+
 class MainScreen extends StatelessWidget {
   final int? initialIndex;
   final int? reservedPublicationId;
+  final bool? off;
 
-  const MainScreen({super.key, this.initialIndex, this.reservedPublicationId});
+  const MainScreen({super.key, this.initialIndex, this.reservedPublicationId, this.off});
+
+  @override
+  Widget build(BuildContext context) {
+    final apiService = ApiService();
+    final publicationService = PublicationService(apiService.dio);
+    final publicationRepository = PublicationRepository(
+      publicationService: publicationService,
+    );
+
+    return BlocProvider(
+      create: (context) => HomeBloc(publicationRepository)
+        ..add(LoadCurrentUser())
+        ..add(LoadCategories())
+        ..add(const LoadCurrentLocation()),
+      child: _MainScreenContent(
+        initialIndex: initialIndex,
+        reservedPublicationId: reservedPublicationId,
+        off: off,
+      ),
+    );
+  }
+}
+
+class _MainScreenContent extends StatelessWidget {
+  final int? initialIndex;
+  final int? reservedPublicationId;
+  final bool? off;
+
+  const _MainScreenContent({
+    required this.initialIndex,
+    required this.reservedPublicationId,
+    required this.off,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -34,24 +74,16 @@ class MainScreen extends StatelessWidget {
         return BlocBuilder<HomeBloc, HomeState>(
           builder: (context, state) {
             if (state.appParam == null) {
-              return SplashPage();
+              return   SplashPage(off: off,);
             }
 
-            if (currentAppVersion != "" &&
-                state.appParam!.appVersion != currentAppVersion) {
+            if (currentAppVersion.isNotEmpty &&
+                state.appParam!.appVersion != currentAppVersion &&
+                !(state.appParam!.appVersionList?.contains(currentAppVersion) ?? false)) {
               return UpdateRequiredScreen(
                 androidLink: state.appParam!.androidLink,
                 iosLink: state.appParam!.iosLink,
               );
-            }
-
-            // Ajoutez cette vérification pour la publication réservée
-            if (reservedPublicationId != null) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.read<HomeBloc>().add(
-                  AddReservedPublication(reservedPublicationId!),
-                );
-              });
             }
 
             return Scaffold(
@@ -70,7 +102,7 @@ class MainScreen extends StatelessWidget {
     final bool isLoggedIn = state.currentUser != null;
 
     final pages = [
-      HomePage(reservedPublicationId: reservedPublicationId), // Passez l'ID ici
+      HomePage(),
       if (!hideTransit)
         TransportCommun(
           appParam: state.appParam,
@@ -108,6 +140,7 @@ class MainScreen extends StatelessWidget {
   }
 }
 
+// [Conservez votre classe CustomBottomNavigationBar telle quelle]
 class CustomBottomNavigationBar extends StatelessWidget {
   final HomeState state;
 
@@ -139,7 +172,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
         color: Colors.white,
         border: Border.all(color: Colors.grey, width: 0.2),
       ),
-      height: 55,
+      height: 65,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: navItems,

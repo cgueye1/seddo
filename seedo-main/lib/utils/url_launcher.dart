@@ -41,5 +41,13 @@ class UrlLauncher {
     }
   }
 
+  Future<void> openWebLink(String url) async {
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Impossible d\'ouvrir le lien : $url';
+    }
+  }
 }
 

@@ -7,6 +7,7 @@ import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
 import 'package:seddoapp/models/Reservation.dart';
 import 'package:seddoapp/models/publication_model.dart';
+import 'package:seddoapp/models/user_model.dart';
 import 'package:seddoapp/services/PhoneCallService.dart';
 import 'package:seddoapp/services/WhatsAppService.dart';
 import 'package:seddoapp/services/ReservationService.dart';
@@ -23,12 +24,13 @@ class MealDetailPage extends StatefulWidget {
   final Publication publication;
   final String? location;
   final Position? currentPosition;
+  final UserModel? user;
 
   const MealDetailPage({
     super.key,
     required this.publication,
     this.location,
-    this.currentPosition,
+    this.currentPosition, this.user,
   });
 
   @override
@@ -42,6 +44,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
   Timer? _timer;
   bool _isFavorite = false;
   bool _isCreatingReservation = false;
+  bool _reserved = false;
+  UserModel? user;
   final ReservationService _reservationService = ReservationService();
 
   // Variables pour gérer les réservations
@@ -56,6 +60,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
   @override
   void initState() {
     super.initState();
+    context.read<HomeBloc>().add(LoadCurrentUser());
 
     // Debug pour voir si l'utilisateur est bien récupéré
     final homeState = context.read<HomeBloc>().state;
@@ -67,6 +72,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
       "🔍 Debug - Publication Author: ${widget.publication.author?.firstName} (ID: ${widget.publication.author?.id})",
     );
 
+    setState(() {
+      user=homeState.currentUser;
+    });
+
     // ... reste du code initState existant ...
     pictures = [widget.publication.picture];
     if (widget.publication.pictures.isNotEmpty) {
@@ -75,7 +84,6 @@ class _MealDetailPageState extends State<MealDetailPage> {
 
     _startImageTimer();
     _isFavorite = widget.publication.isFavorite;
-    _loadReservations();
   }
 
   @override
@@ -105,29 +113,19 @@ class _MealDetailPageState extends State<MealDetailPage> {
       context: context,
       builder:
           (context) => AlertDialog(
-            title: const Text('Réservation confirmée'),
+            title: const Text('Confirmation'),
             content: const Text(
-              'Votre réservation a été enregistrée avec succès. '
-              'Le partageur vous contactera pour confirmer.',
+              'Voulez-vous envoyer votre commande ? '
+             ,
             ),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.pop(context); // Ferme le modal
+                  _createReservation();
 
-                  // Navigue vers la HomePage avec l'ID de la publication réservée
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder:
-                          (context) => MainScreen(
-                            reservedPublicationId: widget.publication.id,
-                          ),
-                    ),
-                    (route) => false,
-                  );
                 },
-                child: const Text('OK'),
+                child: const Text('Envoyer'),
               ),
             ],
           ),
@@ -139,67 +137,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
     return homeState.currentUser?.id;
   }
 
-  Future<void> _loadReservations() async {
-    setState(() {
-      _isLoadingReservations = true;
-    });
-
-    try {
-      final reservations = await _reservationService.getReservationsByMeal(
-        widget.publication.id,
-      );
-
-      setState(() {
-        _reservations = reservations;
-        _isLoadingReservations = false;
-
-        // Utiliser l'ID utilisateur du HomeBloc
-        final currentUserId = _getCurrentUserId();
-
-        if (currentUserId != null) {
-          final userReservations =
-              reservations
-                  .where((reservation) => reservation.userId == currentUserId)
-                  .toList();
-
-          if (userReservations.isNotEmpty) {
-            _userReservation = userReservations.first;
-            _hasUserReservation = true;
-          } else {
-            _userReservation = null;
-            _hasUserReservation = false;
-          }
-        } else {
-          // Utilisateur non connecté
-          _userReservation = null;
-          _hasUserReservation = false;
-
-          // Optionnel: Afficher un message ou rediriger vers la connexion
-          print("🔍 Utilisateur non connecté");
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _isLoadingReservations = false;
-      });
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Erreur lors du chargement des réservations: ${e.toString().replaceFirst('Exception: ', '')}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.orange,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> _createReservation() async {
-    print('cheikh');
+
     final currentUserId = _getCurrentUserId();
     if (currentUserId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -214,39 +153,20 @@ class _MealDetailPageState extends State<MealDetailPage> {
     setState(() => _isCreatingReservation = true);
 
     try {
-      final newReservation = await _reservationService.createReservation(
-        mealId: widget.publication.id,
-      );
 
-      // Afficher le modal de confirmation
-      showDialog(
-        context: context,
-        builder:
-            (context) => AlertDialog(
-              title: const Text('Réservation confirmée'),
-              content: const Text(
-                'Votre réservation a été enregistrée avec succès.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Fermer le modal
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder:
-                            (context) => MainScreen(
-                              reservedPublicationId: widget.publication.id,
-                            ),
-                      ),
-                      (route) => false,
-                    );
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            ),
+      context.read<HomeBloc>().add(
+        AddReservedPublication(
+          publicationId:  widget.publication.id,
+          userId: context.read<HomeBloc>().state.currentUser!.id,
+        ),
       );
+      setState(() => _reserved=true);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar( SnackBar(content: Text("Réservation envoyée")));
+
+
+
     } catch (e) {
       ScaffoldMessenger.of(
         context,
@@ -256,75 +176,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
     }
   }
 
-  Future<void> _cancelReservation() async {
-    if (_userReservation == null) return;
 
-    // Demander confirmation
-    final shouldCancel = await showDialog<bool>(
-      context: context,
-      builder:
-          (context) => AlertDialog(
-            title: const Text('Annuler la réservation'),
-            content: const Text(
-              'Êtes-vous sûr de vouloir annuler votre réservation ?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Non'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('Oui, annuler'),
-              ),
-            ],
-          ),
-    );
 
-    if (shouldCancel != true) return;
-
-    try {
-      final success = await _reservationService.cancelReservation(
-        _userReservation!.id,
-      );
-
-      if (success) {
-        setState(() {
-          _reservations.removeWhere((r) => r.id == _userReservation!.id);
-          _userReservation = null;
-          _hasUserReservation = false;
-          _showConfirmation = false;
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text(
-                'Réservation annulée avec succès',
-                style: TextStyle(color: Colors.white),
-              ),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Erreur lors de l\'annulation: ${e.toString().replaceFirst('Exception: ', '')}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 4),
-          ),
-        );
-      }
-    }
-  }
 
   Widget _buildReservationButton() {
     if (_hasUserReservation) {
@@ -374,7 +227,9 @@ class _MealDetailPageState extends State<MealDetailPage> {
               width: double.infinity,
               height: 50,
               child: OutlinedButton(
-                onPressed: _cancelReservation,
+                onPressed: (){
+
+                },
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Colors.red),
                   foregroundColor: Colors.red,
@@ -504,6 +359,71 @@ class _MealDetailPageState extends State<MealDetailPage> {
     }
   }
 
+
+
+  void _signaler(BuildContext context, int publicationId) {
+    final TextEditingController _raisonController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Signaler'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Veuillez indiquer la raison du signalement :'),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _raisonController,
+              decoration: const InputDecoration(
+                hintText: 'Raison',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Ferme le dialogue
+            },
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final raison = _raisonController.text.trim();
+
+              if (raison.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Veuillez entrer une raison')),
+                );
+                return;
+              }
+
+              // Appelle ici ta fonction pour signaler avec l'ID et la raison
+              _envoyerSignalement(publicationId, raison);
+
+              Navigator.pop(context); // Ferme le dialogue après envoi
+            },
+            child: const Text('Envoyer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _envoyerSignalement(int publicationId, String raison) {
+    // TODO : Logique pour envoyer le signalement (API, BLoC, etc.)
+
+
+    ScaffoldMessenger.of(context).showSnackBar(
+   SnackBar(content: Text('Publication  signalée pour : $raison')),
+    );
+  }
+
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -526,8 +446,22 @@ class _MealDetailPageState extends State<MealDetailPage> {
           ),
         ),
         actions: [
+          if(!widget.publication.ad)
+          InkWell(
+            onTap: (){
+              _signaler( context, widget.publication.id);
+            },
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(30)
+              ),
+              padding: EdgeInsets.all(5),
+              child: Text("Signaler",style: TextStyle(color: Colors.grey),),
+            ),
+          )
           // Bouton de rafraîchissement des réservations
-          IconButton(
+          /*  IconButton(
             icon:
                 _isLoadingReservations
                     ? const SizedBox(
@@ -537,7 +471,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     )
                     : const Icon(Icons.refresh, color: Colors.black),
             onPressed: _isLoadingReservations ? null : _loadReservations,
-          ),
+          ),*/
         ],
       ),
       body: Stack(
@@ -558,7 +492,8 @@ class _MealDetailPageState extends State<MealDetailPage> {
                         ),
                       ),
                       child: SizedBox(
-                        height: 250,
+                        height: 380,
+                        width: double.infinity,
                         child: PageView.builder(
                           controller: _pageController,
                           onPageChanged: (index) {
@@ -569,42 +504,57 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           itemCount: pictures.length,
                           itemBuilder: (context, index) {
                             final imagePath = pictures[index];
-                            return imagePath.isNotEmpty
-                                ? Image.network(
-                                  '${APIConstants.API_BASE_URL_IMG}$imagePath',
-                                  width: double.infinity,
-                                  height: 250,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return Container(
-                                      height: 250,
-                                      color: Colors.grey[300],
-                                      child: const Center(
-                                        child: Icon(
-                                          Icons.image_not_supported,
-                                          size: 50,
+                            return Container(
+                              color: Colors.black,
+                              alignment: Alignment.center,
+                              child:
+                                  imagePath.isNotEmpty
+                                      ? InteractiveViewer(
+                                        panEnabled: true,
+                                        minScale: 1,
+                                        maxScale: 4,
+                                        child: SizedBox(
+                                          //height: 350,
+                                          width: double.infinity,
+                                          child: Image.network(
+                                            '${APIConstants.API_BASE_URL_IMG}$imagePath',
+                                            fit: BoxFit.contain,
+                                            errorBuilder: (
+                                              context,
+                                              error,
+                                              stackTrace,
+                                            ) {
+                                              return Container(
+                                                color: Colors.grey[300],
+                                                child: const Center(
+                                                  child: Icon(
+                                                    Icons.image_not_supported,
+                                                    size: 50,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                      : Container(
+                                        color: Colors.grey[300],
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.image_not_supported,
+                                            size: 50,
+                                          ),
                                         ),
                                       ),
-                                    );
-                                  },
-                                )
-                                : Container(
-                                  height: 250,
-                                  color: Colors.grey[300],
-                                  child: const Center(
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      size: 50,
-                                    ),
-                                  ),
-                                );
+                            );
                           },
                         ),
                       ),
                     ),
 
                     // Heart icon positionné comme avant
-                    Positioned(
+                    /* Positioned(
                       bottom: 10,
                       right: 10,
                       child: IconButton(
@@ -629,7 +579,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           );
                         },
                       ),
-                    ),
+                    ),*/
                   ],
                 ),
 
@@ -655,29 +605,30 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ],
                   ),
                 ),
-
-                // Catégorie - Badge violet
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 223, 217, 224),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
-                    child: Text(
-                      widget.publication.categorie.titre,
-                      style: TextStyle(
-                        color: Colors.purple.shade800,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  // Catégorie - Badge violet
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color.fromARGB(255, 223, 217, 224),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: Text(
+                        widget.publication.categorie.titre,
+                        style: TextStyle(
+                          color: Colors.purple.shade800,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
-                ),
 
                 // Titre
                 Padding(
@@ -692,77 +643,69 @@ class _MealDetailPageState extends State<MealDetailPage> {
                 ),
 
                 // Badges - Gratuit et Repas offert
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        child: Text(
-                          "Prix : ",
-                          style: TextStyle(
-                            color: HexColor("#D95C18"),
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            widget.publication.price == 0
+                                ? "Gratuit"
+                                : "${widget.publication.price.toString()} CFA",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: const Text(
-                          "Repas offert",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
 
                 // Informations de publication (temps, distance)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        color: HexColor("#D95C18"),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        getTimeAgo(widget.publication.createdDate),
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                          fontSize: 12,
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          color: HexColor("#D95C18"),
+                          size: 16,
                         ),
-                      ),
-                      const SizedBox(width: 12),
+                        const SizedBox(width: 4),
+                        Text(
+                          getTimeAgo(widget.publication.createdDate),
+                          style: TextStyle(
+                            color: Colors.grey.shade700,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+
+                        /*
                       Icon(
                         Icons.add_road,
                         color: HexColor("#D95C18"),
                         size: 16,
                       ),
-                      const SizedBox(width: 4),
+                      const SizedBox(width: 4),*/
+                        DistanceBadge(distance: widget.publication.distance),
 
-                      DistanceBadge(distance: widget.publication.distance),
-
-                      const SizedBox(width: 12),
-                      Icon(
+                        const SizedBox(width: 12),
+                        /* Icon(
                         Icons.access_time,
                         color: HexColor("#F44336"),
                         size: 16,
@@ -775,10 +718,10 @@ class _MealDetailPageState extends State<MealDetailPage> {
                           fontWeight: FontWeight.w500,
                           color: HexColor("#F44336"),
                         ),
-                      ),
-                    ],
+                      ),*/
+                      ],
+                    ),
                   ),
-                ),
 
                 // Compteur de réservations
                 if (_reservations.isNotEmpty)
@@ -843,14 +786,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                 ),
 
                 // Disponibilité
-                const Divider(
+                /* const Divider(
                   height: 0.5,
                   thickness: 1,
                   color: Color.fromARGB(255, 224, 224, 224),
                 ),
                 const SizedBox(height: 12),
 
-                Padding(
+              Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -900,14 +843,14 @@ class _MealDetailPageState extends State<MealDetailPage> {
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 12),
-                const Divider(
+                ),*/
+                // const SizedBox(height: 12),
+                /*  const Divider(
                   height: 0.5,
                   thickness: 1,
                   color: Color.fromARGB(255, 224, 224, 224),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 12),*/
 
                 // Localisation
                 Padding(
@@ -915,7 +858,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      /*   const Text(
                         "Localisation",
                         style: TextStyle(
                           fontSize: 18,
@@ -923,7 +866,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Row(
+                 Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Column(
@@ -960,7 +903,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                             ],
                           ),
                           const SizedBox(width: 8),
-                          Expanded(
+                        Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -1001,67 +944,73 @@ class _MealDetailPageState extends State<MealDetailPage> {
                             ),
                           ),
                         ],
-                      ),
+                      ),*/
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                const Divider(
-                  height: 0.5,
-                  thickness: 1,
-                  color: Color.fromARGB(255, 224, 224, 224),
-                ),
-                const SizedBox(height: 12),
-
-                // Partageur
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Partageur",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                //  const SizedBox(height: 12),
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  const Divider(
+                    height: 0.5,
+                    thickness: 1,
+                    color: Color.fromARGB(255, 224, 224, 224),
+                  ),
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  const SizedBox(height: 12),
+                if (!widget.publication.ad &&
+                    widget.publication.categorie.parentCategorie != null)
+                  // Partageur
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Partageur",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: [
-                          const CircleAvatar(
-                            radius: 24,
-                            backgroundImage: AssetImage(
-                              'assets/icons/profile.png',
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            const CircleAvatar(
+                              radius: 24,
+                              backgroundImage: AssetImage(
+                                'assets/icons/profile.png',
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.publication.author != null
-                                    ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
-                                    : 'Fatima Sène',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
+                            const SizedBox(width: 12),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  widget.publication.author != null
+                                      ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
+                                      : '',
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                "Membre depuis 3 mois",
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
+                                Text(
+                                  "",
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                const SizedBox(height: 90),
               ],
             ),
           ),
@@ -1071,56 +1020,59 @@ class _MealDetailPageState extends State<MealDetailPage> {
             right: 0,
             bottom: 0,
             child: Container(
-              padding: EdgeInsets.only(left: 16, right: 16, bottom: 3),
+              padding: EdgeInsets.only(left: 16, right: 16, bottom: 20),
               color: Colors.white,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      PhoneCallService().makePhoneCall(
-                        widget.publication.telephone.isNotEmpty
-                            ? widget.publication.telephone
-                            : widget.publication.author!.phone.toString(),
-                      );
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage("assets/icons/actions/call.png"),
-                        ),
-                        borderRadius: BorderRadius.circular(100),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  InkWell(
-                    onTap: () {
-                      WhatsAppService().openWhatsApp(
-                        widget.publication.telephone.isNotEmpty
-                            ? widget.publication.telephone
-                            : widget.publication.author!.phone.toString(),
-                        message: 'Salut ! Comment ça va ?',
-                      );
-                    },
-                    child: Container(
-                      width: 50,
-                      height: 50,
-
-                      decoration: BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage(
-                            "assets/icons/actions/whatsapp.png",
+                  SizedBox(width: 5),
+                  if (widget.publication.telephone.isNotEmpty)
+                    InkWell(
+                      onTap: () {
+                        PhoneCallService().makePhoneCall(
+                          widget.publication.telephone.isNotEmpty
+                              ? widget.publication.telephone
+                              : widget.publication.author!.phone.toString(),
+                        );
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/icons/actions/call.png"),
                           ),
+                          borderRadius: BorderRadius.circular(100),
                         ),
-                        borderRadius: BorderRadius.circular(100),
                       ),
                     ),
-                  ),
+                  SizedBox(width: 5),
+                  if (widget.publication.telephone.isNotEmpty)
+                    InkWell(
+                      onTap: () {
+                        WhatsAppService().openWhatsApp(
+                          widget.publication.telephone.isNotEmpty
+                              ? widget.publication.telephone
+                              : widget.publication.author!.phone.toString(),
+                          message: 'Salut ! Comment ça va ?',
+                        );
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
 
-                  SizedBox(width: 16),
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage(
+                              "assets/icons/actions/whatsapp.png",
+                            ),
+                          ),
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                    ),
+
+                  SizedBox(width: 5),
                   InkWell(
                     child: Container(
                       width: 50,
@@ -1150,100 +1102,89 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     },
                   ),
 
-                  SizedBox(width: 16),
+                  SizedBox(width: 5),
+                  if (widget.publication.link.isNotEmpty)
+                    InkWell(
+                      child: Container(
+                        width: 50,
+                        height: 50,
 
-                  Expanded(
-                    child: SizedBox(
-                      height: 50,
-                      child: Center(
-                        child: ElevatedButton(
-                          onPressed:
-                              _isCreatingReservation
-                                  ? null
-                                  : () async {
-                                    try {
-                                      setState(
-                                        () => _isCreatingReservation = true,
-                                      );
-
-                                      // 1. Créer la réservation si nécessaire
-                                      if (!_hasUserReservation) {
-                                        await _createReservation();
-                                      }
-
-                                      // 2. Naviguer vers MainScreen avec l'état mis à jour
-                                      Navigator.pushAndRemoveUntil(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder:
-                                              (context) => MainScreen(
-                                                // Onglet Accueil
-                                                reservedPublicationId:
-                                                    widget.publication.id,
-                                              ),
-                                        ),
-                                        (route) => false,
-                                      );
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(content: Text(e.toString())),
-                                      );
-                                    } finally {
-                                      if (mounted) {
-                                        setState(
-                                          () => _isCreatingReservation = false,
-                                        );
-                                      }
-                                    }
-                                  },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color.fromARGB(
-                              255,
-                              208,
-                              88,
-                              23,
-                            ),
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              vertical: 10,
-                              horizontal: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            image: AssetImage("assets/icons/actions/link.png"),
                           ),
-                          child:
-                              _isCreatingReservation
-                                  ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      color: Colors.white,
-                                      strokeWidth: 2,
+                          borderRadius: BorderRadius.circular(100),
+                        ),
+                      ),
+                      onTap: () async {
+
+                            await UrlLauncher().openWebLink(
+                              widget.publication.link,);
+
+
+                      },
+                    ),
+
+                  SizedBox(width: 5),
+                  if (!widget.publication.ad && _reserved==false && user!=null )
+                    Expanded(
+                      child: SizedBox(
+                        height: 50,
+                        child: Center(
+                          child: ElevatedButton(
+                            onPressed:
+                                () async {
+                                  _showReservationConfirmationModal();
+                                    },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color.fromARGB(
+                                255,
+                                208,
+                                88,
+                                23,
+                              ),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 10,
+                                horizontal: 10,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child:
+                                _isCreatingReservation
+                                    ? const SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : Text(
+                                      _hasUserReservation
+                                          ? (widget
+                                                  .publication
+                                                  .action
+                                                  .isNotEmpty
+                                              ? widget.publication.action
+                                              : widget
+                                                  .publication
+                                                  .categorie
+                                                  .action)
+                                          : 'Réserver ',
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  )
-                                  : Text(
-                                    _hasUserReservation
-                                        ? (widget.publication.action.isNotEmpty
-                                            ? widget.publication.action
-                                            : widget
-                                                .publication
-                                                .categorie
-                                                .action)
-                                        : 'Réserver ',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),

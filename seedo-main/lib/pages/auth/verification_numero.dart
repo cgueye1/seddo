@@ -2,11 +2,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:seddoapp/services/AuthService.dart';
+import 'package:seddoapp/utils/constant.dart';
+import '../../utils/HexColor.dart';
 import 'verification.dart';
 
 class PhoneNumberPage extends StatefulWidget {
-  const PhoneNumberPage({super.key});
+ final  String name;
+ final  String password;
+ final  String email;
+  const PhoneNumberPage({super.key, required this.name, required this.password, required this.email});
 
   @override
   State<PhoneNumberPage> createState() => _PhoneNumberPageState();
@@ -50,13 +56,13 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
       });
 
       // Demander l'envoi du code OTP
-      await _authService.requestOTP(fullPhoneNumber);
+     await _authService.requestOTP(fullPhoneNumber,widget.email);
 
-      // Navigation vers la page de vérification en passant le numéro de téléphone
-      Navigator.push(
+
+     Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => VerificationPage(phoneNumber: fullPhoneNumber),
+          builder: (context) => VerificationPage(phoneNumber: fullPhoneNumber, name: widget.name, password: widget.password, email: widget.email,),
         ),
       );
     } catch (e) {
@@ -176,6 +182,35 @@ class _PhoneNumberPageState extends State<PhoneNumberPage> {
                     ),
                   ),
                   const SizedBox(height: 50),
+                  _isLoading
+                      ?  Center(
+                      child: Container(
+                          width: 50,
+                          height: 50,
+                          alignment: Alignment.center,
+                          child: LoadingIndicator(
+                              indicatorType:
+                              Indicator.ballClipRotateMultiple,
+
+                              /// Required, The loading type of the widget
+                              colors: [
+                                HexColor(APIConstants.primaryColorValue),
+                                HexColor(APIConstants.primaryColorValue),
+                              ],
+
+                              /// Optional, The color collections
+                              strokeWidth: 5,
+
+                              /// Optional, The stroke of the line, only applicable to widget which contains line
+                              backgroundColor: Colors.transparent,
+
+                              /// Optional, Background of the widget
+                              pathBackgroundColor: Colors.transparent
+
+                            /// Optional, the stroke backgroundColor
+                          ))
+                  )
+                      :
                   SizedBox(
                     width: double.infinity,
                     height: 50,

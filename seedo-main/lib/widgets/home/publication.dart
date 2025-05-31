@@ -11,14 +11,16 @@ import 'package:seddoapp/utils/constant.dart';
 import 'package:seddoapp/utils/date_formatter.dart';
 import 'package:seddoapp/widgets/home/DistanceBadge.dart';
 
+import '../../models/user_model.dart';
+
 class PublicationCard extends StatelessWidget {
   final Publication publication;
   final double width;
   final String? location;
   final double height;
   final Publication item;
-  final Position currentPosition;
-
+  final Position? currentPosition;
+  final UserModel? user;
   const PublicationCard({
     super.key,
     required this.publication,
@@ -26,7 +28,8 @@ class PublicationCard extends StatelessWidget {
     this.location,
     this.height = 200,
     required this.item,
-    required this.currentPosition,
+    required this.currentPosition, this.user,
+
   });
 
   @override

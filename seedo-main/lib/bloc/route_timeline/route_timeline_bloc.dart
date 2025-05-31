@@ -451,6 +451,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
           apiKey: "",
           useGoogleSearch: false,
+            appVersionList: []
         );
       }
     } catch (e) {
@@ -464,6 +465,7 @@ class RouteTimelineBloc extends Bloc<RouteTimelineEvent, RouteTimelineState> {
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         apiKey: "",
         useGoogleSearch: false,
+        appVersionList: []
       );
     }
   }

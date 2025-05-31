@@ -13,8 +13,21 @@ class SharedPreferencesService {
     prefs.setString(key, value);
   }
 
+  Future<bool?> getBoolValue(String key) async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(key);
+  }
+
+  Future<void> saveBoolValue(String key, bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setBool(key, value);
+  }
+
+
   Future<void> removeValue(String key) async {
     final prefs = await SharedPreferences.getInstance();
     prefs.remove(key);
   }
+
+
 }

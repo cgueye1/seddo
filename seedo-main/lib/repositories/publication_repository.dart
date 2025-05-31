@@ -167,7 +167,7 @@ class PublicationRepository {
   Future<List<Publication>> getAuthorPublications({
     required int authorId,
     int page = 0,
-    int size = 30,
+    int size = 50,
   }) async {
     try {
       return await _publicationService.fetchAuthorPublications(
@@ -179,5 +179,9 @@ class PublicationRepository {
       print('Error fetching author publications: $e');
       throw Exception('Network error while loading author publications');
     }
+  }
+
+  Future<void> deletePublicationById(int publicationId) async {
+    await _publicationService.deletePublicationById(publicationId);
   }
 }

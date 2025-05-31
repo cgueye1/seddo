@@ -24,8 +24,9 @@ import '../services/publication_service.dart';
 
 class PubliePage extends StatelessWidget {
   final List<dynamic>? categories;
+  final int idUser;
 
-  const PubliePage({super.key, this.categories});
+  PubliePage({super.key, this.categories, required this.idUser});
 
   @override
   Widget build(BuildContext context) {
@@ -41,13 +42,15 @@ class PubliePage extends StatelessWidget {
             categories: categories,
             publicationRepository: publicationRepository,
           ),
-      child: const PubliePageView(),
+      child: PubliePageView(idUser: idUser),
     );
   }
 }
 
 class PubliePageView extends StatefulWidget {
-  const PubliePageView({super.key});
+  final int idUser;
+
+  PubliePageView({super.key, required this.idUser});
 
   @override
   State<PubliePageView> createState() => _PubliePageViewState();
@@ -203,17 +206,15 @@ class _PubliePageViewState extends State<PubliePageView> {
               ),
             ),
           ),
-          body: Expanded(
-            child:
-                state.activeTabIndex == 0
-                    ? state.currentStep == 1
-                        ? SingleChildScrollView(
-                          padding: const EdgeInsets.all(16),
-                          child: _buildStep1Form(context, state),
-                        )
-                        : _buildStep2Form(context, state)
-                    : const Center(child: Text('Historique des publications')),
-          ),
+          body:
+              state.activeTabIndex == 0
+                  ? state.currentStep == 1
+                      ? SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: _buildStep1Form(context, state),
+                      )
+                      : _buildStep2Form(context, state, widget.idUser)
+                  : const Center(child: Text('Historique des publications')),
         );
       },
     );
@@ -478,8 +479,8 @@ class _PubliePageViewState extends State<PubliePageView> {
             textInputAction: TextInputAction.newline,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
+        const SizedBox(height: 24),
+        /* const Text(
           'Adresse',
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
         ),
@@ -559,7 +560,7 @@ class _PubliePageViewState extends State<PubliePageView> {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 24),*/
         const SizedBox(height: 24),
 
         // Next button
@@ -599,25 +600,30 @@ class _PubliePageViewState extends State<PubliePageView> {
     );
   }
 
-  Widget _buildStep2Form(BuildContext context, PublicationState state) {
+  Widget _buildStep2Form(BuildContext context, PublicationState state, int id) {
     return Step2Form(
       pricingList: state.pricings,
       selectedPricing: state.selectedPricing,
+      loading: state.isSubmitting,
       onPricingChanged: (pricing) {
         context.read<PublicationBloc>().add(PricingSelected(pricing!));
       },
       priceChanged: (value) {
         context.read<PublicationBloc>().add(FormFieldUpdated('price', value));
       },
+      callChanged: (value) {
+        context.read<PublicationBloc>().add(FormFieldUpdated('call', value));
+      },
       onBackPressed: () {
         context.read<PublicationBloc>().add(StepChanged(1));
       },
+
       onPublishPressed: (address) {
         context.read<PublicationBloc>().add(
           PublicationSubmitted(
-            authorId: 1,
-            latitude: address != null ? address.latitude : 0,
-            longitude: address != null ? address.longitude : 0,
+            authorId: id,
+            latitude: address != null ? address!.latitude : 0,
+            longitude: address != null ? address!.longitude : 0,
             context: context,
           ),
         );

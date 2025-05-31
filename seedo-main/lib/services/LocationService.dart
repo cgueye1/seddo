@@ -5,41 +5,64 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 
 class LocationService {
-  // Obtenir la position actuelle avec gestion des permissions
-  Future<Position?> getCurrentLocation() async {
+  /// Coordonnées par défaut : Dakar
+  static const double defaultLatitude = 14.6928;
+  static const double defaultLongitude = -17.4467;
+
+  Future<Position> getCurrentLocation() async {
+
     bool serviceEnabled;
     LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return Future.error('Les services de localisation sont désactivés');
-    }
+   // serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  /*  if (!serviceEnabled) {
+      print(
+        'Les services de localisation sont désactivés. Position par défaut utilisée.',
+      );
+      return _defaultPosition();
+    }*/
 
-    // Vérifier et demander les permissions si nécessaire
     permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return Future.error('La permission de localisation a été refusée');
+        print('Permission refusée. Position par défaut utilisée.');
+        return _defaultPosition();
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return Future.error(
-        'Les permissions de localisation sont définitivement refusées',
-      );
+      print('Permission définitivement refusée. Position par défaut utilisée.');
+      return _defaultPosition();
     }
 
-    // Récupérer la position actuelle
     try {
+      print("whattt");
       Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high,
       );
+
       return position;
     } catch (e) {
-      print("Erreur lors de la récupération de la position: $e");
-      return null;
+      print("Erreur lors de la récupération de la position : $e");
+      return _defaultPosition();
     }
+  }
+
+  /// Position par défaut (Dakar)
+  Position _defaultPosition() {
+    return Position(
+      latitude: defaultLatitude,
+      longitude: defaultLongitude,
+      timestamp: DateTime.now(),
+      accuracy: 0.0,
+      altitude: 0.0,
+      heading: 0.0,
+      speed: 0.0,
+      speedAccuracy: 0.0,
+      altitudeAccuracy: 0,
+      headingAccuracy: 0,
+    );
   }
 
   // Obtenir une adresse simplifiée à partir des coordonnées

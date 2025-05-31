@@ -1,15 +1,31 @@
 import 'package:flutter/material.dart';
 
+import '../../services/PushNotificationService.dart';
+import '../../services/SharedPreferencesService.dart';
+
 class SplashPage extends StatefulWidget {
-  const SplashPage({super.key});
+  final bool? off;
+  const SplashPage({super.key, this.off});
 
   @override
   _SplashState createState() => _SplashState();
 }
 
 class _SplashState extends State<SplashPage> {
+  final SharedPreferencesService _prefsService = SharedPreferencesService();
+
+  Future<void> init() async {
+
+    final bool? notificationsEnabled = await _prefsService.getBoolValue('notifications');
+
+    if (notificationsEnabled == true) {
+      await PushNotificationService().subscribeToTopic("seddo");
+    }
+
+  }
   @override
   void initState() {
+    init();
     super.initState();
   }
 
@@ -32,6 +48,7 @@ class _SplashState extends State<SplashPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+               widget. off!=null &&    widget.off! ? Center(child: CircularProgressIndicator()):
                 Center(child: Image.asset('assets/images/seddo_.png')),
                 // Center(
                 //   child: Text(

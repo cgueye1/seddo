@@ -1,16 +1,22 @@
+
 import 'package:flutter/material.dart';
 import 'package:seddoapp/models/Reservation.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/services/ReservationService.dart';
+import 'package:seddoapp/widgets/reservation/reservation_detail_modal.dart';
+
+import '../../models/ReservationModel.dart';
 
 class PendingReservationsTab extends StatefulWidget {
   final Publication publication;
   final VoidCallback? onReservationChanged;
+  final String status;
 
   const PendingReservationsTab({
     Key? key,
     required this.publication,
     this.onReservationChanged,
+    required this.status,
   }) : super(key: key);
 
   @override
@@ -19,15 +25,20 @@ class PendingReservationsTab extends StatefulWidget {
 
 class _PendingReservationsTabState extends State<PendingReservationsTab> {
   final ReservationService _reservationService = ReservationService();
-  List<Reservation> _reservations = [];
+  List<ReservationModel> _reservations = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String _status='PENDDING';
 
   @override
   void initState() {
+    setState(() {
+      _status=widget.status;
+    });
     super.initState();
     _loadReservations();
   }
+
 
   Future<void> _loadReservations() async {
     try {
@@ -36,22 +47,49 @@ class _PendingReservationsTabState extends State<PendingReservationsTab> {
         _errorMessage = null;
       });
 
-      // Récupérer les réservations pour le repas de cette publication
+      // Charger les réservations avec le statut demandé
       final reservations = await _reservationService.getReservationsByMeal(
-        widget.publication.id, // Assumer que publication a un meal avec un id
+        widget.publication.id,
+        _status, // Statut à filtrer (ex: PENDING, ACCEPTED, REFUSED)
       );
 
-      // Filtrer seulement les réservations en attente
-      final pendingReservations =
-          reservations
-              .where((reservation) => reservation.status == 'PENDING')
-              .toList();
-
       setState(() {
-        _reservations = pendingReservations;
+        _reservations = reservations;
         _isLoading = false;
       });
     } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
+
+  Future<void> _validReservation(int status,int  id) async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      // Charger les réservations avec le statut demandé
+      final reservations = await _reservationService.valid(
+        id,
+        status, // Statut à filtrer (ex: PENDING, ACCEPTED, REFUSED)
+      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar( SnackBar(content: Text(status==1? "Commande validée":"Commande refusée")));
+      _loadReservations();
+
+      setState(() {
+
+        _isLoading = false;
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Erreur de validation")));
       setState(() {
         _errorMessage = e.toString();
         _isLoading = false;
@@ -170,118 +208,100 @@ class _PendingReservationsTabState extends State<PendingReservationsTab> {
     }
 
     return _reservations.isNotEmpty
-        ? RefreshIndicator(
+        ?   RefreshIndicator(
           onRefresh: _loadReservations,
-          child: ListView.separated(
+          child:  SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            shrinkWrap: true,
-            itemCount: _reservations.length,
-            separatorBuilder:
-                (context, index) => const Divider(
-                  height: 1,
-                  thickness: 1,
-                  indent: 16,
-                  endIndent: 16,
-                  color: Color(0xFFEEEEEE),
-                ),
-            itemBuilder: (context, index) {
-              final reservation = _reservations[index];
+            child: Column(
+              children: [
+                ..._reservations.map((reservation) {
+                  final userName = '${reservation.user.firstName} ${reservation.user.lastName}';
+                  final userPhone = reservation.user.phone;
 
-              // Pour l'instant, on utilise des données simulées pour les informations utilisateur
-              // Dans une vraie app, vous devriez récupérer ces infos via une autre API
-              final userName = 'Utilisateur ${reservation.userId}';
-              final userPhone = '+221 77 XXX XX XX';
-
-              return InkWell(
-                onTap: () {
-                  // showReservationDetailModal(
-                  //   context,
-                  //   name: userName,
-                  //   phoneNumber: userPhone,
-                  //   date:
-                  //       widget.publication.meal?.scheduledFor?.toString().split(
-                  //         ' ',
-                  //       )[0] ??
-                  //       'Date non définie',
-                  //   time:
-                  //       widget.publication.meal?.scheduledFor?.toString().split(
-                  //         ' ',
-                  //       )[1] ??
-                  //       'Heure non définie',
-                  //   numberOfPeople:
-                  //       1,
-                  //   status: reservation.status,
-                  //   onAccept:
-                  //       () =>
-                  //           _handleReservationAction(reservation.id, 'accept'),
-                  //   onReject:
-                  //       () =>
-                  //           _handleReservationAction(reservation.id, 'refuse'),
-                  // );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                  child: Row(
+                  return Column(
                     children: [
-                      // Avatar gris avec initiales
-                      Container(
-                        width: 60,
-                        height: 60,
-                        decoration: const BoxDecoration(
-                          color: Color(0xFFE0E0E0), // Gris clair
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Text(
-                            _getInitials(userName),
-                            style: const TextStyle(
-                              color: Color(0xFF757575), // Gris foncé
-                              fontSize: 24,
-                              fontWeight: FontWeight.w500,
+                      InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
                             ),
+                            builder: (context) => ReservationDetailModal(reservation: reservation),
+                          ).then((status) {
+                            if (status != null) {
+                              _validReservation(status, reservation.id);
+                            }
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                width: 60,
+                                height: 60,
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFFE0E0E0),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    _getInitials(userName),
+                                    style: const TextStyle(
+                                      color: Color(0xFF757575),
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      userName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 18,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      userPhone,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.arrow_forward_ios, color: Colors.grey, size: 16),
+                            ],
                           ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      // Informations utilisateur
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              userName,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                                color: Colors.black87,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '1 personne • ${_getTimeAgo(reservation.createdAt)}',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      // Flèche de navigation
-                      const Icon(
-                        Icons.arrow_forward_ios,
-                        color: Colors.grey,
-                        size: 16,
+                      const Divider(
+                        height: 1,
+                        thickness: 1,
+                        indent: 16,
+                        endIndent: 16,
+                        color: Color(0xFFEEEEEE),
                       ),
                     ],
-                  ),
-                ),
-              );
-            },
-          ),
+                  );
+                }).toList(),
+
+                // 👇 Pour forcer du scroll même quand peu d'éléments
+                SizedBox(height: MediaQuery.of(context).size.height),
+              ],
+            ),
+          )
         )
         : Center(
           child: Padding(

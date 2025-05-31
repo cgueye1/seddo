@@ -136,7 +136,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         final priceValue = double.tryParse(event.value) ?? 0.0;
         emit(state.copyWith(price: priceValue));
         break;
-      case 'telephone':
+      case 'call':
         emit(state.copyWith(telephone: event.value));
         break;
       case 'languages':
@@ -496,6 +496,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
           apiKey: "",
           useGoogleSearch: false,
+            appVersionList: []
         );
       }
     } catch (e) {
@@ -509,6 +510,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         apiKey: "",
         useGoogleSearch: false,
+          appVersionList: []
       );
     }
   }

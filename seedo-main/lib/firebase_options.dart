@@ -67,7 +67,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '966727350695',
     projectId: 'seddo-32139',
     storageBucket: 'seddo-32139.firebasestorage.app',
-    iosBundleId: 'com.wakana.seddo',
+    iosBundleId: 'com.wakana.seddoo',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

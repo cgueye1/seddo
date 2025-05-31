@@ -10,6 +10,12 @@ import 'package:seddoapp/pages/auth/login.dart';
 import 'package:seddoapp/pages/profil.dart';
 import 'package:seddoapp/utils/HexColor.dart';
 
+import '../bloc/publie/publie_bloc.dart';
+import '../services/AuthService.dart';
+import '../services/PushNotificationService.dart';
+import '../services/SharedPreferencesService.dart';
+import '../widgets/navitems.dart';
+
 class SettingPage extends StatefulWidget {
   const SettingPage({super.key});
 
@@ -18,12 +24,26 @@ class SettingPage extends StatefulWidget {
 }
 
 class _SettingPageState extends State<SettingPage> {
+  AuthService  authService =AuthService();
   bool notificationsEnabled = true;
   bool locationEnabled = false;
+
+  final SharedPreferencesService _prefsService = SharedPreferencesService();
+
   @override
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(LoadCurrentUser());
+    _loadPreferences();
+  }
+
+  void _loadPreferences() async {
+    final notif = await _prefsService.getBoolValue('notifications');
+    final loc = await _prefsService.getBoolValue('location');
+    setState(() {
+      notificationsEnabled = notif ?? false;
+      locationEnabled = loc ?? false;
+    });
   }
 
   @override
@@ -33,12 +53,23 @@ class _SettingPageState extends State<SettingPage> {
         if (authState is AuthUnauthenticatedState) {
           Navigator.pushAndRemoveUntil(
             context,
-            MaterialPageRoute(builder: (_) => const LogIn()),
+            MaterialPageRoute(
+              builder:
+                  (_) => MainScreen(
+                    key: UniqueKey(),
+                    // Force le rechargement// Réinitialise à l'onglet par défaut
+                    off: true, // Réinitialise vos paramètres
+                  ),
+            ),
             (route) => false,
           );
         }
       },
       child: BlocBuilder<HomeBloc, HomeState>(
+        buildWhen: (previousState, currentState) {
+          // Rebuild seulement si le statut de connexion change
+          return previousState.currentUser != currentState.currentUser;
+        },
         builder: (context, state) {
           final bool isLoggedIn = state.currentUser != null;
 
@@ -92,16 +123,16 @@ class _SettingPageState extends State<SettingPage> {
                         state.currentUser?.email ?? 'exemple@gmail.com',
                         style: const TextStyle(fontSize: 14),
                       ),
-                      trailing: const Icon(Icons.edit_outlined),
+                      //  trailing: const Icon(Icons.edit_outlined),
                       onTap: () {
                         // Vérifier si l'utilisateur est connecté avant d'accéder au profil
                         if (isLoggedIn) {
-                          Navigator.push(
+                          /*   Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (context) => ProfilePage(),
                             ),
-                          );
+                          );*/
                         } else {
                           // Afficher une boîte de dialogue demandant à l'utilisateur de se connecter
                           _showLoginRequiredDialog(context);
@@ -113,7 +144,7 @@ class _SettingPageState extends State<SettingPage> {
                   const SizedBox(height: 20),
 
                   // Mes commandes
-                  Container(
+                  /* Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -161,8 +192,7 @@ class _SettingPageState extends State<SettingPage> {
                         }
                       },
                     ),
-                  ),
-
+                  ),*/
                   const SizedBox(height: 20),
 
                   // Notifications
@@ -202,14 +232,55 @@ class _SettingPageState extends State<SettingPage> {
                               setState(() {
                                 notificationsEnabled = value;
                               });
+                              _prefsService.saveBoolValue(
+                                'notifications',
+                                value,
+                              );
+
+                              if (value == false) {
+                                PushNotificationService().unsubscribeFromTopic(
+                                  "seddo",
+                                );
+                                PushNotificationService().unsubscribeFromTopic(
+                                  "seddo_${state.currentUser!.id}",
+                                );
+                              } else {
+                                PushNotificationService().subscribeToTopic(
+                                  "seddo",
+                                );
+                                PushNotificationService().subscribeToTopic(
+                                  "seddo-${state.currentUser!.id}}",
+                                );
+                              }
                             },
+
                             activeTrackColor: HexColor('#D95C18'),
                             activeColor: HexColor('#FFF'),
                           ),
                           onTap: () {
+                            final newValue = !notificationsEnabled;
                             setState(() {
-                              notificationsEnabled = !notificationsEnabled;
+                              notificationsEnabled = newValue;
                             });
+                            _prefsService.saveBoolValue(
+                              'notifications',
+                              newValue,
+                            );
+                            if (newValue == false) {
+                              PushNotificationService().unsubscribeFromTopic(
+                                "seddo",
+                              );
+                              PushNotificationService().unsubscribeFromTopic(
+                                "seddo_${state.currentUser!.id}",
+                              );
+                            } else {
+                              PushNotificationService().subscribeToTopic(
+                                "seddo",
+                              );
+                              PushNotificationService().subscribeToTopic(
+                                "seddo-${state.currentUser!.id}}",
+                              );
+                            }
                           },
                         ),
                         const Divider(
@@ -246,14 +317,18 @@ class _SettingPageState extends State<SettingPage> {
                               setState(() {
                                 locationEnabled = value;
                               });
+                              _prefsService.saveBoolValue('location', value);
                             },
+
                             activeTrackColor: HexColor('#D95C18'),
                             activeColor: HexColor('#FFF'),
                           ),
                           onTap: () {
+                            final newValue = !locationEnabled;
                             setState(() {
-                              locationEnabled = !locationEnabled;
+                              locationEnabled = newValue;
                             });
+                            _prefsService.saveBoolValue('location', newValue);
                           },
                         ),
                       ],
@@ -297,14 +372,40 @@ class _SettingPageState extends State<SettingPage> {
                           _showLogoutConfirmDialog(context);
                         } else {
                           // Rediriger vers la page de connexion
-                          Navigator.push(
+                          Navigator.pushAndRemoveUntil(
                             context,
-                            MaterialPageRoute(builder: (context) => LogIn()),
+                            MaterialPageRoute(builder: (_) => const LogIn()),
+                            (route) => false,
                           );
                         }
                       },
                     ),
                   ),
+
+
+
+                  const SizedBox(height: 40),
+                  if(state.currentUser!=null)
+
+                  InkWell(
+                    onTap: (){
+                      _showDelete(state.currentUser!.id);
+                    },
+
+                    child: Center(
+                      child: Container(
+                    
+                        padding: EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withOpacity(.1),
+                          borderRadius: BorderRadius.circular(16)
+                        ),
+                        child: Text("Supprimer mon compte",style: TextStyle(fontWeight: FontWeight.bold,color: Colors.red),),
+                      ),
+                    ),
+                  )
+
+
                 ],
               ),
             ),
@@ -314,6 +415,49 @@ class _SettingPageState extends State<SettingPage> {
     );
   }
 
+  void _showDelete(id) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+        title: const Text('Confirmation'),
+        content: const Text(
+          'Voulez-vous vraiment supprimer votre comptre ? '
+          ,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context); // Ferme le modal
+
+
+            },
+            child: const Text('Non'),
+          ),
+          TextButton(
+            onPressed: () {
+
+              authService.delete(id);
+
+              // Utiliser le bloc AuthBloc pour la déconnexion
+              context.read<AuthBloc>().add(AuthLogoutEvent());
+              context.read<HomeBloc>().add(ResetUserStateEvent());
+              // Afficher un message de déconnexion réussie
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Vous comte est supprimé avec succès.'),
+                  duration: Duration(seconds: 2),
+                ),
+              );
+
+
+            },
+            child: const Text('Oui'),
+          ),
+        ],
+      ),
+    );
+  }
   // Méthode pour afficher une boîte de dialogue lorsque l'utilisateur n'est pas connecté
   void _showLoginRequiredDialog(BuildContext context) {
     showDialog(
@@ -364,10 +508,9 @@ class _SettingPageState extends State<SettingPage> {
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop();
                 // Utiliser le bloc AuthBloc pour la déconnexion
                 context.read<AuthBloc>().add(AuthLogoutEvent());
-
+                context.read<HomeBloc>().add(ResetUserStateEvent());
                 // Afficher un message de déconnexion réussie
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(

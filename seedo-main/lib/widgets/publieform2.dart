@@ -1,10 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:seddoapp/models/PricingModel.dart';
+import 'package:seddoapp/widgets/transit/DakarSearchWidget.dart';
 
 import '../models/transit/PlaceModel.dart';
 import '../utils/HexColor.dart';
+import '../utils/constant.dart';
 
 class Step2Form extends StatefulWidget {
   final VoidCallback onBackPressed;
@@ -13,11 +16,13 @@ class Step2Form extends StatefulWidget {
   final List<String> selectedImages;
   final Function(int) onRemoveImage;
   final Function(String) priceChanged;
+  final Function(String) callChanged;
   final Function(String) availabilityChanged;
   final Function(PlaceModel?) onPublishPressed;
   final List<PricingModel> pricingList;
   final PricingModel? selectedPricing;
   final Function(PricingModel?) onPricingChanged;
+  final bool loading;
 
   const Step2Form({
     super.key,
@@ -32,6 +37,8 @@ class Step2Form extends StatefulWidget {
     required this.pricingList,
     this.selectedPricing,
     required this.onPricingChanged,
+    this. loading=false,
+    required this.callChanged
   });
 
   @override
@@ -39,8 +46,10 @@ class Step2Form extends StatefulWidget {
 }
 
 class _Step2FormState extends State<Step2Form> {
+  final FocusNode _focusNode = FocusNode();
   int _selectedImageIndex = 0;
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _callController = TextEditingController();
 
   PlaceModel? address;
   final ScrollController _scrollController = ScrollController();
@@ -48,8 +57,29 @@ class _Step2FormState extends State<Step2Form> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
+  void _scrollToFocusedField(FocusNode node) {
+    if (node.hasFocus) {
+      Future.delayed(Duration(milliseconds: 300), () {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Ajouter les listeners de focus
+    _focusNode.addListener(() => _scrollToFocusedField(_focusNode));
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -68,7 +98,70 @@ class _Step2FormState extends State<Step2Form> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Availability Field
+          const Text(
+            'Adresse',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+          const SizedBox(height: 8),
+          DakarSearchWidget(
+            icon: Icon(Icons.location_on_sharp, color: HexColor("#F52D56")),
+            focusNode: _focusNode,
+            label: "Adresse de récupération",
+            initPlace: null,
+            onLocationSelected: (PlaceModel location) {
+              setState(() {
+                address = location;
+              });
+            },
+          ),
+          const SizedBox(height: 24),
 
+          // Title Field
+          Row(
+            children: [
+              const Text(
+                'Téléphone',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                '',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(30),
+              color: const Color.fromARGB(255, 247, 247, 246),
+            ),
+            child: TextField(
+              controller: _callController,
+              decoration: const InputDecoration(
+                hintText: 'Entrez numéro fr téléphone',
+                hintStyle: TextStyle(
+                  fontSize: 15,
+                  color: Color.fromARGB(255, 78, 73, 73),
+                ),
+                border: InputBorder.none,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              onChanged: (value) {
+                widget.callChanged(value);
+              },
+            ),
+          ),
+          const SizedBox(height: 24),
           // Price Field with Currency
           const Text(
             'Prix / Tarification',
@@ -109,6 +202,7 @@ class _Step2FormState extends State<Step2Form> {
             ],
           ),
           const SizedBox(height: 24),
+          if(    widget.selectedImages.isNotEmpty)
           Container(
             width: double.infinity,
             height: 200,
@@ -365,7 +459,31 @@ class _Step2FormState extends State<Step2Form> {
           ),
 
           const SizedBox(height: 48),
+        widget.loading?  Container(
+              width: 50,
+              height: 50,
+              child: LoadingIndicator(
+                  indicatorType:
+                  Indicator.ballClipRotateMultiple,
 
+                  /// Required, The loading type of the widget
+                  colors: [
+                    HexColor( APIConstants.primaryColorValue ),
+                    HexColor( APIConstants.primaryColorValue ),
+                  ],
+
+                  /// Optional, The color collections
+                  strokeWidth: 5,
+
+                  /// Optional, The stroke of the line, only applicable to widget which contains line
+                  backgroundColor: Colors.transparent,
+
+                  /// Optional, Background of the widget
+                  pathBackgroundColor: Colors.transparent
+
+                /// Optional, the stroke backgroundColor
+              ))
+              :
           // Publish button
           Container(
             width: double.infinity,
@@ -389,7 +507,7 @@ class _Step2FormState extends State<Step2Form> {
             ),
           ),
           const SizedBox(height: 24),
-          Container(
+         /* Container(
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
@@ -398,7 +516,7 @@ class _Step2FormState extends State<Step2Form> {
             ),
             child: TextButton(
               onPressed: () {
-                widget.onPublishPressed(address);
+
               },
               child: const Text(
                 'Précédent',
@@ -409,7 +527,7 @@ class _Step2FormState extends State<Step2Form> {
                 ),
               ),
             ),
-          ),
+          ),*/
         ],
       ),
     );

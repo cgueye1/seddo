@@ -17,7 +17,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.1.0+1
+version: 1.2.6+82
 
 environment:
   sdk: ^3.7.0
@@ -31,7 +31,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_fonts: ^6.1.0
+  google_fonts: ^6.1.1
   geolocator: ^9.0.2
   geocoding: ^2.0.5
   flutter_launcher_icons: ^0.13.1
@@ -67,6 +67,12 @@ dependencies:
   marquee: ^2.3.0
   keyboard_avoider: ^0.2.0
   flutter_speed_dial: ^7.0.0
+  app_tracking_transparency: ^2.0.6+1
+
+
+
+
+
   
 flutter_localizations:
     sdk: flutter
@@ -74,20 +80,20 @@ flutter_localizations:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
-  image_path: "assets/icons/SEDDO.png"
+  image_path: "assets/icons/SEDDO.jpg"
   min_sdk_android: 21 # android min sdk min:16, default 21
   web:
     generate: true
-    image_path: "assets/icons/SEDDO.png"
+    image_path: "assets/icons/SEDDO.jpg"
     background_color: "#hexcode"
     theme_color: "#hexcode"
   windows:
     generate: true
-    image_path: "assets/icons/SEDDO.png"
+    image_path: "assets/icons/SEDDO.jpg"
     icon_size: 48 # min:48, max:256, default: 48
   macos:
     generate: true
-    image_path: "assets/icons/SEDDO.png"
+    image_path: "assets/icons/SEDDO.jpg"
 
 dev_dependencies:
   flutter_test:

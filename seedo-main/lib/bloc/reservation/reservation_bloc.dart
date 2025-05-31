@@ -11,19 +11,17 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     : _reservationRepository = reservationRepository,
       super(const ReservationInitial()) {
     // Enregistrement des handlers d'événements
-    on<LoadReservationsByMeal>(_onLoadReservationsByMeal);
+    //on<LoadReservationsByMeal>(_onLoadReservationsByMeal);
     on<LoadUserReservations>(_onLoadUserReservations);
-    on<CreateReservation>(_onCreateReservation);
     on<AcceptReservation>(_onAcceptReservation);
     on<RefuseReservation>(_onRefuseReservation);
     on<CancelReservation>(_onCancelReservation);
-    on<CheckUserReservation>(_onCheckUserReservation);
     on<RefreshReservations>(_onRefreshReservations);
     on<ResetReservationState>(_onResetReservationState);
   }
 
   // Handler pour charger les réservations par repas
-  Future<void> _onLoadReservationsByMeal(
+ /* Future<void> _onLoadReservationsByMeal(
     LoadReservationsByMeal event,
     Emitter<ReservationState> emit,
   ) async {
@@ -39,7 +37,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     } catch (e) {
       emit(ReservationError(message: e.toString()));
     }
-  }
+  }*/
 
   // Handler pour charger les réservations d'un utilisateur
   Future<void> _onLoadUserReservations(
@@ -60,26 +58,6 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     }
   }
 
-  // Handler pour créer une réservation
-  Future<void> _onCreateReservation(
-    CreateReservation event,
-    Emitter<ReservationState> emit,
-  ) async {
-    emit(const ReservationCreating());
-
-    try {
-      final reservation = await _reservationRepository.createReservation(
-        mealId: event.mealId,
-        userId: event.userId,
-        publicationAuthorId: event.publicationAuthorId,
-      );
-      emit(ReservationCreated(reservation));
-    } catch (e) {
-      emit(
-        ReservationCreationError(message: e.toString(), mealId: event.mealId),
-      );
-    }
-  }
 
   // Handler pour accepter une réservation
   Future<void> _onAcceptReservation(
@@ -174,27 +152,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     }
   }
 
-  // Handler pour vérifier si un utilisateur a une réservation
-  Future<void> _onCheckUserReservation(
-    CheckUserReservation event,
-    Emitter<ReservationState> emit,
-  ) async {
-    try {
-      final hasReservation = await _reservationRepository.hasUserReservation(
-        event.mealId,
-        event.userId,
-      );
-      emit(
-        UserReservationChecked(
-          hasReservation: hasReservation,
-          mealId: event.mealId,
-          userId: event.userId,
-        ),
-      );
-    } catch (e) {
-      emit(ReservationError(message: e.toString()));
-    }
-  }
+
 
   // Handler pour rafraîchir les réservations
   Future<void> _onRefreshReservations(

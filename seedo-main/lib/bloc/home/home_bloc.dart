@@ -19,8 +19,10 @@ import 'package:seddoapp/services/menu_service.dart';
 import 'package:seddoapp/utils/constant.dart';
 import '../../models/AppParamModel.dart';
 import '../../models/campaign/CampaignWinnerDTOModel.dart';
+import '../../repositories/ReservationRepository.dart';
 import '../../repositories/defaultRepository.dart';
 import '../../services/AdMobService.dart';
+import '../../services/ReservationService.dart';
 import 'home_state.dart';
 import 'home_event.dart';
 
@@ -35,8 +37,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final MenuService _menuService = MenuService();
   final AuthRepository _authRepository = AuthRepository();
   final CategorieRepository _categorieRepository = CategorieRepository();
+  final ReservationService _reservationRepository = ReservationService();
   final LocationService _locationService = LocationService();
   final PublicationRepository _publicationRepository;
+
   final TextEditingController searchController = TextEditingController();
   final SearchManager searchManager = SearchManager();
   final DefaultRepository repository = DefaultRepository();
@@ -83,9 +87,41 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(showLoginDialog: false));
     });
 
+    on<ResetUserStateEvent>(_onResetUserState);
+    on<DeletePublication>(_onDeletePublication);
+    on<AddReservedPublication>(_onAddReservedPublication);
+
     // Initialize data when bloc is created
     add(const InitializeHomeEvent());
   }
+
+  Future<void> _onDeletePublication(
+    DeletePublication event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      // Supprimer la publication via le repository
+      await _publicationRepository.deletePublicationById(event.publicationId);
+    } catch (e) {
+      // Optionnel : gérer les erreurs
+      print('Erreur lors de la suppression de la publication : $e');
+    }
+  }
+
+  Future<void> _onAddReservedPublication(
+    AddReservedPublication event,
+    Emitter<HomeState> emit,
+  ) async {
+    try {
+      await _reservationRepository.createReservation(
+        userId: event.userId,
+        mealId: event.publicationId,
+      );
+    } catch (e) {
+      print('Erreur lors de la réservation de la publication : $e');
+    }
+  }
+
   void _onResetUserState(ResetUserStateEvent event, Emitter<HomeState> emit) {
     emit(state.copyWith(currentUser: null));
   }
@@ -115,14 +151,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       // Load menu data
       final categoryPublications = await _menuService.loadMenuData();
       final appParam = await _getAppParam();
-
+      emit(
+        state.copyWith(
+          appParam: appParam,
+          categoryPublications: categoryPublications,
+        ),
+      );
       if (appParam != null && !appParam.hideAds) {
         _showInterstitialAd();
       }
 
       // Load categories
       final categories = await _categorieRepository.fetchCategoriesNoParent();
-      final currentPosition = await locationService.getCurrentLocation();
 
       // Ne sélectionne aucune catégorie au démarrage
       CategorieModel? initialCategory = null;
@@ -135,12 +175,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       emit(
         state.copyWith(
-          appParam: appParam,
           categoryPublications: categoryPublications,
           currentCategory: firstCategory,
           categories: categories,
           selectedCategory: initialCategory,
-          currentPosition: currentPosition,
         ),
       );
 
@@ -167,16 +205,18 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(error: 'Error: ${e.toString()}'));
     }
 
-    final campaignTopWinner = await _getCampaignTop();
-
-    emit(state.copyWith(campaignToWinners: campaignTopWinner));
+   // final campaignTopWinner = await _getCampaignTop();
+   // emit(state.copyWith(campaignToWinners: campaignTopWinner));
+    final currentPosition = await locationService.getCurrentLocation();
+    emit(state.copyWith(currentPosition: currentPosition));
   }
 
   Future<void> _showInterstitialAd() async {
     // Délai minimum avant d'afficher la pub (3 secondes)
     await Future.delayed(Duration(seconds: 10));
 
-    await adService.showInterstitialAd();
+
+    adService.showInterstitialAd();
   }
 
   Future<void> _onLoadCurrentUser(
@@ -199,7 +239,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadNearbyPublications event,
     Emitter<HomeState> emit,
   ) async {
-    print("sdsd");
+
     // Ne pas bloquer les chargements normaux lorsque la recherche est désactivée
     if (searchManager.blockAutoRefresh &&
         searchManager.isSearchActive &&
@@ -312,6 +352,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     }
+
+
   }
 
   @override
@@ -665,6 +707,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
           apiKey: "",
           useGoogleSearch: false,
+          appVersionList: [],
         );
       }
     } catch (e) {
@@ -678,6 +721,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         apiKey: "",
         useGoogleSearch: false,
+        appVersionList: [],
       );
     }
   }

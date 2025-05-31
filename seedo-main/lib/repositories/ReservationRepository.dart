@@ -2,18 +2,19 @@
 import 'package:seddoapp/models/Reservation.dart';
 import 'package:seddoapp/services/ReservationService.dart';
 
+import '../models/ReservationModel.dart';
+
 abstract class ReservationRepository {
-  Future<List<Reservation>> getReservationsByMeal(int mealId);
-  Future<Reservation> createReservation({
+  Future<List<ReservationModel>>  getReservationsByMeal(int mealId,String status);
+  Future<void> createReservation({
     required int mealId,
     int? userId,
-    int? publicationAuthorId,
+
   });
   Future<bool> acceptReservation(int reservationId);
   Future<bool> refuseReservation(int reservationId);
   Future<bool> cancelReservation(int reservationId);
   Future<List<Reservation>> getUserReservations(int userId);
-  Future<bool> hasUserReservation(int mealId, int userId);
 }
 
 class ReservationRepositoryImpl implements ReservationRepository {
@@ -23,25 +24,24 @@ class ReservationRepositoryImpl implements ReservationRepository {
     : _reservationService = reservationService ?? ReservationService();
 
   @override
-  Future<List<Reservation>> getReservationsByMeal(int mealId) async {
+  Future<List<ReservationModel>> getReservationsByMeal(int mealId,String status) async {
     try {
-      return await _reservationService.getReservationsByMeal(mealId);
+      return await _reservationService.getReservationsByMeal(mealId,status);
     } catch (e) {
       throw Exception('Erreur lors de la récupération des réservations: $e');
     }
   }
 
   @override
-  Future<Reservation> createReservation({
+  Future<void> createReservation({
     required int mealId,
     int? userId,
-    int? publicationAuthorId,
+
   }) async {
     try {
-      return await _reservationService.createReservation(
+     await _reservationService.createReservation(
         mealId: mealId,
         userId: userId,
-        publicationAuthorId: publicationAuthorId,
       );
     } catch (e) {
       throw Exception('Erreur lors de la création de la réservation: $e');
@@ -86,12 +86,5 @@ class ReservationRepositoryImpl implements ReservationRepository {
     }
   }
 
-  @override
-  Future<bool> hasUserReservation(int mealId, int userId) async {
-    try {
-      return await _reservationService.hasUserReservation(mealId, userId);
-    } catch (e) {
-      return false;
-    }
-  }
+
 }

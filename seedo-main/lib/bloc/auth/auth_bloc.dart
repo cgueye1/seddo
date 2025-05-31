@@ -1,10 +1,14 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seddoapp/utils/constant.dart';
 import '../../repositories/auth_repository.dart';
+import '../../services/SharedPreferencesService.dart';
 import 'auth_state.dart';
 import 'auth_event.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository _authRepository = AuthRepository();
+  final SharedPreferencesService _sharedPreferencesService =
+  SharedPreferencesService();
 
   AuthBloc() : super(AuthInitialState()) {
     on<AuthLoginEvent>(_onAuthLoginEvent);
@@ -51,6 +55,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     AuthLogoutEvent event,
     Emitter<AuthState> emit,
   ) async {
+    _sharedPreferencesService.removeValue(APIConstants.AUTH_TOKEN);
+
     emit(AuthLoadingState());
 
     try {

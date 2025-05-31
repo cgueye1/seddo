@@ -100,7 +100,7 @@ class _LogInState extends State<LogIn> {
               Navigator.pushReplacement(
                 // ignore: use_build_context_synchronously
                 context,
-                MaterialPageRoute(builder: (context) => const MainScreen()),
+                MaterialPageRoute(builder: (context) =>  MainScreen(off: true,)),
               );
             });
           } else if (state is AuthErrorState) {
@@ -150,7 +150,7 @@ class _LogInState extends State<LogIn> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: const InputDecoration(
-                        hintText: "user_admin@gmail.com",
+                        hintText: "Email ou téléphone",
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.all(Radius.circular(10)),
                         ),
@@ -196,7 +196,7 @@ class _LogInState extends State<LogIn> {
                       ),
                     ),
                   ),
-                  Align(
+                 /* Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: _handleForgotPassword,
@@ -215,7 +215,7 @@ class _LogInState extends State<LogIn> {
                         ),
                       ),
                     ),
-                  ),
+                  ),*/
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
@@ -244,7 +244,7 @@ class _LogInState extends State<LogIn> {
                               ),
                     ),
                   ),
-                  const SizedBox(height: 30),
+                 /* const SizedBox(height: 30),
                   Center(
                     child: Text(
                       "Ou se connecter avec",
@@ -281,7 +281,7 @@ class _LogInState extends State<LogIn> {
                         ),
                       ),
                     ],
-                  ),
+                  ),*/
                   const SizedBox(height: 30),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

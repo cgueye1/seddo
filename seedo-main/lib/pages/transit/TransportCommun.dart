@@ -337,6 +337,7 @@ class _TransportCommunState extends State<TransportCommun>
             right: 0,
             child: Container(
               height: 80,
+
               padding: EdgeInsets.only(left: 16, top: 16, right: 16),
               alignment: Alignment.center,
               child: Row(

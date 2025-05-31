@@ -31,6 +31,7 @@ class Publication {
   int? approvedReservationsCount;
   int? rejectedReservationsCount;
   final bool isReserved;
+  final int days;
 
   Publication({
     required this.id,
@@ -62,6 +63,7 @@ class Publication {
     required approvedReservationsCount,
     required rejectedReservationsCount,
     this.isReserved = false,
+    required this.days
   });
 
   factory Publication.fromJson(Map<String, dynamic> json) {
@@ -86,6 +88,7 @@ class Publication {
       latitude: json['latitude'],
       longitude: json['longitude'],
       price: json['price'] ?? 0,
+      days: json['days'] ?? 0,
       createdDate: json['createdDate'].toString(),
       categorie: categorieObj,
       categorieParent:

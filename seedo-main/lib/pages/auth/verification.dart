@@ -2,15 +2,22 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:loading_indicator/loading_indicator.dart';
 import 'package:seddoapp/pages/auth/login.dart';
 import 'package:seddoapp/services/AuthService.dart';
 
+import '../../utils/HexColor.dart';
+import '../../utils/constant.dart';
+
 class VerificationPage extends StatefulWidget {
   final String
-  phoneNumber; // Nouveau paramètre pour recevoir le numéro de téléphone
+  phoneNumber;
+  final  String name;
+  final  String password;
+  final  String email;
 
   // ignore: use_super_parameters
-  const VerificationPage({Key? key, required this.phoneNumber})
+  const VerificationPage({Key? key, required this.phoneNumber, required this.name, required this.password, required this.email})
     : super(key: key);
 
   @override
@@ -43,11 +50,13 @@ class _VerificationPageState extends State<VerificationPage> {
   }
 
   void _resendCode() async {
+    print("widget.phoneNumber");
+    print(widget.phoneNumber);
     try {
       setState(() {
         _isLoading = true;
       });
-      await _authService.requestOTP(widget.phoneNumber);
+      await _authService.requestOTP(widget.phoneNumber,"");
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Code renvoyé avec succès')));
@@ -78,16 +87,45 @@ class _VerificationPageState extends State<VerificationPage> {
           phoneNumber: widget.phoneNumber,
           otp: otpCode,
         );
+        if(result ==true){
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Vérification réussie')));
 
-        // Redirection vers la page de connexion
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const LogIn()),
-        );
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Vérification réussie')));
+          try {
+            final result = await _authService.signUp(
+                firstName:   widget.name.split(" ").first,
+                lastName: widget.name.split(" ")[1],
+                email: widget.email,
+                password: widget.password,
+                phone: widget.phoneNumber
+
+            );
+            // Redirection vers la page de connexion
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const LogIn()),
+            );
+          } catch(e){
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text("Creation de compte impossible")));
+          }
+
+
+
+        } else {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Probleme')));
+
+
+        }
+
+
+
+
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur de vérification : ${e.toString()}')),
@@ -108,7 +146,7 @@ class _VerificationPageState extends State<VerificationPage> {
   void initState() {
     super.initState();
     // Envoyer automatiquement le code OTP lors de l'initialisation
-    _resendCode();
+  //  _resendCode();
   }
 
   @override
@@ -218,6 +256,35 @@ class _VerificationPageState extends State<VerificationPage> {
                     ],
                   ),
                   const SizedBox(height: 20),
+                  _isLoading
+                      ? Center(
+                    child: Container(
+                        width: 50,
+                        height: 50,
+                        alignment: Alignment.center,
+                        child: LoadingIndicator(
+                            indicatorType:
+                            Indicator.ballClipRotateMultiple,
+
+                            /// Required, The loading type of the widget
+                            colors: [
+                              HexColor(APIConstants.primaryColorValue),
+                              HexColor(APIConstants.primaryColorValue),
+                            ],
+
+                            /// Optional, The color collections
+                            strokeWidth: 5,
+
+                            /// Optional, The stroke of the line, only applicable to widget which contains line
+                            backgroundColor: Colors.transparent,
+
+                            /// Optional, Background of the widget
+                            pathBackgroundColor: Colors.transparent
+
+                          /// Optional, the stroke backgroundColor
+                        ))
+                  )
+                      :
                   SizedBox(
                     width: double.infinity,
                     height: 50,

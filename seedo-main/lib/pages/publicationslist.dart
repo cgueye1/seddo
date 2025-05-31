@@ -46,18 +46,19 @@ class _PublicationslistState extends State<Publicationslist> {
             padding: const EdgeInsets.only(top: 50, left: 10, right: 6),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Mes Publications',
                   style: TextStyle(
                     color: Colors.black,
-                    fontSize: 30,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
+               // const SizedBox(height: 16),
                 // Optionnel: gardez la barre de recherche si vous voulez filtrer
-                const SearchBars(),
+             //   const SearchBars(),
                 // const SizedBox(height: 16),
                 Expanded(
                   child: RefreshIndicator(
@@ -75,13 +76,20 @@ class _PublicationslistState extends State<Publicationslist> {
       floatingActionButton: CustomFloatingButton(
         imagePath: 'assets/images/plus.svg',
         iconColor: Colors.white,
-        onPressed: () {
+        onPressed: () async{
           final categories = context.read<HomeBloc>().state.categories;
-          Navigator.of(context).push(
+          final user = context.read<HomeBloc>().state.currentUser;
+          final result = await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => PubliePage(categories: categories),
+              builder: (context) => PubliePage(
+                categories: categories,
+                idUser: user!.id,
+              ),
             ),
           );
+
+          // Rafraîchir les publications au retour
+          _loadAuthorPublications();
         },
         label: '',
         backgroundColor: HexColor("#D95C18"),
@@ -127,9 +135,49 @@ class _PublicationslistState extends State<Publicationslist> {
       itemCount: state.authorPublications.length,
       itemBuilder: (context, index) {
         final publication = state.authorPublications[index];
-        return AuthorPublicationItem(publication: publication);
+
+        return Dismissible(
+          key: Key(publication.id.toString()), // Assure-toi que `id` est unique
+          direction: DismissDirection.endToStart, // Slide vers la gauche
+          background: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            alignment: Alignment.centerRight,
+            color: Colors.red,
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (direction) async {
+            // Optionnel : demander confirmation
+            return await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("Confirmation"),
+                content: const Text("Voulez-vous vraiment supprimer cette publication ?"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("Annuler"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            );
+          },
+          onDismissed: (direction) {
+            // 🔥 Ajouter ici l’appel pour supprimer la publication
+            context.read<HomeBloc>().add(DeletePublication(publication.id));
+            // Afficher feedback visuel
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Publication supprimée.")),
+            );
+          },
+          child: AuthorPublicationItem(publication: publication),
+        );
       },
     );
+
   }
 }
 
@@ -316,7 +364,7 @@ class AuthorPublicationItem extends StatelessWidget {
 
                   // Expiration date - même design que PublicationItem
                   Text(
-                    "Expire le ${DateFormat('dd/MM/yyyy').format(DateTime.parse(publication.createdDate))}",
+                    "Expire le ${DateFormat('dd/MM/yyyy').format(DateTime.parse(publication.createdDate).add(Duration(days: publication.days)))}",
                     style: TextStyle(
                       fontSize: 11,
                       color: HexColor("#D95C18"),

@@ -214,7 +214,7 @@ class _DetailPageState extends State<DetailPage> {
                       ),
                       Tab(
                         child: Text(
-                          'Réservations (3)',
+                          'Réservations',
                           style: TextStyle(fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -231,12 +231,10 @@ class _DetailPageState extends State<DetailPage> {
                           child: _buildDetailsTab(),
                         ),
                         // Utiliser notre nouveau widget ReservationsTab
-                        SingleChildScrollView(
-                          physics: const ClampingScrollPhysics(),
-                          child: ReservationsTab(
+                      ReservationsTab(
                             publication: widget.publication,
                           ),
-                        ),
+
                       ],
                     ),
                   ),
@@ -286,26 +284,15 @@ class _DetailPageState extends State<DetailPage> {
           padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                child: Text(
-                  "Prix : ",
-                  style: TextStyle(
-                    color: HexColor("#D95C18"),
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
+
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.green,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: const Text(
-                  "Gratuit",
+                child:  Text(
+                widget.publication.price==0?  "Gratuit":"${widget.publication.price} CFA",
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -328,7 +315,7 @@ class _DetailPageState extends State<DetailPage> {
                 getTimeAgo(widget.publication.createdDate),
                 style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
               ),
-              const SizedBox(width: 12),
+             /* const SizedBox(width: 12),
               Icon(Icons.access_time, color: HexColor("#F44336"), size: 16),
               const SizedBox(width: 4),
               Text(
@@ -338,7 +325,7 @@ class _DetailPageState extends State<DetailPage> {
                   fontWeight: FontWeight.w500,
                   color: HexColor("#F44336"),
                 ),
-              ),
+              ),*/
             ],
           ),
         ),
@@ -364,194 +351,7 @@ class _DetailPageState extends State<DetailPage> {
         ),
 
         // Disponibilité
-        const Divider(
-          height: 0.5,
-          thickness: 1,
-          color: Color.fromARGB(255, 224, 224, 224),
-        ),
-        const SizedBox(height: 12),
 
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Disponibilité",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.people, color: HexColor("#D95C18"), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    "3 à 5 personnes",
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Icon(Icons.access_time, color: HexColor("#D95C18"), size: 20),
-                  const SizedBox(width: 8),
-                  Text(
-                    formatDate(widget.publication.timestamp),
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Divider(
-          height: 0.5,
-          thickness: 1,
-          color: Color.fromARGB(255, 224, 224, 224),
-        ),
-        const SizedBox(height: 12),
-        // Localisation
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Localisation",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    children: [
-                      // First location dot
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color.fromARGB(255, 213, 59, 12),
-                        ),
-                      ),
-                      // Dashed line
-                      CustomPaint(
-                        size: const Size(1, 55),
-                        painter: DashedLinePainter(
-                          color: const Color.fromARGB(255, 187, 187, 187),
-                          dashHeight: 3,
-                          dashSpace: 3,
-                        ),
-                      ),
-                      // Second location dot with location icon
-                      const Icon(
-                        Icons.location_on,
-                        color: Color.fromARGB(255, 213, 59, 12),
-                        size: 18,
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          widget.publication.author != null
-                              ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName} - Lieu'
-                              : 'Partageur - Lieu',
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Point de Départ',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 116, 116, 116),
-                          ),
-                        ),
-                        const SizedBox(height: 26),
-                        // Dans la section où vous affichez "Vous - Nord Foire"
-                        Text(
-                          'Vous - ${context.watch<HomeBloc>().state.currentLocation}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Point D\'arrivée',
-                          style: TextStyle(
-                            fontSize: 10,
-                            color: Color.fromARGB(255, 119, 119, 119),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        const Divider(
-          height: 0.5,
-          thickness: 1,
-          color: Color.fromARGB(255, 224, 224, 224),
-        ),
-        const SizedBox(height: 12),
-        // Partageur
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Partageur",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundImage: AssetImage('assets/icons/profile.png'),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.publication.author != null
-                            ? '${widget.publication.author!.firstName} ${widget.publication.author!.lastName}'
-                            : 'Fatima Sène',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text(
-                        "Membre depuis 3 mois",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
 
         const SizedBox(height: 120),
       ],

@@ -255,4 +255,16 @@ class PublicationService {
       throw Exception('Erreur inattendue : $e');
     }
   }
+
+
+  Future<void> deletePublicationById(int id) async {
+    try {
+      final response = await _dio.delete('meals/delete/$id');
+      if (response.statusCode != 200 && response.statusCode != 204) {
+        throw Exception('Erreur lors de la suppression de la publication');
+      }
+    } catch (e) {
+      throw Exception('Échec de la suppression de la publication : $e');
+    }
+  }
 }

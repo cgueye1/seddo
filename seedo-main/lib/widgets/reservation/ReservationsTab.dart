@@ -33,51 +33,7 @@ class _ReservationsTabState extends State<ReservationsTab> {
     _loadReservationCounts();
   }
 
-  Future<void> _loadReservationCounts() async {
-    try {
-      setState(() {
-        _isLoadingCounts = true;
-      });
-
-      // Récupérer toutes les réservations pour ce repas
-      final reservations = await _reservationService.getReservationsByMeal(
-        widget.publication.id,
-      );
-
-      // Compter par statut
-      int pending = 0;
-      int approved = 0;
-      int rejected = 0;
-
-      for (final reservation in reservations) {
-        switch (reservation.status.toUpperCase()) {
-          case 'PENDING':
-            pending++;
-            break;
-          case 'APPROVED':
-          case 'ACCEPTED':
-            approved++;
-            break;
-          case 'REJECTED':
-          case 'REFUSED':
-            rejected++;
-            break;
-        }
-      }
-
-      setState(() {
-        _pendingCount = pending;
-        _approvedCount = approved;
-        _rejectedCount = rejected;
-        _isLoadingCounts = false;
-      });
-    } catch (e) {
-      print('Erreur lors du chargement des compteurs: $e');
-      setState(() {
-        _isLoadingCounts = false;
-      });
-    }
-  }
+  Future<void> _loadReservationCounts() async {}
 
   // Méthode pour actualiser les compteurs (à appeler depuis les tabs enfants)
   void refreshCounts() {
@@ -86,7 +42,12 @@ class _ReservationsTabState extends State<ReservationsTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final totalHeight = MediaQuery.of(context).size.height;
+    const pillTabHeight = 36.0;
+    const spacingHeight = 16.0;
+    final remainingHeight = totalHeight - pillTabHeight - spacingHeight;
+    return  Column(
+
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -104,25 +65,62 @@ class _ReservationsTabState extends State<ReservationsTab> {
         const SizedBox(height: 16),
 
         // Tab content
-        IndexedStack(
+        Flexible(
+            child:  IndexedStack(
           index: _selectedTabIndex,
           children: [
-            PendingReservationsTab(
-              publication: widget.publication,
-              onReservationChanged: refreshCounts,
-            ),
-            ApprovedReservationsTab(
-              publication: widget.publication,
-              // onReservationChanged: refreshCounts,
-            ),
-            RejectedReservationsTab(
-              publication: widget.publication,
-              // onReservationChanged: refreshCounts,
-            ),
+            _selectedTabIndex == 0
+                ?
+             PendingReservationsTab(
+                    publication: widget.publication,
+                    onReservationChanged: refreshCounts,
+                    status: 'PENDDING',
+
+                )
+                : SizedBox(),
+            _selectedTabIndex == 1
+                ? PendingReservationsTab(
+                  publication: widget.publication,
+                  onReservationChanged: refreshCounts,
+                  status: 'ACCEPTED',
+                )
+                : SizedBox(),
+            _selectedTabIndex == 2
+                ? PendingReservationsTab(
+                  publication: widget.publication,
+                  onReservationChanged: refreshCounts,
+                  status: 'REFUSED',
+                )
+                : SizedBox(),
           ],
-        ),
+        ))
       ],
     );
+  }
+
+  Widget _buildTabContent() {
+    switch (_selectedTabIndex) {
+      case 0:
+        return PendingReservationsTab(
+          publication: widget.publication,
+          onReservationChanged: refreshCounts,
+          status: 'PENDDING',
+        );
+      case 1:
+        return PendingReservationsTab(
+          publication: widget.publication,
+          onReservationChanged: refreshCounts,
+          status: 'ACCEPTED',
+        );
+      case 2:
+        return PendingReservationsTab(
+          publication: widget.publication,
+          onReservationChanged: refreshCounts,
+          status: 'REFUSED',
+        );
+      default:
+        return const SizedBox.shrink();
+    }
   }
 
   Widget _buildPillTab(String title, int index, int count) {
@@ -173,7 +171,7 @@ class _ReservationsTabState extends State<ReservationsTab> {
                 shape: BoxShape.circle,
               ),
               child:
-                  _isLoadingCounts
+              /*_isLoadingCounts
                       ? SizedBox(
                         width: 12,
                         height: 12,
@@ -184,14 +182,15 @@ class _ReservationsTabState extends State<ReservationsTab> {
                           ),
                         ),
                       )
-                      : Text(
-                        count.toString(),
-                        style: TextStyle(
-                          color: countTextColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      : */
+              Text(
+                "",
+                style: TextStyle(
+                  color: countTextColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
           ],
         ),

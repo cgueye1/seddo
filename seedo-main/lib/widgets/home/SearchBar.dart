@@ -178,6 +178,9 @@ class _SearchBarsState extends State<SearchBars> {
                 }
               }
             },
+
+
+            
             child: Image.asset(
               'assets/icons/edit.png',
               width: 23,

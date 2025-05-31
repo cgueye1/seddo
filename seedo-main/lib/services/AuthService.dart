@@ -48,11 +48,11 @@ class AuthService {
   }
 
   // Nouvelle méthode pour demander l'OTP
-  Future<dynamic> requestOTP(String phoneNumber) async {
+  Future<dynamic> requestOTP(String phoneNumber,String email) async {
     try {
       Response response = await _dio.post(
         "otp/generate",
-        data: {"phoneNumber": phoneNumber},
+        data: {"phoneNumber": phoneNumber,"email":email},
       );
       return response.data;
     } on DioException catch (e) {
@@ -80,6 +80,16 @@ class AuthService {
   Future<dynamic> connectedUser() async {
     try {
       Response response = await _dio.get("v1/user/me");
+      return response.data;
+    } on DioException catch (e) {
+      _handleError(e, "Impossible de récupérer les informations utilisateur");
+    }
+  }
+
+  // Méthode existante pour récupérer l'utilisateur connecté
+  Future<void> delete(int id) async {
+    try {
+      Response response = await _dio.delete("v1/user/${id}");
       return response.data;
     } on DioException catch (e) {
       _handleError(e, "Impossible de récupérer les informations utilisateur");
