@@ -333,6 +333,7 @@ class SignalementBloc extends Bloc<SignalementEvent, SignalementState> {
         emergency: true,
         days: 1,
         pricingId: 1,
+        call: ""
       );
 
       print(response);

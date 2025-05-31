@@ -1,10 +1,31 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:seddoapp/bloc/reservation/reservation_event.dart';
 import 'package:seddoapp/utils/HexColor.dart';
+import 'package:seddoapp/utils/constant.dart';
+import '../bloc/reservation/reservation_bloc.dart';
+import '../bloc/reservation/reservation_state.dart';
+import '../models/ReservationModel.dart';
+import '../repositories/ReservationRepository.dart';
+
+class CommandesPageWrapper extends StatelessWidget {
+  final int id;
+   CommandesPageWrapper({super.key, required this.id});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => ReservationBloc(
+        reservationRepository: ReservationRepositoryImpl(),
+      )..add(LoadUserReservations(id, ReservationStatus.PENDDING.name)),
+      child:  CommandesPage(id: id,),
+    );
+  }
+}
 
 class CommandesPage extends StatefulWidget {
-  const CommandesPage({super.key});
+  final int id;
+  const CommandesPage({super.key, required this.id});
 
   @override
   State<CommandesPage> createState() => _CommandesPageState();
@@ -20,10 +41,29 @@ class _CommandesPageState extends State<CommandesPage>
     _tabController = TabController(length: 3, vsync: this);
     _tabController.index = 0;
 
-    // Ajouter un écouteur pour mettre à jour l'interface quand l'onglet change
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadReservationsForCurrentTab();
+    });
+
     _tabController.addListener(() {
+      _loadReservationsForCurrentTab();
       setState(() {});
     });
+  }
+
+  void _loadReservationsForCurrentTab() {
+    final userId = widget.id; // À remplacer par l'ID réel
+    String status;
+
+    switch (_tabController.index) {
+      case 0: status = ReservationStatus.PENDDING.name; break;
+      case 1: status = ReservationStatus.ACCEPTED.name; break;
+      case 2: status = ReservationStatus.REFUSED.name; break;
+      default: status = 'pending';
+    }
+
+
+    context.read<ReservationBloc>().add(LoadUserReservations(userId, status));
   }
 
   @override
@@ -65,116 +105,163 @@ class _CommandesPageState extends State<CommandesPage>
               labelColor: Colors.black,
               unselectedLabelColor: Colors.grey,
               tabs: [
-                _buildTab("En attente", "1", 0),
+                _buildTab("En attente", "", 0),
                 _buildTab("Validée", "1", 1),
                 _buildTab("Refusée", "1", 2),
               ],
             ),
           ),
-          // TabBarView
           Expanded(
-            child: TabBarView(
-              controller: _tabController,
+            child: BlocBuilder<ReservationBloc, ReservationState>(
+              builder: (context, state) {
+                return TabBarView(
+                  controller: _tabController,
+                  children: [
+                    _buildReservationList(state, 'pending'),
+                    _buildReservationList(state, 'accepted'),
+                    _buildReservationList(state, 'refused'),
+                  ],
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  String traduireStatut(String status) {
+    switch (status.toUpperCase()) {
+      case 'PENDDING':
+        return 'En attente';
+      case 'ACCEPTED':
+        return 'Acceptée';
+      case 'REFUSED':
+        return 'Refusée';
+      default:
+        return 'Inconnu';
+    }
+  }
+
+  Widget _buildReservationList(ReservationState state, String expectedStatus) {
+    if (state is ReservationLoading) {
+      return const Center(child: CircularProgressIndicator());
+    } else if (state is ReservationError) {
+      return Center(child: Text(state.message));
+    } else if (state is ReservationsLoaded) {
+      final reservations = state.reservations;
+         /* .where((reservation) => reservation.status == expectedStatus)
+          .toList();*/
+
+      if (reservations.isEmpty) {
+        return _buildEmptyState(
+          expectedStatus == 'pending' ? "En attente"
+              : expectedStatus == 'accepted' ? "Validée" : "Refusée",
+          expectedStatus == 'pending' ? "Aucune commande en attente. ${state.userId} ${state.reservations.length}"
+              : expectedStatus == 'accepted'
+              ? "Les commandes validées apparaîtront ici."
+              : "Aucune commande refusée.",
+          expectedStatus == 'pending' ? "assets/images/empty1.png"
+              : expectedStatus == 'accepted'
+              ? "assets/images/empty1.png"
+              : "assets/images/empty2.png",
+        );
+      }
+
+      return ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: reservations.length,
+        itemBuilder: (context, index) {
+          return _buildCommandeItem(reservations[index]);
+        },
+      );
+    }
+    return const Center(child: Text('Chargement...'));
+  }
+
+  Widget _buildCommandeItem(ReservationModel reservation) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+      elevation: .1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // IMAGE + TITRE + NUMÉRO
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Tab 1: En attente
-                SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
-                  child: _buildCommande(),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+              reservation.meal.picture.isNotEmpty?  "${APIConstants.API_BASE_URL_IMG + reservation.meal.picture}" : 'https://via.placeholder.com/80',
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
                 ),
-                // Tab 2: Validées
-                _buildEmptyState(
-                  "Validée",
-                  "Les publications commandes apparaîtront ici automatiquement.",
-                  "assets/images/empty1.png",
-                ),
-                // Tab 3: Refusées
-                _buildEmptyState(
-                  "Refusée",
-                  "Aucune commande n'a été refusée récemment.",
-                  "assets/images/empty2.png", // Image pour refusée (avec l'icône X)
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reservation.meal.titre ,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'N° #${reservation.id}',
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 12),
 
-  // Méthode pour construire un onglet avec style conditionnel
-  Widget _buildTab(String text, String count, int index) {
-    final bool isSelected = _tabController.index == index;
-    Color primaryColor = HexColor('#D95C18');
-
-    return Tab(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            text,
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(width: 5),
-          Container(
-            padding: const EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              color:
-                  isSelected
-                      ? primaryColor.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
-              shape: BoxShape.circle,
+            // DESCRIPTION avec Voir plus
+            ExpandableText(
+              text: reservation.meal.description,
+              maxLines: 3,
             ),
-            child: Text(
-              count,
-              style: TextStyle(
-                color: isSelected ? primaryColor : Colors.grey,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildEmptyState(String status, String message, String imagePath) {
-    final Color accentColor = HexColor('#D95C18');
+            const SizedBox(height: 12),
+            Divider(),
 
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Custom illustration from assets
-            Image.asset(
-              imagePath,
-              width: 250,
-              height: 250,
-              // Ne pas définir de couleur pour préserver les couleurs originales
-            ),
-            const SizedBox(height: 30),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Aucune commande ${status.toLowerCase()}',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: accentColor,
-                    ),
+            // STATUT + DATE
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  '${traduireStatut(reservation.status.name)}',
+                  style: TextStyle(
+                    color: reservation.status.name.toUpperCase() == 'PENDDING'
+                        ? Colors.orange
+                        : reservation.status.name.toUpperCase() == 'ACCEPTED'
+                        ? Colors.green
+                        : reservation.status.name.toUpperCase() == 'REFUSED'
+                        ? Colors.red
+                        : Colors.grey,
+                    fontWeight: FontWeight.w600,
                   ),
-                  const SizedBox(height: 15),
-                  Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
+                ),
+                Text(
+                  reservation.formattedCreatedAt ?? '',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -182,162 +269,124 @@ class _CommandesPageState extends State<CommandesPage>
     );
   }
 
-  Widget _buildCommande() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20, left: 5),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
+
+  Widget _buildTab(String text, String count, int index) {
+    final isSelected = _tabController.index == index;
+    final primaryColor = HexColor('#D95C18');
+
+    return Tab(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Image
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(16),
-              topRight: Radius.circular(16),
-            ),
-            child: Image.asset(
-              'assets/images/payla.jpeg',
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),
+         /* const SizedBox(height: 4),
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: isSelected ? primaryColor : Colors.grey,
+            ),
+            child: Center(
+              child: Text(
+                count,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),*/
+        ],
+      ),
+    );
+  }
 
-          // Contenu
+  Widget _buildEmptyState(String title, String message, String imagePath) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(imagePath, width: 150, height: 150),
+          const SizedBox(height: 20),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 10),
           Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Titre
-                const Text(
-                  'Paëla',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-                ),
-
-                const SizedBox(height: 12),
-
-                // Publié il y a 45 mins et distance
-                Row(
-                  children: [
-                    const Icon(Icons.access_time, color: Colors.grey, size: 20),
-                    const SizedBox(width: 5),
-                    const Text(
-                      'Publié il y a 45 mins',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                    const SizedBox(width: 20),
-                    const Icon(
-                      Icons.directions_walk,
-                      color: Colors.grey,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 5),
-                    const Text(
-                      '4.0 km',
-                      style: TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 20),
-
-                // Point de départ
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          height: 20,
-                          width: 20,
-                          decoration: BoxDecoration(
-                            color: HexColor('#D95C18'),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        Container(
-                          height: 40,
-                          width: 2,
-                          color: Colors.grey[300],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Rue 47, Pikine Ouest',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            'Point de départ',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-
-                // Point d'arrivée
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      height: 20,
-                      width: 20,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: HexColor('#D95C18'),
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
-                            'Dakar Sacré Cœur',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            'Point d\'arrivée',
-                            style: TextStyle(color: Colors.grey, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 40),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Colors.grey,
+              ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+
+class ExpandableText extends StatefulWidget {
+  final String text;
+  final int maxLines;
+
+  const ExpandableText({
+    required this.text,
+    this.maxLines = 3,
+  });
+
+  @override
+  State<ExpandableText> createState() => _ExpandableTextState();
+}
+
+class _ExpandableTextState extends State<ExpandableText> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final textWidget = Text(
+      widget.text,
+      maxLines: _expanded ? null : widget.maxLines,
+      overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
+      style: const TextStyle(fontSize: 14),
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        textWidget,
+        const SizedBox(height: 4),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _expanded = !_expanded;
+            });
+          },
+          child: Text(
+            _expanded ? 'Voir moins' : 'Voir plus',
+            style: const TextStyle(
+              color: Colors.blue,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

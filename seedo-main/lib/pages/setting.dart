@@ -144,7 +144,8 @@ class _SettingPageState extends State<SettingPage> {
                   const SizedBox(height: 20),
 
                   // Mes commandes
-                  /* Container(
+                  if(state.currentUser!=null)
+                  Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(16),
@@ -183,7 +184,7 @@ class _SettingPageState extends State<SettingPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => CommandesPage(),
+                              builder: (context) =>CommandesPageWrapper (id:state.currentUser!.id ,),
                             ),
                           );
                         } else {
@@ -192,7 +193,7 @@ class _SettingPageState extends State<SettingPage> {
                         }
                       },
                     ),
-                  ),*/
+                  ),
                   const SizedBox(height: 20),
 
                   // Notifications

@@ -18,7 +18,7 @@ class ReservationService {
 
     try {
       final response = await _apiService.dio.get(
-        'reservations/meal/$mealId?page=0&size=100&status=$status',
+        'reservations/meal/$mealId?page=0&size=200&status=$status',
       );
 
 
@@ -123,49 +123,43 @@ class ReservationService {
     }
   }
 
-  Future<List<Reservation>> getUserReservations(int userId) async {
+  Future<List<ReservationModel>> getUserReservations(int userId,String status) async {
+
     try {
-      final response = await _apiService.dio.get('/reservations/user/$userId');
+      final response = await _apiService.dio.get('/reservations/user/$userId?size=200&page=0&status=$status');
 
       if (response.statusCode == 200) {
-        // Même logique de parsing que pour getReservationsByMeal
-        if (response.data is Map<String, dynamic>) {
-          final Map<String, dynamic> responseMap = response.data;
+        final data = response.data;
 
-          // Vérifier d'abord pour la structure paginée
-          if (responseMap.containsKey('content')) {
-            final content = responseMap['content'];
+        if (data is List) {
+          // La réponse est une liste directe
+          return ReservationModel.fromJsonList(data);
+        } else if (data is Map<String, dynamic>) {
+          // Vérifie s'il s'agit d'une réponse paginée (Spring Boot typique)
+          if (data.containsKey('content')) {
+            final content = data['content'];
             if (content is List) {
-              return content
-                  .map((reservation) => Reservation.fromJson(reservation))
-                  .toList();
+              print( content);
+
+              return ReservationModel.fromJsonList(content);
+            } else {
+              throw Exception("Le champ 'content' n'est pas une liste.");
             }
-          } else if (responseMap.containsKey('data')) {
-            final data = responseMap['data'];
-            if (data is List) {
-              return data
-                  .map((reservation) => Reservation.fromJson(reservation))
-                  .toList();
-            }
-          } else if (responseMap.containsKey('reservations')) {
-            final reservations = responseMap['reservations'];
-            if (reservations is List) {
-              return reservations
-                  .map((reservation) => Reservation.fromJson(reservation))
-                  .toList();
-            }
+          } else {
+            throw Exception("Réponse inattendue : aucune liste trouvée.");
           }
-          return [];
-        } else if (response.data is List) {
-          return (response.data as List)
-              .map((reservation) => Reservation.fromJson(reservation))
-              .toList();
+        } else {
+          throw Exception("Structure de réponse inattendue.");
         }
-        return [];
+      } else {
+        throw Exception("Erreur HTTP ${response.statusCode}");
       }
-      throw Exception('Erreur lors de la récupération');
     } on DioException catch (e) {
+      print('DioException: ${e.response?.data}');
       throw Exception(_handleDioError(e));
+    } catch (e) {
+      print('Exception générique: $e');
+      throw Exception('Erreur lors du traitement des données: $e');
     }
   }
 

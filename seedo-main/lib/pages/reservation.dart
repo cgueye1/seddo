@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/bloc/home/home_event.dart';
 import 'package:seddoapp/bloc/home/home_state.dart';
@@ -56,6 +57,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
 
   // Liste des images à afficher - inclut l'image principale et les images supplémentaires
   late List<String> pictures;
+  final formatCFA = NumberFormat.currency(locale: 'fr_FR', symbol: '', decimalDigits: 0);
 
   @override
   void initState() {
@@ -64,13 +66,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
 
     // Debug pour voir si l'utilisateur est bien récupéré
     final homeState = context.read<HomeBloc>().state;
-    print(
-      "🔍 Debug - Current User: ${homeState.currentUser?.firstName} (ID: ${homeState.currentUser?.id})",
-    );
-    print("🔍 Debug - Publication ID: ${widget.publication.id}");
-    print(
-      "🔍 Debug - Publication Author: ${widget.publication.author?.firstName} (ID: ${widget.publication.author?.id})",
-    );
+
 
     setState(() {
       user=homeState.currentUser;
@@ -655,13 +651,13 @@ class _MealDetailPageState extends State<MealDetailPage> {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.green,
+                            color:                widget.publication.price == 0?Colors.green:Colors.red,
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
                             widget.publication.price == 0
                                 ? "Gratuit"
-                                : "${widget.publication.price.toString()} CFA",
+                                : "${formatCFA.format(widget.publication.price)} CFA",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -1073,6 +1069,7 @@ class _MealDetailPageState extends State<MealDetailPage> {
                     ),
 
                   SizedBox(width: 5),
+                  if ( widget.publication.latitude!=0)
                   InkWell(
                     child: Container(
                       width: 50,

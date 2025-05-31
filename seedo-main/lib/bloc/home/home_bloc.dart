@@ -205,8 +205,8 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       emit(state.copyWith(error: 'Error: ${e.toString()}'));
     }
 
-   // final campaignTopWinner = await _getCampaignTop();
-   // emit(state.copyWith(campaignToWinners: campaignTopWinner));
+    // final campaignTopWinner = await _getCampaignTop();
+    // emit(state.copyWith(campaignToWinners: campaignTopWinner));
     final currentPosition = await locationService.getCurrentLocation();
     emit(state.copyWith(currentPosition: currentPosition));
   }
@@ -214,7 +214,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   Future<void> _showInterstitialAd() async {
     // Délai minimum avant d'afficher la pub (3 secondes)
     await Future.delayed(Duration(seconds: 10));
-
 
     adService.showInterstitialAd();
   }
@@ -239,7 +238,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     LoadNearbyPublications event,
     Emitter<HomeState> emit,
   ) async {
-
     // Ne pas bloquer les chargements normaux lorsque la recherche est désactivée
     if (searchManager.blockAutoRefresh &&
         searchManager.isSearchActive &&
@@ -352,8 +350,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         ),
       );
     }
-
-
   }
 
   @override
@@ -392,7 +388,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   }
 
   void _onChangeTab(TabChanged event, Emitter<HomeState> emit) {
+
+
     emit(state.copyWith(selectedTabIndex: event.tabIndex));
+
   }
 
   void _onChangeNavigation(
@@ -400,6 +399,15 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     Emitter<HomeState> emit,
   ) {
     emit(state.copyWith(currentNavigationIndex: event.navigationIndex));
+
+    if (event.navigationIndex == 0)
+      add(
+        LoadNearbyPublications(
+          latitude: state.currentLatitude!,
+          longitude: state.currentLongitude!,
+          categoryId: state.selectedCategoryId,
+        ),
+      );
   }
 
   void _onSubcategoryChanged(

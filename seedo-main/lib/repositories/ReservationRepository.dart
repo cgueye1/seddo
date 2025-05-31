@@ -14,7 +14,7 @@ abstract class ReservationRepository {
   Future<bool> acceptReservation(int reservationId);
   Future<bool> refuseReservation(int reservationId);
   Future<bool> cancelReservation(int reservationId);
-  Future<List<Reservation>> getUserReservations(int userId);
+  Future<List<ReservationModel>> getUserReservations(int userId,String status);
 }
 
 class ReservationRepositoryImpl implements ReservationRepository {
@@ -76,9 +76,9 @@ class ReservationRepositoryImpl implements ReservationRepository {
   }
 
   @override
-  Future<List<Reservation>> getUserReservations(int userId) async {
+  Future<List<ReservationModel>> getUserReservations(int userId,String status) async {
     try {
-      return await _reservationService.getUserReservations(userId);
+      return await _reservationService.getUserReservations(userId,status);
     } catch (e) {
       throw Exception(
         'Erreur lors de la récupération des réservations utilisateur: $e',

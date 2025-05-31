@@ -12,7 +12,8 @@ class ReservationDetailModal extends StatelessWidget {
 
   // Extraire les initiales du nom
   String get initials {
-    final nameParts = "${reservation.user.firstName} ${reservation.user.lastName}".split(' ');
+    final nameParts =
+        "${reservation.user.firstName} ${reservation.user.lastName}".split(' ');
     if (nameParts.length >= 2) {
       return nameParts[0][0] + nameParts[1][0];
     } else if (nameParts.isNotEmpty) {
@@ -20,6 +21,7 @@ class ReservationDetailModal extends StatelessWidget {
     }
     return '';
   }
+
   Color _getStatusColor(ReservationStatus status) {
     switch (status) {
       case ReservationStatus.PENDDING:
@@ -88,7 +90,7 @@ class ReservationDetailModal extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                       "${reservation.user.firstName} ${reservation.user.lastName}",
+                        "${reservation.user.firstName} ${reservation.user.lastName}",
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -103,7 +105,8 @@ class ReservationDetailModal extends StatelessWidget {
                   ),
                 ),
                 // Boutons d'appel et WhatsApp
-                SizedBox(child:Container(
+                SizedBox(
+                  child: Container(
                     padding: EdgeInsets.only(left: 10),
                     color: Colors.white,
                     child: Row(
@@ -111,11 +114,10 @@ class ReservationDetailModal extends StatelessWidget {
                       children: [
                         InkWell(
                           onTap: () {
-                            WhatsAppService().openWhatsApp(
+                            PhoneCallService().makePhoneCall(
                               reservation.user.phone.isNotEmpty
-                                  ?reservation.user.phone
+                                  ? reservation.user.phone
                                   : reservation.user.phone,
-                              message: 'Salut ! Comment ça va ?',
                             );
                           },
                           child: Container(
@@ -134,12 +136,12 @@ class ReservationDetailModal extends StatelessWidget {
                         SizedBox(width: 16),
                         InkWell(
                           onTap: () {
-                            // WhatsAppService().openWhatsApp(
-                            //   widget.publication.telephone.isNotEmpty
-                            //       ? widget.publication.telephone
-                            //       : widget.publication.author!.phone.toString(),
-                            //   message: 'Salut ! Comment ça va ?',
-                            // );
+                            WhatsAppService().openWhatsApp(
+                              reservation.user.phone.isNotEmpty
+                                  ? reservation.user.phone
+                                  : reservation.user.phone,
+                              message: 'Salut ! Comment ça va ?',
+                            );
                           },
                           child: Container(
                             width: 50,
@@ -193,7 +195,7 @@ class ReservationDetailModal extends StatelessWidget {
                     ),
                   ],
                 ),
-              /*  const SizedBox(height: 20),
+                /*  const SizedBox(height: 20),
 
                 // Heure de réservation
                 Row(
@@ -259,10 +261,14 @@ class ReservationDetailModal extends StatelessWidget {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: _getStatusColor(reservation.status).withOpacity(0.1),
+                        color: _getStatusColor(
+                          reservation.status,
+                        ).withOpacity(0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: _getStatusColor(reservation.status).withOpacity(0.3),
+                          color: _getStatusColor(
+                            reservation.status,
+                          ).withOpacity(0.3),
                         ),
                       ),
                       child: Text(
@@ -288,59 +294,61 @@ class ReservationDetailModal extends StatelessWidget {
             child: Row(
               children: [
                 // Bouton Valider
-                if(reservation.status == ReservationStatus.REFUSED ||  reservation.status == ReservationStatus.PENDDING)
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Action pour valider la réservation
-                      Navigator.pop(context, 1);
-                    },
-                    icon: const Icon(Icons.check, color: Colors.white),
-                    label: const Text(
-                      'Valider',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                if (reservation.status == ReservationStatus.REFUSED ||
+                    reservation.status == ReservationStatus.PENDDING)
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Action pour valider la réservation
+                        Navigator.pop(context, 1);
+                      },
+                      icon: const Icon(Icons.check, color: Colors.white),
+                      label: const Text(
+                        'Valider',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                ),
                 const SizedBox(width: 16),
-                // Bouton Refuser
 
-                if(reservation.status == ReservationStatus.ACCEPTED ||  reservation.status == ReservationStatus.PENDDING)
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Action pour refuser la réservation
-                      Navigator.pop(context, 2);
-                    },
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    label: const Text(
-                      'Refuser',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                // Bouton Refuser
+                if (reservation.status == ReservationStatus.ACCEPTED ||
+                    reservation.status == ReservationStatus.PENDDING)
+                  Expanded(
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        // Action pour refuser la réservation
+                        Navigator.pop(context, 2);
+                      },
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      label: const Text(
+                        'Refuser',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
             ),
           ),
@@ -349,6 +357,7 @@ class ReservationDetailModal extends StatelessWidget {
     );
   }
 }
+
 /*
 // Fonction pour afficher le modal
 void showReservationDetailModal(

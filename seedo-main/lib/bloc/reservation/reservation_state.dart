@@ -2,6 +2,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:seddoapp/models/Reservation.dart';
 
+import '../../models/ReservationModel.dart';
+
 abstract class ReservationState extends Equatable {
   const ReservationState();
 
@@ -34,7 +36,7 @@ class ReservationUpdating extends ReservationState {
 
 // États de succès
 class ReservationsLoaded extends ReservationState {
-  final List<Reservation> reservations;
+  final List<ReservationModel> reservations;
   final int? mealId;
   final int? userId;
 
@@ -48,7 +50,7 @@ class ReservationsLoaded extends ReservationState {
   List<Object?> get props => [reservations, mealId, userId];
 
   ReservationsLoaded copyWith({
-    List<Reservation>? reservations,
+    List<ReservationModel>? reservations,
     int? mealId,
     int? userId,
   }) {

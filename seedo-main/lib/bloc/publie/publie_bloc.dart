@@ -187,6 +187,8 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       final date = state.availability;
       final price = state.price;
       final pricing = state.selectedPricing;
+      final call = state.telephone;
+
 
       if (latitude == 0 || longitude == 0) {
         emit(
@@ -253,6 +255,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
         emergency: false,
         days: pricing.days,
         pricingId: pricing.id,
+        call:call
       );
 
       if (pricing.price != 0.0 && response != null) {
@@ -384,9 +387,10 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
       // Prendre la photo avec des paramètres plus conservateurs
       final XFile? image = await picker.pickImage(
         source: ImageSource.camera,
-        imageQuality:
-            70, // Réduire la qualité pour éviter les problèmes de mémoire
-        maxWidth: 1024, // Réduire la taille maximale
+        imageQuality: 70,
+        // Réduire la qualité pour éviter les problèmes de mémoire
+        maxWidth: 1024,
+        // Réduire la taille maximale
         maxHeight: 1024,
         preferredCameraDevice: CameraDevice.rear,
       );
@@ -496,7 +500,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
               "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
           apiKey: "",
           useGoogleSearch: false,
-            appVersionList: []
+          appVersionList: [],
         );
       }
     } catch (e) {
@@ -510,7 +514,7 @@ class PublicationBloc extends Bloc<PublicationEvent, PublicationState> {
             "https://play.google.com/store/apps/details?id=com.wakana.seddo&hl=ln",
         apiKey: "",
         useGoogleSearch: false,
-          appVersionList: []
+        appVersionList: [],
       );
     }
   }

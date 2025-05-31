@@ -18,6 +18,10 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     on<CancelReservation>(_onCancelReservation);
     on<RefreshReservations>(_onRefreshReservations);
     on<ResetReservationState>(_onResetReservationState);
+
+
+
+
   }
 
   // Handler pour charger les réservations par repas
@@ -49,6 +53,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     try {
       final reservations = await _reservationRepository.getUserReservations(
         event.userId,
+        event.status
       );
       emit(
         ReservationsLoaded(reservations: reservations, userId: event.userId),
@@ -165,7 +170,7 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
       if (currentState.mealId != null) {
         add(LoadReservationsByMeal(currentState.mealId!));
       } else if (currentState.userId != null) {
-        add(LoadUserReservations(currentState.userId!));
+       /// add(LoadUserReservations(currentState.userId!,event.stat));
       }
     }
   }
@@ -183,8 +188,8 @@ class ReservationBloc extends Bloc<ReservationEvent, ReservationState> {
     add(LoadReservationsByMeal(mealId));
   }
 
-  void loadUserReservations(int userId) {
-    add(LoadUserReservations(userId));
+  void loadUserReservations(int userId,String status) {
+    add(LoadUserReservations(userId,status));
   }
 
   void createReservation({

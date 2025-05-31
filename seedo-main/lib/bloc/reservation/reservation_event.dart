@@ -20,8 +20,9 @@ class LoadReservationsByMeal extends ReservationEvent {
 
 class LoadUserReservations extends ReservationEvent {
   final int userId;
+  final String status;
 
-  const LoadUserReservations(this.userId);
+  const LoadUserReservations(this.userId,this.status);
 
   @override
   List<Object?> get props => [userId];

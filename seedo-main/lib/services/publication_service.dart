@@ -146,6 +146,7 @@ class PublicationService {
     bool emergency = false,
     required int days,
     required int pricingId,
+    required String call,
   }) async {
     try {
       FormData formData = FormData();
@@ -197,6 +198,7 @@ class PublicationService {
         MapEntry("emergency", emergency.toString()),
         MapEntry("days", days.toString()),
         MapEntry("pricingId", pricingId.toString()),
+        MapEntry("call", call.toString()),
       ]);
 
       final response = await _dio.post("meals/add", data: formData);

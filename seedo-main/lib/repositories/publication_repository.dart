@@ -116,6 +116,7 @@ class PublicationRepository {
     required bool emergency,
     required int days,
     required int pricingId,
+    required String call,
 
     bool available = true,
     bool universel = false,
@@ -137,6 +138,7 @@ class PublicationRepository {
         audio: audio,
         days: days,
         pricingId: pricingId,
+        call:call
       );
     } catch (e) {
       print('Erreur lors de la publication : $e');

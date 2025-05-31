@@ -25,13 +25,14 @@ class AppParamModel {
   });
 
   factory AppParamModel.fromJson(Map<String, dynamic> map) {
-    final bool platformHideAds = true;
-    
-    
-    /*Platform.isIOS
+    final bool platformHideAds = true;/*Platform.isIOS
         ? (map['hideAdsIos'] ?? false)
         : (map['hideAds'] ?? false);*/
 
+    print("platformHideAds");
+    print( platformHideAds);
+    print(map['hideAds']);
+    print( Platform.isIOS);
 
     return AppParamModel(
       id: map['id'],

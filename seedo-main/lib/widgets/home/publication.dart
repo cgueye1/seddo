@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:seddoapp/bloc/home/home_bloc.dart';
 import 'package:seddoapp/models/publication_model.dart';
 import 'package:seddoapp/pages/reservation.dart';
@@ -32,8 +33,10 @@ class PublicationCard extends StatelessWidget {
 
   });
 
+
   @override
   Widget build(BuildContext context) {
+    final formatCFA = NumberFormat.currency(locale: 'fr_FR', symbol: '', decimalDigits: 0);
     return GestureDetector(
       onTap: () {
         // Navigation vers la page de détail de la publication sélectionnée
@@ -130,7 +133,11 @@ class PublicationCard extends StatelessWidget {
 
                   // Publié il y'a x mins
                   Text(
-                    getTimeAgo(item.createdDate),
+
+                    item.price == 0
+                        ? "Gratuit"
+                        : "${formatCFA.format(item.price)} CFA",
+                 //   getTimeAgo(item.createdDate),
                     style: const TextStyle(
                       fontSize: 8,
                       fontWeight: FontWeight.w400,
